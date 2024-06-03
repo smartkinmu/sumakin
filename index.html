@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スマ勤PWA</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #eaeaea;
+            color: #333;
+        }
+        .app-header {
+            background-color: black; /* ここを変更 */
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+        .container {
+            padding: 20px;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            flex: 1;
+            font-size: 1.2em;
+        }
+        .input-group input {
+            flex: 1;
+            font-size: 1.2em;
+            padding: 10px;
+            margin-left: 10px;
+            box-sizing: border-box;
+        }
+        input[type="number"] {
+            flex: 1;
+        }
+        button {
+            padding: 15px;
+            font-size: 1.5em;
+            margin-top: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: black; /* ここを変更 */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #3a4d57;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2em;
+            line-height: 1.5;
+        }
+        #refresh-indicator {
+            display: none;
+            text-align: center;
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #4b636e;
+        }
+        /* スワイプ領域の背景色を黒にする */
+        html, body {
+            background-color: #eaeaea;
+            overscroll-behavior: contain;
+        }
+        #refresh-indicator {
+            background-color: black;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-header">
+        スマ勤
+    </div>
+
+    <div class="container">
+        <div id="refresh-indicator">更新中...</div>
+        <div class="input-group">
+            <label for="email">宛先メールアドレス:</label>
+            <input type="email" id="email" name="email" value="mail@address.com">
+        </div>
+        <div class="input-group">
+            <label for="date">日付を選択してください:</label>
+            <input type="date" id="date" name="date" pattern="\d{4}-\d{2}-\d{2}">
+        </div>
+
+        <div class="input-group">
+            <label for="start-time">始業時刻を選択してください:</label>
+            <input type="time" id="start-time" name="start-time">
+        </div>
+
+        <div class="input-group">
+            <label for="end-time">終業時刻を選択してください:</label>
+            <input type="time" id="end-time" name="end-time">
+        </div>
+
+        <!-- 5グループの入力ボックス -->
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number1">業務1:</label>
+                <input type="text" id="task-number1" name="task-number1">
+            </div>
+            <div class="input-group">
+                <label for="category1">分類1:</label>
+                <input type="text" id="category1" name="category1">
+            </div>
+            <div class="input-group">
+                <label for="task-hours1">工数1:</label>
+                <input type="number" id="task-hours1" name="task-hours1" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title1">備考1:</label>
+                <input type="text" id="title1" name="title1">
+            </div>
+        </div>
+        
+        <!-- 同様に、他の4グループを追加 -->
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number2">業務2:</label>
+                <input type="text" id="task-number2" name="task-number2">
+            </div>
+            <div class="input-group">
+                <label for="category2">分類2:</label>
+                <input type="text" id="category2" name="category2">
+            </div>
+            <div class="input-group">
+                <label for="task-hours2">工数2:</label>
+                <input type="number" id="task-hours2" name="task-hours2" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title2">備考2:</label>
+                <input type="text" id="title2" name="title2">
+            </div>
+        </div>
+
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number3">業務3:</label>
+                <input type="text" id="task-number3" name="task-number3">
+            </div>
+            <div class="input-group">
+                <label for="category3">分類3:</label>
+                <input type="text" id="category3" name="category3">
+            </div>
+            <div class="input-group">
+                <label for="task-hours3">工数3:</label>
+                <input type="number" id="task-hours3" name="task-hours3" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title3">備考3:</label>
+                <input type="text" id="title3" name="title3">
+            </div>
+        </div>
+
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number4">業務4:</label>
+                <input type="text" id="task-number4" name="task-number4">
+            </div>
+            <div class="input-group">
+                <label for="category4">分類4:</label>
+                <input type="text" id="category4" name="category4">
+            </div>
+            <div class="input-group">
+                <label for="task-hours4">工数4:</label>
+                <input type="number" id="task-hours4" name="task-hours4" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title4">備考4:</label>
+                <input type="text" id="title4" name="title4">
+            </div>
+        </div>
+
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number5">業務5:</label>
+                <input type="text" id="task-number5" name="task-number5">
+            </div>
+            <div class="input-group">
+                <label for="category5">分類5:</label>
+                <input type="text" id="category5" name="category5">
+            </div>
+            <div class="input-group">
+                <label for="task-hours5">工数5:</label>
+                <input type="number" id="task-hours5" name="task-hours5" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title5">備考5:</label>
+                <input type="text" id="title5" name="title5">
+            </div>
+        </div>
+
+        <button id="submit-button">入力チェック</button>
+        <button id="email-button">メールを作成</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(function(registration) {
+                    console.log('Service Worker 登録成功:', registration);
+                })
+                .catch(function(error) {
+                    console.log('Service Worker 登録失敗:', error);
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const emailInput = document.getElementById('email');
+            const dateInput = document.getElementById('date');
+            const startTimeInput = document.getElementById('start-time');
+            const endTimeInput = document.getElementById('end-time');
+            const resultDiv = document.getElementById('result');
+            const submitButton = document.getElementById('submit-button');
+            const emailButton = document.getElementById('email-button');
+            const refreshIndicator = document.getElementById('refresh-indicator');
+
+            // 曜日を取得する関数
+            function getDayOfWeek(dateString) {
+                const days = ['日', '月', '火', '水', '木', '金', '土'];
+                const date = new Date(dateString);
+                return days[date.getDay()];
+            }
+
+            // デフォルト値を現在の日時に設定
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            dateInput.value = today;
+            startTimeInput.value = "08:30";  // 出勤時刻のデフォルトを8:30に設定
+            endTimeInput.value = "17:15";    // 退勤時刻のデフォルトを17:15に設定
+
+            // ロード時にメールアドレスを保存から取得
+            emailInput.value = localStorage.getItem('email') || 'mail@address.com';
+
+            function calculateWorkingHours(startTime, endTime) {
+                const start = new Date(`1970-01-01T${startTime}:00`);
+                const end = new Date(`1970-01-01T${endTime}:00`);
+
+                let totalMinutes = (end - start) / (1000 * 60);
+
+                // 休憩時間を除外
+                const breaks = [
+                    { start: "11:45", end: "12:45" },
+                    { start: "19:15", end: "19:45" }
+                ];
+
+                breaks.forEach(b => {
+                    const breakStart = new Date(`1970-01-01T${b.start}:00`);
+                    const breakEnd = new Date(`1970-01-01T${b.end}:00`);
+                    if (start < breakEnd && end > breakStart) {
+                        const overlapStart = start < breakStart ? breakStart : start;
+                        const overlapEnd = end > breakEnd ? breakEnd : end;
+                        totalMinutes -= (overlapEnd - overlapStart) / (1000 * 60);
+                    }
+                });
+
+                return (totalMinutes / 60).toFixed(2);
+            }
+
+            function calculateTotalTaskHours() {
+                let totalTaskHours = 0;
+                for (let i = 1; i <= 5; i++) {
+                    const taskHours = parseFloat(document.getElementById(`task-hours${i}`).value) || 0;
+                    totalTaskHours += taskHours;
+                }
+                return totalTaskHours;
+            }
+
+            function saveTaskData() {
+                for (let i = 1; i <= 5; i++) {
+                    localStorage.setItem(`title${i}`, document.getElementById(`title${i}`).value);
+                    localStorage.setItem(`task-number${i}`, document.getElementById(`task-number${i}`).value);
+                    localStorage.setItem(`category${i}`, document.getElementById(`category${i}`).value);
+                }
+                localStorage.setItem('email', emailInput.value);
+            }
+
+            function loadTaskData() {
+                for (let i = 1; i <= 5; i++) {
+                    document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || '';
+                    document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || '';
+                    document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
+                }
+            }
+
+            submitButton.addEventListener('click', function() {
+                const selectedDate = dateInput.value;
+                const selectedDayOfWeek = getDayOfWeek(selectedDate);  // 曜日を取得
+                const selectedStartTime = startTimeInput.value;
+                const selectedEndTime = endTimeInput.value;
+
+                const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+                let totalTaskHours = calculateTotalTaskHours();
+
+                let lastEmptyTaskHoursIndex = -1;
+                for (let i = 1; i <= 5; i++) {
+                    const taskNumber = document.getElementById(`task-number${i}`).value;
+                    const taskHours = document.getElementById(`task-hours${i}`).value;
+                    const category = document.getElementById(`category${i}`).value;
+                    if (taskNumber && !taskHours) {
+                        lastEmptyTaskHoursIndex = i;
+                    }
+                    if (category && category.length !== 5) {
+                        alert(`分類${i}は5文字でなければなりません。`);
+                        return;
+                    }
+                }
+
+                if (lastEmptyTaskHoursIndex !== -1) {
+                    let taskHours = workingHours - totalTaskHours;
+                    if (taskHours < 0) {
+                        taskHours = 0;
+                    }
+                    document.getElementById(`task-hours${lastEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
+                    totalTaskHours = calculateTotalTaskHours(); // 更新されたtask-hoursの値を反映
+                    alert(`勤務時間と合計工数に差分がありました。自動的に調整しました。調整した場所は業務${lastEmptyTaskHoursIndex}です。`);
+                }
+
+                if (Math.abs(workingHours - totalTaskHours) > 0.01) {
+                    alert("勤務時間と入力時間に差異があります");
+                    return;
+                }
+
+                resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間</p><p>合計工数: ${totalTaskHours.toFixed(2)} 時間</p>`;
+
+                saveTaskData();
+            });
+
+            emailButton.addEventListener('click', function() {
+                const email = emailInput.value;
+                const selectedDate = dateInput.value;
+                const selectedDayOfWeek = getDayOfWeek(selectedDate);  // 曜日を取得
+                const selectedStartTime = startTimeInput.value;
+                const selectedEndTime = endTimeInput.value;
+                const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+                const totalTaskHours = calculateTotalTaskHours();
+
+                const subject = "スマ勤";
+                let body = `@基本\n日付 ${selectedDate}\n始業 ${selectedStartTime}\n終業 ${selectedEndTime}\n`;
+
+                for (let i = 1; i <= 5; i++) {
+                    const taskNumber = document.getElementById(`task-number${i}`).value;
+                    const category = document.getElementById(`category${i}`).value;
+                    let taskHours = document.getElementById(`task-hours${i}`).value;
+                    const title = document.getElementById(`title${i}`).value;
+                    if (category && !taskHours) {
+                        taskHours = '0';
+                    }
+                    if (taskNumber || category || taskHours || title) {
+                        const taskHoursConverted = parseFloat(taskHours).toFixed(2);
+                        body += `\n@業務\n業務 ${taskNumber}\n分類 ${category}\n工数 ${taskHoursConverted}\n備考 ${title}\n`;
+                    }
+                }
+
+                const now = new Date();
+                const selectedDateObj = new Date(selectedDate);
+
+                if (selectedDateObj < now.setHours(0, 0, 0, 0)) {
+                    if (confirm("過去の日付が指定されています。続行しますか？")) {
+                        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                    } else {
+                        return;
+                    }
+                } else {
+                    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                }
+            });
+
+            // Pull-to-Refresh機能の追加
+            let startY;
+            let isRefreshing = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].pageY;
+                }
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                const y = e.touches[0].pageY;
+                if (window.scrollY === 0 && y > startY + 50 && !isRefreshing) {
+                    isRefreshing = true;
+                    refreshIndicator.style.display = 'block';
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500); // 1.5秒後にリロード
+                }
+            });
+
+            window.addEventListener('touchend', () => {
+                isRefreshing = false;
+                refreshIndicator.style.display = 'none';
+            });
+
+            let deferredPrompt;
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+            });
+
+            window.addEventListener('load', () => {
+                if ('serviceWorker' in navigator && 'SyncManager' in window) {
+                    navigator.serviceWorker.ready.then(function(sw) {
+                        return sw.sync.register('sync');
+                    });
+                }
+                loadTaskData();
+            });
+
+            let refreshing;
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+                if (refreshing) return;
+                window.location.reload();
+                refreshing = true;
+            });
+        });
+    </script>
+</body>
+</html>
