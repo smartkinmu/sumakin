@@ -234,6 +234,7 @@
     </div>
 
     <script>
+        // Service Workerがサポートされているか確認し、登録を行う
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/service-worker.js')
                 .then(function(registration) {
@@ -245,6 +246,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // 各入力要素の取得
             const emailInput = document.getElementById('email');
             const dateInput = document.getElementById('date');
             const startTimeInput = document.getElementById('start-time');
@@ -254,20 +256,24 @@
             const emailButton = document.getElementById('email-button');
             const refreshIndicator = document.getElementById('refresh-indicator');
 
+            // 曜日を取得する関数
             function getDayOfWeek(dateString) {
                 const days = ['日', '月', '火', '水', '木', '金', '土'];
                 const date = new Date(dateString);
                 return days[date.getDay()];
             }
 
+            // 今日の日付をデフォルト値として設定
             const now = new Date();
             const today = now.toISOString().split('T')[0];
             dateInput.value = today;
             startTimeInput.value = "08:30";
             endTimeInput.value = "17:15";
 
+            // メールアドレスのデフォルト値を設定（ローカルストレージから取得）
             emailInput.value = localStorage.getItem('email') || 'mail@address.com';
 
+            // 勤務時間を計算する関数
             function calculateWorkingHours(startTime, endTime) {
                 const start = new Date(`1970-01-01T${startTime}:00`);
                 const end = new Date(`1970-01-01T${endTime}:00`);
@@ -279,6 +285,7 @@
                     { start: "19:15", end: "19:45" }
                 ];
 
+                // 休憩時間を差し引く処理
                 breaks.forEach(b => {
                     const breakStart = new Date(`1970-01-01T${b.start}:00`);
                     const breakEnd = new Date(`1970-01-01T${b.end}:00`);
@@ -292,6 +299,7 @@
                 return (totalMinutes / 60).toFixed(2);
             }
 
+            // 合計工数を計算する関数
             function calculateTotalTaskHours() {
                 let totalTaskHours = 0;
                 for (let i = 1; i <= 6; i++) {
@@ -301,6 +309,7 @@
                 return totalTaskHours;
             }
 
+            // 業務データを保存する関数
             function saveTaskData() {
                 for (let i = 1; i <= 6; i++) {
                     localStorage.setItem(`title${i}`, document.getElementById(`title${i}`).value);
@@ -310,6 +319,7 @@
                 localStorage.setItem('email', emailInput.value);
             }
 
+            // 業務データをロードする関数
             function loadTaskData() {
                 for (let i = 1; i <= 6; i++) {
                     document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || '';
@@ -318,6 +328,7 @@
                 }
             }
 
+            // 入力チェックボタンのクリックイベントリスナー
             submitButton.addEventListener('click', function() {
                 const selectedDate = dateInput.value;
                 const selectedDayOfWeek = getDayOfWeek(selectedDate);
@@ -327,6 +338,7 @@
                 const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
                 let totalTaskHours = calculateTotalTaskHours();
 
+                // 空の工数フィールドを自動的に埋める処理
                 let firstEmptyTaskHoursIndex = -1;
                 for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
@@ -361,6 +373,7 @@
                 saveTaskData();
             });
 
+            // メール作成ボタンのクリックイベントリスナー
             emailButton.addEventListener('click', function() {
                 const email = emailInput.value;
                 const selectedDate = dateInput.value;
@@ -373,6 +386,7 @@
                 const subject = "スマ勤";
                 let body = `@基本\n日付 ${selectedDate}\n始業 ${selectedStartTime}\n終業 ${selectedEndTime}\n`;
 
+                // 業務情報をメール本文に追加
                 for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const category = document.getElementById(`category${i}`).value;
@@ -390,6 +404,7 @@
                 const now = new Date();
                 const selectedDateObj = new Date(selectedDate);
 
+                // 過去の日付が指定された場合の警告表示
                 if (selectedDateObj < now.setHours(0, 0, 0, 0)) {
                     if (confirm("過去の日付が指定されています。続行しますか？")) {
                         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -401,6 +416,7 @@
                 }
             });
 
+            // Pull-to-refreshの実装
             let startY;
             let isRefreshing = false;
 
@@ -426,12 +442,14 @@
                 refreshIndicator.style.display = 'none';
             });
 
+            // インストールプロンプトの処理
             let deferredPrompt;
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 deferredPrompt = e;
             });
 
+            // ページロード時の処理
             window.addEventListener('load', () => {
                 if ('serviceWorker' in navigator && 'SyncManager' in window) {
                     navigator.serviceWorker.ready.then(function(sw) {
@@ -441,6 +459,7 @@
                 loadTaskData();
             });
 
+            // サービスワーカーが変更された場合の処理
             let refreshing;
             navigator.serviceWorker.addEventListener('controllerchange', function() {
                 if (refreshing) return;
