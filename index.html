@@ -348,20 +348,12 @@
                     }
                     document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
                     totalTaskHours = calculateTotalTaskHours();
-                    alert(`勤務時間と合計工数に差分があり、自動的に調整しました。調整した場所は業務${firstEmptyTaskHoursIndex}です。`);
+                    alert(`勤務時間と合計工数の差異は、業務${firstEmptyTaskHoursIndex}に反映しました。`);
                 }
 
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
-                    alert("勤務時間と入力時間に差異があります");
+                    alert("勤務時間と入力時間に差異があります。");
                     return;
-                }
-
-                for (let i = 1; i <= 6; i++) {
-                    const taskNumber = document.getElementById(`task-number${i}`).value;
-                    if (taskNumber.length !== 10) {
-                        alert(`業務${i}は10文字でなければなりません。`);
-                        return;
-                    }
                 }
 
                 resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間</p><p>合計工数: ${totalTaskHours.toFixed(2)} 時間</p>`;
