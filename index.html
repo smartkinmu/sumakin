@@ -360,11 +360,11 @@
                     }
                     document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
                     totalTaskHours = calculateTotalTaskHours();
-                    alert(`勤務時間と入力工数の差異は、業務${firstEmptyTaskHoursIndex}に反映しました。`);
+                    alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映しました。`);
                 }
 
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
-                    alert("勤務時間と入力工数に差異があります。");
+                    alert("勤務時間と入力工数に差分があります。");
                     return;
                 }
 
