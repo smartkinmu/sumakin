@@ -299,7 +299,7 @@
                 return (totalMinutes / 60).toFixed(2);
             }
 
-            // 合計工数を計算する関数
+            // 入力工数を計算する関数
             function calculateTotalTaskHours() {
                 let totalTaskHours = 0;
                 for (let i = 1; i <= 6; i++) {
@@ -360,15 +360,15 @@
                     }
                     document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
                     totalTaskHours = calculateTotalTaskHours();
-                    alert(`勤務時間と合計工数の差異は、業務${firstEmptyTaskHoursIndex}に反映しました。`);
+                    alert(`勤務時間と入力工数の差異は、業務${firstEmptyTaskHoursIndex}に反映しました。`);
                 }
 
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
-                    alert("勤務時間と入力時間に差異があります。");
+                    alert("勤務時間と入力工数に差異があります。");
                     return;
                 }
 
-                resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間</p><p>合計工数: ${totalTaskHours.toFixed(2)} 時間</p>`;
+                resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間</p><p>入力工数: ${totalTaskHours.toFixed(2)} 時間</p>`;
 
                 saveTaskData();
             });
