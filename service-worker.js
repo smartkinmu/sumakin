@@ -38,6 +38,7 @@ self.addEventListener('fetch', function(event) {
     );
 });
 
+// クライアントからのメッセージを受け取るリスナー
 self.addEventListener('message', function(event) {
     if (event.data.action === 'close') {
         self.clients.matchAll().then(function(clients) {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>スマ勤PWA</title>
+    <title>スマ勤サポートアプリ</title>
     <link rel="manifest" href="/manifest.json">
     <style>
         body {
@@ -96,17 +96,15 @@
             <label for="date">日付を選択してください:</label>
             <input type="date" id="date" name="date" pattern="\d{4}-\d{2}-\d{2}">
         </div>
-
         <div class="input-group">
             <label for="start-time">始業時刻を選択してください:</label>
             <input type="time" id="start-time" name="start-time">
         </div>
-
         <div class="input-group">
             <label for="end-time">終業時刻を選択してください:</label>
             <input type="time" id="end-time" name="end-time">
         </div>
-
+        
         <!-- 6グループの入力ボックス -->
         <div class="task-group">
             <div class="input-group">
@@ -126,7 +124,7 @@
                 <input type="text" id="title1" name="title1">
             </div>
         </div>
-        
+        <!-- 各業務グループの間に区切り線 -->
         <hr>
         <div class="task-group">
             <div class="input-group">
@@ -146,7 +144,6 @@
                 <input type="text" id="title2" name="title2">
             </div>
         </div>
-
         <hr>
         <div class="task-group">
             <div class="input-group">
@@ -166,7 +163,6 @@
                 <input type="text" id="title3" name="title3">
             </div>
         </div>
-
         <hr>
         <div class="task-group">
             <div class="input-group">
@@ -186,7 +182,6 @@
                 <input type="text" id="title4" name="title4">
             </div>
         </div>
-
         <hr>
         <div class="task-group">
             <div class="input-group">
@@ -206,7 +201,6 @@
                 <input type="text" id="title5" name="title5">
             </div>
         </div>
-
         <hr>
         <div class="task-group">
             <div class="input-group">
@@ -226,13 +220,10 @@
                 <input type="text" id="title6" name="title6">
             </div>
         </div>
-
         <button id="submit-button">入力チェック</button>
         <button id="email-button">メールを作成</button>
-
         <div id="result" class="result"></div>
     </div>
-
     <script>
         // Service Workerがサポートされているか確認し、登録を行う
         if ('serviceWorker' in navigator) {
@@ -246,7 +237,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // 各入力要素の取得
             const emailInput = document.getElementById('email');
             const dateInput = document.getElementById('date');
             const startTimeInput = document.getElementById('start-time');
@@ -277,7 +267,6 @@
             function calculateWorkingHours(startTime, endTime) {
                 const start = new Date(`1970-01-01T${startTime}:00`);
                 const end = new Date(`1970-01-01T${endTime}:00`);
-
                 let totalMinutes = (end - start) / (1000 * 60);
 
                 const breaks = [
@@ -334,7 +323,6 @@
                 const selectedDayOfWeek = getDayOfWeek(selectedDate);
                 const selectedStartTime = startTimeInput.value;
                 const selectedEndTime = endTimeInput.value;
-
                 const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
                 let totalTaskHours = calculateTotalTaskHours();
 
@@ -369,7 +357,6 @@
                 }
 
                 resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間</p><p>入力工数: ${totalTaskHours.toFixed(2)} 時間</p>`;
-
                 saveTaskData();
             });
 
