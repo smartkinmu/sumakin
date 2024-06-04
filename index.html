@@ -14,7 +14,7 @@
             color: #333;
         }
         .app-header {
-            background-color: #333; /* ここを変更 */
+            background-color: #333;
             color: white;
             padding: 20px;
             text-align: center;
@@ -48,7 +48,7 @@
             margin-top: 20px;
             width: 100%;
             box-sizing: border-box;
-            background-color: #333; /* ここを変更 */
+            background-color: #333;
             color: white;
             border: none;
             border-radius: 5px;
@@ -69,7 +69,6 @@
             margin-top: 10px;
             color: #4b636e;
         }
-        /* スワイプ領域の背景色を黒にする */
         html, body {
             background-color: #eaeaea;
             overscroll-behavior: contain;
@@ -156,7 +155,7 @@
             </div>
             <div class="input-group">
                 <label for="category3">分類3:</label>
-                <input type="text id="category3" name="category3">
+                <input type="text" id="category3" name="category3">
             </div>
             <div class="input-group">
                 <label for="task-hours3">工数3:</label>
@@ -255,21 +254,18 @@
             const emailButton = document.getElementById('email-button');
             const refreshIndicator = document.getElementById('refresh-indicator');
 
-            // 曜日を取得する関数
             function getDayOfWeek(dateString) {
                 const days = ['日', '月', '火', '水', '木', '金', '土'];
                 const date = new Date(dateString);
                 return days[date.getDay()];
             }
 
-            // デフォルト値を現在の日時に設定
             const now = new Date();
             const today = now.toISOString().split('T')[0];
             dateInput.value = today;
-            startTimeInput.value = "08:30";  // 出勤時刻のデフォルトを8:30に設定
-            endTimeInput.value = "17:15";    // 退勤時刻のデフォルトを17:15に設定
+            startTimeInput.value = "08:30";
+            endTimeInput.value = "17:15";
 
-            // ロード時にメールアドレスを保存から取得
             emailInput.value = localStorage.getItem('email') || 'mail@address.com';
 
             function calculateWorkingHours(startTime, endTime) {
@@ -278,7 +274,6 @@
 
                 let totalMinutes = (end - start) / (1000 * 60);
 
-                // 休憩時間を除外
                 const breaks = [
                     { start: "11:45", end: "12:45" },
                     { start: "19:15", end: "19:45" }
@@ -325,20 +320,20 @@
 
             submitButton.addEventListener('click', function() {
                 const selectedDate = dateInput.value;
-                const selectedDayOfWeek = getDayOfWeek(selectedDate);  // 曜日を取得
+                const selectedDayOfWeek = getDayOfWeek(selectedDate);
                 const selectedStartTime = startTimeInput.value;
                 const selectedEndTime = endTimeInput.value;
 
                 const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
                 let totalTaskHours = calculateTotalTaskHours();
 
-                let lastEmptyTaskHoursIndex = -1;
+                let firstEmptyTaskHoursIndex = -1;
                 for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const taskHours = document.getElementById(`task-hours${i}`).value;
                     const category = document.getElementById(`category${i}`).value;
-                    if (taskNumber && !taskHours) {
-                        lastEmptyTaskHoursIndex = i;
+                    if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
+                        firstEmptyTaskHoursIndex = i;
                     }
                     if (category && category.length !== 5) {
                         alert(`分類${i}は5文字でなければなりません。`);
@@ -346,14 +341,14 @@
                     }
                 }
 
-                if (lastEmptyTaskHoursIndex !== -1) {
+                if (firstEmptyTaskHoursIndex !== -1) {
                     let taskHours = workingHours - totalTaskHours;
                     if (taskHours < 0) {
                         taskHours = 0;
                     }
-                    document.getElementById(`task-hours${lastEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
-                    totalTaskHours = calculateTotalTaskHours(); // 更新されたtask-hoursの値を反映
-                    alert(`勤務時間と合計工数に差分があり、自動的に調整しました。調整した場所は業務${lastEmptyTaskHoursIndex}です。`);
+                    document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
+                    totalTaskHours = calculateTotalTaskHours();
+                    alert(`勤務時間と合計工数に差分があり、自動的に調整しました。調整した場所は業務${firstEmptyTaskHoursIndex}です。`);
                 }
 
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
@@ -377,7 +372,7 @@
             emailButton.addEventListener('click', function() {
                 const email = emailInput.value;
                 const selectedDate = dateInput.value;
-                const selectedDayOfWeek = getDayOfWeek(selectedDate);  // 曜日を取得
+                const selectedDayOfWeek = getDayOfWeek(selectedDate);
                 const selectedStartTime = startTimeInput.value;
                 const selectedEndTime = endTimeInput.value;
                 const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
@@ -414,7 +409,6 @@
                 }
             });
 
-            // Pull-to-Refresh機能の追加
             let startY;
             let isRefreshing = false;
 
@@ -431,7 +425,7 @@
                     refreshIndicator.style.display = 'block';
                     setTimeout(() => {
                         location.reload();
-                    }, 1500); // 1.5秒後にリロード
+                    }, 1500);
                 }
             });
 
