@@ -14,7 +14,7 @@
             color: #333;
         }
         .app-header {
-            background-color: black; /* ここを変更 */
+            background-color: #333; /* ここを変更 */
             color: white;
             padding: 20px;
             text-align: center;
@@ -48,7 +48,7 @@
             margin-top: 20px;
             width: 100%;
             box-sizing: border-box;
-            background-color: black; /* ここを変更 */
+            background-color: #333; /* ここを変更 */
             color: white;
             border: none;
             border-radius: 5px;
@@ -75,7 +75,7 @@
             overscroll-behavior: contain;
         }
         #refresh-indicator {
-            background-color: black;
+            background-color: #333;
             color: white;
         }
     </style>
@@ -334,12 +334,20 @@
                     }
                     document.getElementById(`task-hours${lastEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
                     totalTaskHours = calculateTotalTaskHours(); // 更新されたtask-hoursの値を反映
-                    alert(`勤務時間と合計工数に差分がありました。自動的に調整しました。調整した場所は業務${lastEmptyTaskHoursIndex}です。`);
+                    alert(`勤務時間と合計工数に差分があり、自動的に調整しました。調整した場所は業務${lastEmptyTaskHoursIndex}です。`);
                 }
 
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
                     alert("勤務時間と入力時間に差異があります");
                     return;
+                }
+
+                for (let i = 1; i <= 5; i++) {
+                    const taskNumber = document.getElementById(`task-number${i}`).value;
+                    if (taskNumber.length !== 10) {
+                        alert(`業務${i}は10文字でなければなりません。`);
+                        return;
+                    }
                 }
 
                 resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間</p><p>合計工数: ${totalTaskHours.toFixed(2)} 時間</p>`;
