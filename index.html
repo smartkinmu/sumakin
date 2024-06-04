@@ -108,7 +108,7 @@
             <input type="time" id="end-time" name="end-time">
         </div>
 
-        <!-- 5グループの入力ボックス -->
+        <!-- 6グループの入力ボックス -->
         <div class="task-group">
             <div class="input-group">
                 <label for="task-number1">業務1:</label>
@@ -128,7 +128,6 @@
             </div>
         </div>
         
-        <!-- 同様に、他の4グループを追加 -->
         <hr>
         <div class="task-group">
             <div class="input-group">
@@ -157,7 +156,7 @@
             </div>
             <div class="input-group">
                 <label for="category3">分類3:</label>
-                <input type="text" id="category3" name="category3">
+                <input type="text id="category3" name="category3">
             </div>
             <div class="input-group">
                 <label for="task-hours3">工数3:</label>
@@ -206,6 +205,26 @@
             <div class="input-group">
                 <label for="title5">備考5:</label>
                 <input type="text" id="title5" name="title5">
+            </div>
+        </div>
+
+        <hr>
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number6">業務6:</label>
+                <input type="text" id="task-number6" name="task-number6">
+            </div>
+            <div class="input-group">
+                <label for="category6">分類6:</label>
+                <input type="text" id="category6" name="category6">
+            </div>
+            <div class="input-group">
+                <label for="task-hours6">工数6:</label>
+                <input type="number" id="task-hours6" name="task-hours6" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title6">備考6:</label>
+                <input type="text" id="title6" name="title6">
             </div>
         </div>
 
@@ -280,7 +299,7 @@
 
             function calculateTotalTaskHours() {
                 let totalTaskHours = 0;
-                for (let i = 1; i <= 5; i++) {
+                for (let i = 1; i <= 6; i++) {
                     const taskHours = parseFloat(document.getElementById(`task-hours${i}`).value) || 0;
                     totalTaskHours += taskHours;
                 }
@@ -288,7 +307,7 @@
             }
 
             function saveTaskData() {
-                for (let i = 1; i <= 5; i++) {
+                for (let i = 1; i <= 6; i++) {
                     localStorage.setItem(`title${i}`, document.getElementById(`title${i}`).value);
                     localStorage.setItem(`task-number${i}`, document.getElementById(`task-number${i}`).value);
                     localStorage.setItem(`category${i}`, document.getElementById(`category${i}`).value);
@@ -297,7 +316,7 @@
             }
 
             function loadTaskData() {
-                for (let i = 1; i <= 5; i++) {
+                for (let i = 1; i <= 6; i++) {
                     document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || '';
                     document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || '';
                     document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
@@ -314,7 +333,7 @@
                 let totalTaskHours = calculateTotalTaskHours();
 
                 let lastEmptyTaskHoursIndex = -1;
-                for (let i = 1; i <= 5; i++) {
+                for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const taskHours = document.getElementById(`task-hours${i}`).value;
                     const category = document.getElementById(`category${i}`).value;
@@ -342,7 +361,7 @@
                     return;
                 }
 
-                for (let i = 1; i <= 5; i++) {
+                for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     if (taskNumber.length !== 10) {
                         alert(`業務${i}は10文字でなければなりません。`);
@@ -367,7 +386,7 @@
                 const subject = "スマ勤";
                 let body = `@基本\n日付 ${selectedDate}\n始業 ${selectedStartTime}\n終業 ${selectedEndTime}\n`;
 
-                for (let i = 1; i <= 5; i++) {
+                for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const category = document.getElementById(`category${i}`).value;
                     let taskHours = document.getElementById(`task-hours${i}`).value;
