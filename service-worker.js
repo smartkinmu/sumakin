@@ -6,8 +6,8 @@ self.addEventListener('install', function(event) {
                 '/index.html',
                 '/manifest.json',
                 '/service-worker.js',
-                '/sumakin/icon-192x192.png',
-                '/sumakin/icon-512x512.png'
+                '/icon-192x192.png',
+                '/icon-512x512.png'
             ]);
         })
     );
