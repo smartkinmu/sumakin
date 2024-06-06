@@ -393,7 +393,6 @@
                 const subject = "スマ勤";
                 let body = `@基本\n日付 ${selectedDate}\n始業 ${selectedStartTime}\n終業 ${selectedEndTime}\n`;
 
-                // 業務情報をメール本文に追加
                 for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const category = document.getElementById(`category${i}`).value;
@@ -411,15 +410,14 @@
                 const now = new Date();
                 const selectedDateObj = new Date(selectedDate);
 
-                // 過去の日付が指定された場合の警告表示
                 if (selectedDateObj < now.setHours(0, 0, 0, 0)) {
                     if (confirm("過去の日付が指定されています。続行しますか？")) {
-                        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/\n/g, '%0D%0A'))}`;
                     } else {
                         return;
                     }
                 } else {
-                    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body.replace(/\n/g, '%0D%0A'))}`;
                 }
             });
 
