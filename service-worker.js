@@ -6,8 +6,8 @@ self.addEventListener('install', function(event) {
                 '/index.html',
                 '/manifest.json',
                 '/service-worker.js',
-                'https://smartkinmu.github.io/sumakin/icon-192x192.png',
-                'https://smartkinmu.github.io/sumakin/icon-512x512.png'
+                '/icon-192x192.png',
+                '/icon-512x512.png'
             ]);
         })
     );
