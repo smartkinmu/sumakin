@@ -274,11 +274,42 @@
             }
 
             // 今日の日付をデフォルト値として設定
-            const now = new Date();
-            const today = now.toISOString().split('T')[0];
-            dateInput.value = today;
-            startTimeInput.value = "08:30";
-            endTimeInput.value = "17:15";
+            function setTodayDate() {
+                const now = new Date();
+                const today = now.toISOString().split('T')[0];
+                dateInput.value = today;
+                startTimeInput.value = "08:30";
+                endTimeInput.value = "17:15";
+            }
+
+            setTodayDate();
+
+            // Pull-to-refreshの実装
+            let startY;
+            let isRefreshing = false;
+
+            window.addEventListener('touchstart', (e) => {
+                if (window.scrollY === 0) {
+                    startY = e.touches[0].pageY;
+                }
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                const y = e.touches[0].pageY;
+                if (window.scrollY === 0 && y > startY + 50 && !isRefreshing) {
+                    isRefreshing = true;
+                    refreshIndicator.style.display = 'block';
+                    setTimeout(() => {
+                        location.reload();
+                        setTodayDate(); // リフレッシュ時に日付を更新
+                    }, 1500);
+                }
+            });
+
+            window.addEventListener('touchend', () => {
+                isRefreshing = false;
+                refreshIndicator.style.display = 'none';
+            });
 
             // メールアドレスのデフォルト値を設定（ローカルストレージから取得）
             emailInput.value = localStorage.getItem('email') || 'mail@address.com';
