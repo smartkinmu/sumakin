@@ -391,7 +391,7 @@
                 const totalTaskHours = calculateTotalTaskHours();
 
                 const subject = "スマ勤";
-                let body = `@基本\n\r日付 ${selectedDate}\n\r始業 ${selectedStartTime}\n\r終業 ${selectedEndTime}\n`;
+                let body = `@基本\n日付 ${selectedDate}\n始業 ${selectedStartTime}\n終業 ${selectedEndTime}\n`;
 
                 // 業務情報をメール本文に追加
                 for (let i = 1; i <= 6; i++) {
@@ -404,7 +404,7 @@
                     }
                     if (taskNumber || category || taskHours || title) {
                         const taskHoursConverted = parseFloat(taskHours).toFixed(2);
-                        body += `\n\r@業務\n業務 ${taskNumber}\n\r分類 ${category}\n\r工数 ${taskHoursConverted}\n\r備考 ${title}\n`;
+                        body += `\n@業務\n業務 ${taskNumber}\n分類 ${category}\n工数 ${taskHoursConverted}\n備考 ${title}\n`;
                     }
                 }
 
