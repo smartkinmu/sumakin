@@ -123,24 +123,6 @@
             <label for="end-time">終業時刻を選択してください:</label>
             <input type="time" id="end-time" name="end-time">
         </div>
-        <div class="input-group">
-            <label>改行コードを選択してください:</label>
-            <div>
-                <input type="radio" id="crlf" name="newline" value="CRLF" checked>
-                <label for="crlf">CRLF (Windows)</label>
-                <input type="radio" id="lf" name="newline" value="LF">
-                <label for="lf">LF (Unix/Mac)</label>
-            </div>
-        </div>
-        <div class="input-group">
-            <label>メール形式を選択してください:</label>
-            <div>
-                <input type="radio" id="plain" name="mailformat" value="plain" checked>
-                <label for="plain">メール1 (¥n)</label>
-                <input type="radio" id="encoded" name="mailformat" value="encoded">
-                <label for="encoded">メール2 (URLエンコード)</label>
-            </div>
-        </div>
         <hr>
         <!-- グループの入力ボックス -->
         <div class="task-group">
@@ -254,6 +236,25 @@
             <div class="input-group">
                 <label for="title6">備考6:</label>
                 <input type="text" id="title6" name="title6">
+            </div>
+        </div>
+        <hr>
+        <div class="input-group">
+            <label>改行コードを選択してください:</label>
+            <div>
+                <input type="radio" id="crlf" name="newline" value="CRLF" checked>
+                <label for="crlf">CRLF</label>
+                <input type="radio" id="lf" name="newline" value="LF">
+                <label for="lf">LF</label>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>メール形式を選択してください:</label>
+            <div>
+                <input type="radio" id="plain" name="mailformat" value="plain" checked>
+                <label for="plain">¥n</label>
+                <input type="radio" id="encoded" name="mailformat" value="encoded">
+                <label for="encoded">URLエンコード</label>
             </div>
         </div>
 
