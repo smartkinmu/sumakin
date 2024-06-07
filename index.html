@@ -336,6 +336,49 @@
                 }
             }
 
+            // 入力チェックボタンのクリックイベントリスナー
+            submitButton.addEventListener('click', function() {
+                const selectedDate = dateInput.value;
+                const selectedDayOfWeek = getDayOfWeek(selectedDate);
+                const selectedStartTime = startTimeInput.value;
+                const selectedEndTime = endTimeInput.value;
+                const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+                let totalTaskHours = calculateTotalTaskHours();
+
+                // 空の工数フィールドを自動的に埋める処理
+                let firstEmptyTaskHoursIndex = -1;
+                for (let i = 1; i <= 6; i++) {
+                    const taskNumber = document.getElementById(`task-number${i}`).value;
+                    const taskHours = document.getElementById(`task-hours${i}`).value;
+                    const category = document.getElementById(`category${i}`).value;
+                    if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
+                        firstEmptyTaskHoursIndex = i;
+                    }
+                    if (category && category.length !== 5) {
+                        alert(`分類${i}は5文字でなければなりません。`);
+                        return;
+                    }
+                }
+
+                if (firstEmptyTaskHoursIndex !== -1) {
+                    let taskHours = workingHours - totalTaskHours;
+                    if (taskHours < 0) {
+                        taskHours = 0;
+                    }
+                    document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
+                    totalTaskHours = calculateTotalTaskHours();
+                    alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
+                }
+
+                if (Math.abs(workingHours - totalTaskHours) > 0.01) {
+                    alert("勤務時間と入力工数に差分があります。");
+                    return;
+                }
+
+                resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間<br>入力工数 ${totalTaskHours.toFixed(2)} 時間</p>`;
+                saveTaskData();
+            });
+
             // メール作成ボタンのクリックイベントリスナー
             emailButton.addEventListener('click', function() {
                 const email = emailInput.value;
