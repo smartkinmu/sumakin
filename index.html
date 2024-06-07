@@ -123,8 +123,8 @@
             <label for="end-time">終業時刻を選択してください:</label>
             <input type="time" id="end-time" name="end-time">
         </div>
-        
-        <!-- 6グループの入力ボックス -->
+        <hr>
+        <!-- グループの入力ボックス -->
         <div class="task-group">
             <div class="input-group">
                 <label for="task-number1">業務1:</label>
@@ -143,7 +143,6 @@
                 <input type="text" id="title1" name="title1">
             </div>
         </div>
-        <!-- 各業務グループの間に区切り線 -->
         <hr>
         <div class="task-group">
             <div class="input-group">
@@ -368,7 +367,7 @@
                     }
                     document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
                     totalTaskHours = calculateTotalTaskHours();
-                    alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映しました。`);
+                    alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
                 }
 
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
