@@ -238,25 +238,6 @@
                 <input type="text" id="title6" name="title6">
             </div>
         </div>
-        <hr>
-        <div class="input-group">
-            <label>改行コードを選択してください:</label>
-            <div>
-                <input type="radio" id="crlf" name="newline" value="CRLF" checked>
-                <label for="crlf">CRLF</label>
-                <input type="radio" id="lf" name="newline" value="LF">
-                <label for="lf">LF</label>
-            </div>
-        </div>
-        <div class="input-group">
-            <label>メール形式を選択してください:</label>
-            <div>
-                <input type="radio" id="plain" name="mailformat" value="plain" checked>
-                <label for="plain">¥n</label>
-                <input type="radio" id="encoded" name="mailformat" value="encoded">
-                <label for="encoded">URLエンコード</label>
-            </div>
-        </div>
 
     </div>
     <div>
@@ -355,77 +336,17 @@
                 }
             }
 
-            // メール形式のデフォルト値を設定（ローカルストレージから取得）
-            const savedMailFormat = localStorage.getItem('mailformat') || 'plain';
-            document.getElementById(savedMailFormat).checked = true;
-
-            // メール形式を保存する関数
-            function saveMailFormat() {
-                const mailFormat = document.querySelector('input[name="mailformat"]:checked').value;
-                localStorage.setItem('mailformat', mailFormat);
-            }
-
-            // メール形式のイベントリスナーを追加
-            const mailFormatRadios = document.querySelectorAll('input[name="mailformat"]');
-            mailFormatRadios.forEach(radio => {
-                radio.addEventListener('change', saveMailFormat);
-            });
-
-            // 入力チェックボタンのクリックイベントリスナー
-            submitButton.addEventListener('click', function() {
-                const selectedDate = dateInput.value;
-                const selectedDayOfWeek = getDayOfWeek(selectedDate);
-                const selectedStartTime = startTimeInput.value;
-                const selectedEndTime = endTimeInput.value;
-                const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
-                let totalTaskHours = calculateTotalTaskHours();
-
-                // 空の工数フィールドを自動的に埋める処理
-                let firstEmptyTaskHoursIndex = -1;
-                for (let i = 1; i <= 6; i++) {
-                    const taskNumber = document.getElementById(`task-number${i}`).value;
-                    const taskHours = document.getElementById(`task-hours${i}`).value;
-                    const category = document.getElementById(`category${i}`).value;
-                    if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
-                        firstEmptyTaskHoursIndex = i;
-                    }
-                    if (category && category.length !== 5) {
-                        alert(`分類${i}は5文字でなければなりません。`);
-                        return;
-                    }
-                }
-
-                if (firstEmptyTaskHoursIndex !== -1) {
-                    let taskHours = workingHours - totalTaskHours;
-                    if (taskHours < 0) {
-                        taskHours = 0;
-                    }
-                    document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
-                    totalTaskHours = calculateTotalTaskHours();
-                    alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
-                }
-
-                if (Math.abs(workingHours - totalTaskHours) > 0.01) {
-                    alert("勤務時間と入力工数に差分があります。");
-                    return;
-                }
-
-                resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間<br>入力工数 ${totalTaskHours.toFixed(2)} 時間</p>`;
-                saveTaskData();
-            });
-
             // メール作成ボタンのクリックイベントリスナー
             emailButton.addEventListener('click', function() {
                 const email = emailInput.value;
                 const selectedDate = dateInput.value;
-                const selectedDayOfWeek = getDayOfWeek(selectedDate);
                 const selectedStartTime = startTimeInput.value;
                 const selectedEndTime = endTimeInput.value;
                 const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
                 const totalTaskHours = calculateTotalTaskHours();
 
                 const subject = "スマ勤";
-                const newline = localStorage.getItem('newline') === 'LF' ? '\n' : '\r\n';
+                const newline = '\n';
 
                 let body = `@基本${newline}日付 ${selectedDate}${newline}始業 ${selectedStartTime}${newline}終業 ${selectedEndTime}${newline}`;
 
@@ -447,17 +368,15 @@
                 const now = new Date();
                 const selectedDateObj = new Date(selectedDate);
 
-                const mailFormat = localStorage.getItem('mailformat') || 'plain';
-
                 // 過去の日付が指定された場合の警告表示
                 if (selectedDateObj < now.setHours(0, 0, 0, 0)) {
                     if (confirm("過去の日付が指定されています。続行しますか？")) {
-                        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(mailFormat === 'encoded' ? body.replace(/\n/g, '%0D%0A') : body)}`;
+                        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                     } else {
                         return;
                     }
                 } else {
-                    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(mailFormat === 'encoded' ? body.replace(/\n/g, '%0D%0A') : body)}`;
+                    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                 }
             });
 
@@ -503,10 +422,10 @@
                 }
                 loadTaskData();
                 const savedNewline = localStorage.getItem('newline') || 'CRLF';
-                document.getElementById(savedNewline.toLowerCase()).checked = true;
+                document.querySelector(`input[name="newline"][value="${savedNewline}"]`).checked = true;
 
                 const savedMailFormat = localStorage.getItem('mailformat') || 'plain';
-                document.getElementById(savedMailFormat).checked = true;
+                document.querySelector(`input[name="mailformat"][value="${savedMailFormat}"]`).checked = true;
             });
 
             // サービスワーカーが変更された場合の処理
