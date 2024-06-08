@@ -360,19 +360,20 @@
                     }
                 }
 
-                if (firstEmptyTaskHoursIndex !== -1) {
-                    let taskHours = workingHours - totalTaskHours;
-                    if (taskHours < 0) {
-                        taskHours = 0;
-                    }
-                    document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
-                    totalTaskHours = calculateTotalTaskHours();
-                    alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
-                }
-
+                // 勤務工数と入力工数に差がある場合にのみ補完処理を実行
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
-                    alert("勤務時間と入力工数に差分があります。");
-                    return;
+                    if (firstEmptyTaskHoursIndex !== -1) {
+                        let taskHours = workingHours - totalTaskHours;
+                        if (taskHours < 0) {
+                            taskHours = 0;
+                        }
+                        document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
+                        totalTaskHours = calculateTotalTaskHours();
+                        alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
+                    } else {
+                        alert("勤務時間と入力工数に差分があります。");
+                        return;
+                    }
                 }
 
                 resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間<br>入力工数 ${totalTaskHours.toFixed(2)} 時間</p>`;
