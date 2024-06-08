@@ -427,9 +427,9 @@
 
                 // 勤務工数と作業工数に違いがある場合のチェック
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
-                    const confirmSend = confirm("勤務時間と入力工数に差分があります。このままメールを送信しますか？");
+                    const confirmSend = confirm("勤務時間と入力工数に差分があります。続行しますか？");
                     if (!confirmSend) {
-                        alert("見直してください。");
+                //        alert("見直してください。");
                         return;
                     }
                 }
