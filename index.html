@@ -345,8 +345,10 @@
                 const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
                 let totalTaskHours = calculateTotalTaskHours();
 
-                // 空の工数フィールドを自動的に埋める処理
+                let issuesFound = false;
                 let firstEmptyTaskHoursIndex = -1;
+
+                // 空の工数フィールドを自動的に埋める処理
                 for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const taskHours = document.getElementById(`task-hours${i}`).value;
@@ -356,6 +358,7 @@
                     }
                     if (category && category.length !== 5) {
                         alert(`分類${i}は5文字でなければなりません。`);
+                        issuesFound = true;
                         return;
                     }
                 }
@@ -370,10 +373,16 @@
                         document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
                         totalTaskHours = calculateTotalTaskHours();
                         alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
+                        issuesFound = true;
                     } else {
                         alert("勤務時間と入力工数に差分があります。");
+                        issuesFound = true;
                         return;
                     }
+                }
+
+                if (!issuesFound) {
+                    alert("問題は見つかりませんでした。");
                 }
 
                 resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間<br>入力工数 ${totalTaskHours.toFixed(2)} 時間</p>`;
