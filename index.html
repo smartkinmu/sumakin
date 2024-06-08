@@ -348,6 +348,15 @@
                 let issuesFound = false;
                 let firstEmptyTaskHoursIndex = -1;
 
+                // 過去の日付が指定された場合の警告表示
+                const now = new Date();
+                const selectedDateObj = new Date(selectedDate);
+                if (selectedDateObj < now.setHours(0, 0, 0, 0)) {
+                    alert("過去の日付が指定されています。修正してください。");
+                    issuesFound = true;
+                    return;
+                }
+
                 // 空の工数フィールドを自動的に埋める処理
                 for (let i = 1; i <= 6; i++) {
                     const taskNumber = document.getElementById(`task-number${i}`).value;
