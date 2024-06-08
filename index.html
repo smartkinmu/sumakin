@@ -348,11 +348,13 @@
                 let issuesFound = false;
                 let firstEmptyTaskHoursIndex = -1;
 
-                // 過去の日付が指定された場合の警告表示
+                // 現在の日付を取得
                 const now = new Date();
-                const selectedDateObj = new Date(selectedDate);
-                if (selectedDateObj < now.setHours(0, 0, 0, 0)) {
-                    alert("過去の日付が指定されています。");
+                const today = now.toISOString().split('T')[0];
+
+                // 今日以外の日付が指定された場合の警告表示
+                if (selectedDate !== today) {
+                    alert("今日以外の日付が指定されています。");
                     issuesFound = true;
                     return;
                 }
@@ -438,24 +440,23 @@
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
                     const confirmSend = confirm("勤務時間と入力工数に差分があります。続行しますか？");
                     if (!confirmSend) {
-                //        alert("見直してください。");
                         return;
                     }
                 }
 
+                // 現在の日付を取得
                 const now = new Date();
-                const selectedDateObj = new Date(selectedDate);
+                const today = now.toISOString().split('T')[0];
 
-                // 過去の日付が指定された場合の警告表示
-                if (selectedDateObj < now.setHours(0, 0, 0, 0)) {
-                    if (confirm("過去の日付が指定されています。続行しますか？")) {
-                        window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                    } else {
+                // 今日以外の日付が指定された場合の確認
+                if (selectedDate !== today) {
+                    const confirmSend = confirm("今日以外の日付が指定されています。続行しますか？");
+                    if (!confirmSend) {
                         return;
                     }
-                } else {
-                    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                 }
+
+                window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             });
 
             // Pull-to-refreshの実装
