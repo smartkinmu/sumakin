@@ -363,6 +363,13 @@
                     }
                 }
 
+                // 勤務工数が作業工数より少ない場合のチェック
+                if (workingHours < totalTaskHours) {
+                    alert("勤務時間が作業工数より少ないです。修正してください。");
+                    issuesFound = true;
+                    return;
+                }
+
                 // 勤務工数と入力工数に差がある場合にのみ補完処理を実行
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
                     if (firstEmptyTaskHoursIndex !== -1) {
@@ -415,6 +422,15 @@
                     if (taskNumber || category || taskHours || title) {
                         const taskHoursConverted = parseFloat(taskHours).toFixed(2);
                         body += `${newline}@業務${newline}業務 ${taskNumber}${newline}分類 ${category}${newline}工数 ${taskHoursConverted}${newline}備考 ${title}${newline}`;
+                    }
+                }
+
+                // 勤務工数と作業工数に違いがある場合のチェック
+                if (Math.abs(workingHours - totalTaskHours) > 0.01) {
+                    const confirmSend = confirm("勤務時間と入力工数に差分があります。このままメールを送信しますか？");
+                    if (!confirmSend) {
+                        alert("見直してください。");
+                        return;
                     }
                 }
 
