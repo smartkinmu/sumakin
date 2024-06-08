@@ -8,7 +8,9 @@ self.addEventListener('install', function(event) {
                 '/service-worker.js',
                 '/icon-192x192.png',
                 '/icon-512x512.png'
-            ]);
+            ]).catch(error => {
+                console.error('Failed to cache', error);
+            });
         })
     );
 });
