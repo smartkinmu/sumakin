@@ -269,11 +269,22 @@
             const now = new Date();
             const today = now.toISOString().split('T')[0];
             dateInput.value = today;
-            startTimeInput.value = "08:30";
-            endTimeInput.value = "17:15";
+
+            // 時刻の初期値を設定（ローカルストレージから取得）
+            startTimeInput.value = localStorage.getItem('startTime') || "08:30";
+            endTimeInput.value = localStorage.getItem('endTime') || "17:15";
 
             // メールアドレスのデフォルト値を設定（ローカルストレージから取得）
             emailInput.value = localStorage.getItem('email') || 'mail@address.com';
+            
+            // 時刻変更時にローカルストレージに保存
+            startTimeInput.addEventListener('change', function() {
+                localStorage.setItem('startTime', startTimeInput.value);
+            });
+
+            endTimeInput.addEventListener('change', function() {
+                localStorage.setItem('endTime', endTimeInput.value);
+            });
 
             // 勤務時間を計算する関数
             function calculateWorkingHours(startTime, endTime) {
