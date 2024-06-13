@@ -380,7 +380,7 @@
 
                 let issuesFound = false;
                 let firstEmptyTaskHoursIndex = -1;
-                let allTaskCategoriesFilled = true;
+                let allTaskCategoriesFilled = 0;
 
                 // 現在の日付を取得
                 const now = new Date();
@@ -406,7 +406,7 @@
                         issuesFound = true;
                     }
                     if (!category) {
-                        allTaskCategoriesFilled = false;
+                        allTaskCategoriesFilled++;
                     }
                 }
 
@@ -418,7 +418,7 @@
 
                 // 業務情報が一つ以上含まれている場合のみ補完処理を実行
                 if (Math.abs(workingHours - totalTaskHours) > 0.01) {
-                    if (allTaskCategoriesFilled && firstEmptyTaskHoursIndex !== -1) {
+                    if (allTaskCategoriesFilled > 0 && firstEmptyTaskHoursIndex !== -1) {
                         let taskHours = workingHours - totalTaskHours;
                         if (taskHours < 0) {
                             taskHours = 0;
