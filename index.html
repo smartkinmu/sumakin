@@ -400,7 +400,7 @@
                     if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                         firstEmptyTaskHoursIndex = i;
                     }
-                    if (title && category && category.length !== 5) {
+                    if (!title && category && category.length !== 5) {
                         alert(`分類${i}は5文字でなければなりません。`);
                         issuesFound = true;
                     }
