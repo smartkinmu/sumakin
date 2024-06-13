@@ -464,7 +464,7 @@
                     if (category && !taskHours) {
                         taskHours = '0';
                     }
-                    if (taskNumber || category || taskHours || title) {
+                    if (taskHours != 0) {
                         const taskHoursConverted = parseFloat(taskHours).toFixed(2);
                         body += `${newline}@業務${newline}業務 ${taskNumber}${newline}分類 ${category}${newline}工数 ${taskHoursConverted}${newline}備考 ${title}${newline}`;
                     }
