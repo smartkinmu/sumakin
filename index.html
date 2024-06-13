@@ -389,7 +389,6 @@
                 if (selectedDate !== today) {
                     alert("今日以外の日付が指定されています。");
                     issuesFound = true;
-                    return;
                 }
 
                 // 空の工数フィールドを自動的に埋める処理
@@ -403,7 +402,6 @@
                     if (category && category.length !== 5) {
                         alert(`分類${i}は5文字でなければなりません。`);
                         issuesFound = true;
-                        return;
                     }
                 }
 
@@ -411,7 +409,6 @@
                 if (workingHours < totalTaskHours) {
                     alert("勤務時間が作業工数より少ないです。");
                     issuesFound = true;
-                    return;
                 }
 
                 // 勤務工数と入力工数に差がある場合にのみ補完処理を実行
@@ -428,7 +425,6 @@
                     } else {
                         alert("勤務時間と入力工数に差分があります。");
                         issuesFound = true;
-                        return;
                     }
                 }
 
