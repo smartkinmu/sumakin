@@ -380,6 +380,7 @@
 
                 let issuesFound = false;
                 let firstEmptyTaskHoursIndex = -1;
+                let hasTaskInfo = false;
 
                 // 現在の日付を取得
                 const now = new Date();
@@ -391,12 +392,15 @@
                     issuesFound = true;
                 }
 
-                // 空の工数フィールドを自動的に埋める処理
+                // 空の工数フィールドを自動的に埋める処理と業務情報が入力されているかのチェック
                 for (let i = 1; i <= 6; i++) {
                     const title = document.getElementById(`title${i}`).value;
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const taskHours = document.getElementById(`task-hours${i}`).value;
                     const category = document.getElementById(`category${i}`).value;
+                    if (taskNumber || category || title) {
+                        hasTaskInfo = true;
+                    }
                     if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                         firstEmptyTaskHoursIndex = i;
                     }
@@ -412,8 +416,8 @@
                     issuesFound = true;
                 }
 
-                // 勤務工数と入力工数に差がある場合にのみ補完処理を実行
-                if (Math.abs(workingHours - totalTaskHours) > 0.01) {
+                // 業務情報が一つ以上含まれている場合のみ補完処理を実行
+                if (hasTaskInfo && Math.abs(workingHours - totalTaskHours) > 0.01) {
                     if (firstEmptyTaskHoursIndex !== -1) {
                         let taskHours = workingHours - totalTaskHours;
                         if (taskHours < 0) {
