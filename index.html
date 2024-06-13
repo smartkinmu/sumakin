@@ -243,7 +243,7 @@
     </div>
     <div style="display: flex; justify-content: space-between;">
         <a href="https://forms.gle/fbZW4GG91BBKUmkc9" target="_blank">アンケートはこちら</a>
-        <span>ver.0.7 </span>
+        <span>ver.0.7</span>
     </div>
     <script>
         // Service Workerがサポートされているか確認し、登録を行う
@@ -297,6 +297,19 @@
                 saveTaskData();  // データを保存
             });
 
+            // フォーカスが外れたときにデータを保存する
+            emailInput.addEventListener('blur', saveTaskData);
+            dateInput.addEventListener('blur', saveTaskData);
+            startTimeInput.addEventListener('blur', saveTaskData);
+            endTimeInput.addEventListener('blur', saveTaskData);
+
+            // 業務データ入力ボックスにもblurイベントを追加
+            for (let i = 1; i <= 6; i++) {
+                document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskData);
+                document.getElementById(`category${i}`).addEventListener('blur', saveTaskData);
+                document.getElementById(`title${i}`).addEventListener('blur', saveTaskData);
+            }
+
             // 勤務時間を計算する関数
             function calculateWorkingHours(startTime, endTime) {
                 const start = new Date(`1970-01-01T${startTime}:00`);
@@ -340,6 +353,8 @@
                     localStorage.setItem(`category${i}`, document.getElementById(`category${i}`).value);
                 }
                 localStorage.setItem('email', emailInput.value);
+                localStorage.setItem('startTime', startTimeInput.value);
+                localStorage.setItem('endTime', endTimeInput.value);
             }
 
             // 業務データをロードする関数
@@ -350,6 +365,8 @@
                     document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
                 }
                 document.getElementById(`email`).value = localStorage.getItem(`email`) || '';
+                document.getElementById(`startTime`).value = localStorage.getItem(`startTime`) || '';
+                document.getElementById(`endTime`).value = localStorage.getItem(`endTime`) || '';
             }
 
             // 入力チェックボタンのクリックイベントリスナー
