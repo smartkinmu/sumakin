@@ -243,7 +243,7 @@
     </div>
     <div style="display: flex; justify-content: space-between;">
         <a href="https://forms.gle/fbZW4GG91BBKUmkc9" target="_blank">アンケートはこちら</a>
-        <span>ver.0.6</span>
+        <span>ver.0.7 </span>
     </div>
     <script>
         // Service Workerがサポートされているか確認し、登録を行う
@@ -289,10 +289,12 @@
             // 時刻変更時にローカルストレージに保存
             startTimeInput.addEventListener('change', function() {
                 localStorage.setItem('startTime', startTimeInput.value);
+                saveTaskData();  // データを保存
             });
 
             endTimeInput.addEventListener('change', function() {
                 localStorage.setItem('endTime', endTimeInput.value);
+                saveTaskData();  // データを保存
             });
 
             // 勤務時間を計算する関数
@@ -347,6 +349,7 @@
                     document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || '';
                     document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
                 }
+                document.getElementById(`email`).value = localStorage.getItem(`email`) || '';
             }
 
             // 入力チェックボタンのクリックイベントリスナー
@@ -415,6 +418,7 @@
                 if (!issuesFound) {
                     alert("問題は見つかりませんでした。");
                 }
+                saveTaskData();  // データを保存
 
                 resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間<br>入力工数 ${totalTaskHours.toFixed(2)} 時間</p>`;
                 saveTaskData();
@@ -468,7 +472,7 @@
                         return;
                     }
                 }
-
+                saveTaskData();  // データを保存
                 window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
             });
 
