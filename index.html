@@ -393,13 +393,14 @@
 
                 // 空の工数フィールドを自動的に埋める処理
                 for (let i = 1; i <= 6; i++) {
+                    const title = document.getElementById(`title${i}`).value;
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const taskHours = document.getElementById(`task-hours${i}`).value;
                     const category = document.getElementById(`category${i}`).value;
                     if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                         firstEmptyTaskHoursIndex = i;
                     }
-                    if (category && category.length !== 5) {
+                    if (title && category && category.length !== 5) {
                         alert(`分類${i}は5文字でなければなりません。`);
                         issuesFound = true;
                     }
@@ -431,10 +432,9 @@
                 if (!issuesFound) {
                     alert("問題は見つかりませんでした。");
                 }
-                saveTaskData();  // データを保存
 
                 resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間<br>入力工数 ${totalTaskHours.toFixed(2)} 時間</p>`;
-                saveTaskData();
+                saveTaskData();  // データを保存
             });
 
             // メール作成ボタンのクリックイベントリスナー
@@ -453,10 +453,10 @@
 
                 // 業務情報をメール本文に追加
                 for (let i = 1; i <= 6; i++) {
+                    const title = document.getElementById(`title${i}`).value;
                     const taskNumber = document.getElementById(`task-number${i}`).value;
                     const category = document.getElementById(`category${i}`).value;
                     let taskHours = document.getElementById(`task-hours${i}`).value;
-                    const title = document.getElementById(`title${i}`).value;
                     if (category && !taskHours) {
                         taskHours = '0';
                     }
