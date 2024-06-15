@@ -1,6 +1,6 @@
 // Service Workerがサポートされているか確認し、登録を行う
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
+    navigator.serviceWorker.register('service-worker2.js')
         .then(function(registration) {
             console.log('Service Worker 登録成功:', registration);
         })
