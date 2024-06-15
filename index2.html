@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VK9M6SJ51F"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VK9M6SJ51F');
+    </script>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スマ勤サポートアプリ</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" sizes="192x192" href="https://smartkinmu.github.io/sumakin/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="https://smartkinmu.github.io/sumakin/icon-512x512.png">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-header">スマ勤サポートアプリ</div>
+    <div>
+        <a href="manual.html" target="_blank">使い方</a>
+    </div>
+    <div class="container">
+        <div id="refresh-indicator">更新中...</div>
+
+        <div class="button-group">
+            <button id="submit-button">入力チェック</button>
+            <button id="email-button">メール作成</button>
+        </div>
+        <div id="result" class="result"></div>
+
+        <hr>
+        <div class="input-group">
+            <label for="email">宛先メールアドレス:</label>
+            <input type="email" id="email" name="email" value="mail@address.com">
+        </div>
+        <div class="input-group">
+            <label for="date">日付を選択してください:</label>
+            <input type="date" id="date" name="date" pattern="\d{4}-\d{2}-\d{2}">
+        </div>
+        <div class="input-group">
+            <label for="start-time">始業時刻を選択してください:</label>
+            <input type="time" id="start-time" name="start-time">
+        </div>
+        <div class="input-group">
+            <label for="end-time">終業時刻を選択してください:</label>
+            <input type="time" id="end-time" name="end-time">
+        </div>
+        <hr>
+        <!-- グループの入力ボックス -->
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number1">業務1:</label>
+                <input type="text" id="task-number1" name="task-number1">
+            </div>
+            <div class="input-group">
+                <label for="category1">分類1:</label>
+                <input type="text" id="category1" name="category1">
+            </div>
+            <div class="input-group">
+                <label for="task-hours1">工数1:</label>
+                <input type="number" id="task-hours1" name="task-hours1" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title1">備考1:</label>
+                <input type="text" id="title1" name="title1">
+            </div>
+        </div>
+        <hr>
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number2">業務2:</label>
+                <input type="text" id="task-number2" name="task-number2">
+            </div>
+            <div class="input-group">
+                <label for="category2">分類2:</label>
+                <input type="text" id="category2" name="category2">
+            </div>
+            <div class="input-group">
+                <label for="task-hours2">工数2:</label>
+                <input type="number" id="task-hours2" name="task-hours2" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title2">備考2:</label>
+                <input type="text" id="title2" name="title2">
+            </div>
+        </div>
+        <hr>
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number3">業務3:</label>
+                <input type="text" id="task-number3" name="task-number3">
+            </div>
+            <div class="input-group">
+                <label for="category3">分類3:</label>
+                <input type="text" id="category3" name="category3">
+            </div>
+            <div class="input-group">
+                <label for="task-hours3">工数3:</label>
+                <input type="number" id="task-hours3" name="task-hours3" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title3">備考3:</label>
+                <input type="text" id="title3" name="title3">
+            </div>
+        </div>
+        <hr>
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number4">業務4:</label>
+                <input type="text" id="task-number4" name="task-number4">
+            </div>
+            <div class="input-group">
+                <label for="category4">分類4:</label>
+                <input type="text" id="category4" name="category4">
+            </div>
+            <div class="input-group">
+                <label for="task-hours4">工数4:</label>
+                <input type="number" id="task-hours4" name="task-hours4" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title4">備考4:</label>
+                <input type="text" id="title4" name="title4">
+            </div>
+        </div>
+        <hr>
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number5">業務5:</label>
+                <input type="text" id="task-number5" name="task-number5">
+            </div>
+            <div class="input-group">
+                <label for="category5">分類5:</label>
+                <input type="text" id="category5" name="category5">
+            </div>
+            <div class="input-group">
+                <label for="task-hours5">工数5:</label>
+                <input type="number" id="task-hours5" name="task-hours5" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title5">備考5:</label>
+                <input type="text" id="title5" name="title5">
+            </div>
+        </div>
+        <hr>
+        <div class="task-group">
+            <div class="input-group">
+                <label for="task-number6">業務6:</label>
+                <input type="text" id="task-number6" name="task-number6">
+            </div>
+            <div class="input-group">
+                <label for="category6">分類6:</label>
+                <input type="text" id="category6" name="category6">
+            </div>
+            <div class="input-group">
+                <label for="task-hours6">工数6:</label>
+                <input type="number" id="task-hours6" name="task-hours6" step="0.01" min="0">
+            </div>
+            <div class="input-group">
+                <label for="title6">備考6:</label>
+                <input type="text" id="title6" name="title6">
+            </div>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: space-between;">
+        <a href="https://forms.gle/fbZW4GG91BBKUmkc9" target="_blank">アンケートはこちら</a>
+        <span>ver.0.8</span>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
