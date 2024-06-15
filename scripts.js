@@ -19,74 +19,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailButton = document.getElementById('email-button');
     const refreshIndicator = document.getElementById('refresh-indicator');
 
-    function saveTaskData() {
-        for (let i = 1; i <= 6; i++) {
-            localStorage.setItem(`title${i}`, document.getElementById(`title${i}`).value);
-            localStorage.setItem(`task-number${i}`, document.getElementById(`task-number${i}`).value);
-            localStorage.setItem(`category${i}`, document.getElementById(`category${i}`).value);
-        }
-        localStorage.setItem('email', emailInput.value);
-        localStorage.setItem('startTime', startTimeInput.value);
-        localStorage.setItem('endTime', endTimeInput.value);
-    }
-
-    function loadTaskData() {
-        for (let i = 1; i <= 6; i++) {
-            document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || '';
-            document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || '';
-            document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
-        }
-        document.getElementById(`email`).value = localStorage.getItem(`email`) || '';
-        document.getElementById(`startTime`).value = localStorage.getItem(`startTime`) || '';
-        document.getElementById(`endTime`).value = localStorage.getItem(`endTime`) || '';
-    }
-
-    function calculateWorkingHours(startTime, endTime) {
-        const start = new Date(`1970-01-01T${startTime}:00`);
-        const end = new Date(`1970-01-01T${endTime}:00`);
-        let totalMinutes = (end - start) / (1000 * 60);
-
-        const breaks = [
-            { start: "12:15", end: "13:15" },
-            { start: "19:15", end: "19:45" }
-        ];
-
-        breaks.forEach(b => {
-            const breakStart = new Date(`1970-01-01T${b.start}:00`);
-            const breakEnd = new Date(`1970-01-01T${b.end}:00`);
-            if (start < breakEnd && end > breakStart) {
-                const overlapStart = start < breakStart ? breakStart : start;
-                const overlapEnd = end > breakEnd ? breakEnd : end;
-                totalMinutes -= (overlapEnd - overlapStart) / (1000 * 60);
-            }
-        });
-
-        return (totalMinutes / 60).toFixed(2);
-    }
-
-    function calculateTotalTaskHours() {
-        let totalTaskHours = 0;
-        for (let i = 1; i <= 6; i++) {
-            const taskHours = parseFloat(document.getElementById(`task-hours${i}`).value) || 0;
-            totalTaskHours += taskHours;
-        }
-        return totalTaskHours;
-    }
-
+    // 曜日を取得する関数
     function getDayOfWeek(dateString) {
         const days = ['日', '月', '火', '水', '木', '金', '土'];
         const date = new Date(dateString);
         return days[date.getDay()];
     }
 
-    // 初期値の設定
+    // 今日の日付をデフォルト値として設定
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     dateInput.value = today;
+
+    // 時刻の初期値を設定（ローカルストレージから取得）
     startTimeInput.value = localStorage.getItem('startTime') || "08:30";
     endTimeInput.value = localStorage.getItem('endTime') || "17:15";
-    emailInput.value = localStorage.getItem('email') || 'mail@address.com';
 
+    // メールアドレスのデフォルト値を設定（ローカルストレージから取得）
+    emailInput.value = localStorage.getItem('email') || 'mail@address.com';
+    
     // 時刻変更時にローカルストレージに保存
     startTimeInput.addEventListener('change', function() {
         localStorage.setItem('startTime', startTimeInput.value);
@@ -109,6 +60,65 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskData);
         document.getElementById(`category${i}`).addEventListener('blur', saveTaskData);
         document.getElementById(`title${i}`).addEventListener('blur', saveTaskData);
+    }
+
+    // 勤務時間を計算する関数
+    function calculateWorkingHours(startTime, endTime) {
+        const start = new Date(`1970-01-01T${startTime}:00`);
+        const end = new Date(`1970-01-01T${endTime}:00`);
+        let totalMinutes = (end - start) / (1000 * 60);
+
+        const breaks = [
+            { start: "12:15", end: "13:15" },
+            { start: "19:15", end: "19:45" }
+        ];
+
+        // 休憩時間を差し引く処理
+        breaks.forEach(b => {
+            const breakStart = new Date(`1970-01-01T${b.start}:00`);
+            const breakEnd = new Date(`1970-01-01T${b.end}:00`);
+            if (start < breakEnd && end > breakStart) {
+                const overlapStart = start < breakStart ? breakStart : start;
+                const overlapEnd = end > breakEnd ? breakEnd : end;
+                totalMinutes -= (overlapEnd - overlapStart) / (1000 * 60);
+            }
+        });
+
+        return (totalMinutes / 60).toFixed(2);
+    }
+
+    // 入力工数を計算する関数
+    function calculateTotalTaskHours() {
+        let totalTaskHours = 0;
+        for (let i = 1; i <= 6; i++) {
+            const taskHours = parseFloat(document.getElementById(`task-hours${i}`).value) || 0;
+            totalTaskHours += taskHours;
+        }
+        return totalTaskHours;
+    }
+
+    // 業務データを保存する関数
+    function saveTaskData() {
+        for (let i = 1; i <= 6; i++) {
+            localStorage.setItem(`title${i}`, document.getElementById(`title${i}`).value);
+            localStorage.setItem(`task-number${i}`, document.getElementById(`task-number${i}`).value);
+            localStorage.setItem(`category${i}`, document.getElementById(`category${i}`).value);
+        }
+        localStorage.setItem('email', emailInput.value);
+        localStorage.setItem('startTime', startTimeInput.value);
+        localStorage.setItem('endTime', endTimeInput.value);
+    }
+
+    // 業務データをロードする関数
+    function loadTaskData() {
+        for (let i = 1; i <= 6; i++) {
+            document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || '';
+            document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || '';
+            document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
+        }
+        document.getElementById(`email`).value = localStorage.getItem(`email`) || '';
+        document.getElementById(`startTime`).value = localStorage.getItem(`startTime`) || '';
+        document.getElementById(`endTime`).value = localStorage.getItem(`endTime`) || '';
     }
 
     // 入力チェックボタンのクリックイベントリスナー
