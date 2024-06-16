@@ -20,8 +20,9 @@
 </head>
 <body>
     <div class="app-header">スマ勤サポートアプリ</div>
-    <div>
+    <div style="display: flex; justify-content: space-around;"> 
         <a href="manual.html" target="_blank">使い方</a>
+        <button id="refresh-button">更新</button>
     </div>
     <div class="container">
         <div id="refresh-indicator">更新中...</div>
@@ -29,7 +30,6 @@
         <div class="button-group">
             <button id="submit-button">入力チェック</button>
             <button id="email-button">メール作成</button>
-            <button id="refresh-button">更新</button>
         </div>
         <div id="result" class="result"></div>
 
@@ -167,7 +167,9 @@
         </div>
     </div>
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <a href="https://forms.gle/fbZW4GG91BBKUmkc9" target="_blank">アンケートはこちら</a>
+        <div style="padding-right: 20px;">
+            <a href="https://forms.gle/fbZW4GG91BBKUmkc9" target="_blank">アンケートはこちら</a>
+        </div>
         <span>ver.0.8a</span>
     </div>
 
