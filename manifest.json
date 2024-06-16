@@ -3,7 +3,7 @@
     "short_name": "スマ勤",
     "description": "スマ勤",
     "start_url": "index.html",
-    "display": "standalone",
+    "display": "browser",
     "background_color": "#ffffff",
     "theme_color": "#ffffff",
     "icons": [
@@ -17,5 +17,6 @@
             "sizes": "512x512",
             "type": "image/png"
         }
-    ]
+    ],
+    "version": "0.8.1"
 }

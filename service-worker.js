@@ -1,4 +1,3 @@
-// キャッシュバージョンを変更
 const CACHE_NAME = 'pwa-sample-cache-v2';
 
 self.addEventListener('install', function(event) {
@@ -38,12 +37,11 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('fetch', function(event) {
     event.respondWith(
         caches.match(event.request).then(function(response) {
-            // キャッシュに一致するリクエストがあれば複製を返し、一致しなければネットワークから取得
             if (response) {
-                return response.clone(); 
+                return response.clone();
             } else {
                 return fetch(event.request).then(function(response) {
-                    // 新しいリクエストを複製してキャッシュに保存
+                    // 新しいリクエストをキャッシュに保存
                     const responseToCache = response.clone();
                     caches.open(CACHE_NAME).then(function(cache) {
                         cache.put(event.request, responseToCache);
