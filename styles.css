@@ -87,7 +87,20 @@ button:hover {
     justify-content: space-between;
     gap: 10px;
 }
-
+  
+.main-buttons {
+    display: grid; /* Gridレイアウトを使用 */
+    grid-template-columns: 1fr 1fr; /* 2つのカラムを均等に */
+    gap: 10px; /* ボタン間のスペース */
+    width: 100%; /* 親要素の幅いっぱいに広げる */
+}
+  
 .button-group button {
-    flex: 1;
+    /* すべてのボタンの共通スタイル */
+    padding: 10px;
+}
+  
+#refresh-button {
+    /* 更新ボタンのスタイル */
+    padding: 5px; /* 小さくする */
 }
