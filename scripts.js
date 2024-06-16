@@ -150,10 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                 firstEmptyTaskHoursIndex = i;
             }
-            if (category && category.length !== 5) {
-                alert(`分類${i}は5文字でなければなりません。`);
-                issuesFound = true;
-            }
             if (category) {
                 allTaskCategoriesFilled++;
             }
