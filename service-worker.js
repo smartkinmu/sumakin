@@ -8,6 +8,8 @@ self.addEventListener('install', function(event) {
                 '/',
                 '/index.html',
                 '/manifest.json',
+                '/scripts.js',
+                '/styles.css',
                 '/service-worker.js',
                 '/icon-192x192.png',
                 '/icon-512x512.png'
