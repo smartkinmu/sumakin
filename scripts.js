@@ -1,14 +1,3 @@
-// Service Workerがサポートされているか確認し、登録を行う
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-        .then(function(registration) {
-            console.log('Service Worker 登録成功:', registration);
-        })
-        .catch(function(error) {
-            console.log('Service Worker 登録失敗:', error);
-        });
-}
-
 document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('email');
     const dateInput = document.getElementById('date');
@@ -17,7 +6,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultDiv = document.getElementById('result');
     const submitButton = document.getElementById('submit-button');
     const emailButton = document.getElementById('email-button');
+    const refreshButton = document.getElementById('refresh-button');
     const refreshIndicator = document.getElementById('refresh-indicator');
+
+    // 更新ボタンのクリックイベントリスナー
+    refreshButton.addEventListener('click', function() {
+        refreshIndicator.style.display = 'block';
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    });
 
     // 曜日を取得する関数
     function getDayOfWeek(dateString) {
