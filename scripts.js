@@ -146,14 +146,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 空の工数フィールドを自動的に埋める処理と業務情報が入力されているかのチェック
         for (let i = 1; i <= 6; i++) {
-            const title = document.getElementById(`title${i}`).value;
             const taskNumber = document.getElementById(`task-number${i}`).value;
             const taskHours = document.getElementById(`task-hours${i}`).value;
             const category = document.getElementById(`category${i}`).value;
             if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                 firstEmptyTaskHoursIndex = i;
             }
-            if (!title && category && category.length !== 5) {
+            if (category && category.length !== 5) {
                 alert(`分類${i}は5文字でなければなりません。`);
                 issuesFound = true;
             }
