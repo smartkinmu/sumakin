@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert(`分類${i}は5文字でなければなりません。`);
                 issuesFound = true;
             }
-            if (!category) {
+            if (category) {
                 allTaskCategoriesFilled++;
             }
         }
