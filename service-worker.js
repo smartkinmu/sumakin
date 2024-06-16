@@ -36,14 +36,19 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('fetch', function(event) {
     event.respondWith(
         caches.match(event.request).then(function(response) {
-            // キャッシュに一致するリクエストがあれば返し、一致しなければネットワークから取得
-            return response || fetch(event.request).then(function(response) {
-                // 新しいリクエストをキャッシュに保存
-                return caches.open(CACHE_NAME).then(function(cache) {
-                    cache.put(event.request, response.clone());
+            // キャッシュに一致するリクエストがあれば複製を返し、一致しなければネットワークから取得
+            if (response) {
+                return response.clone(); 
+            } else {
+                return fetch(event.request).then(function(response) {
+                    // 新しいリクエストを複製してキャッシュに保存
+                    const responseToCache = response.clone();
+                    caches.open(CACHE_NAME).then(function(cache) {
+                        cache.put(event.request, responseToCache);
+                    });
                     return response;
                 });
-            });
+            }
         })
     );
 });
