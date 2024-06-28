@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let totalMinutes = (end - start) / (1000 * 60);
 
         const breaks = [
-            { start: "12:15", end: "13:15" },
+            { start: "11:45", end: "12:45" },
             { start: "19:15", end: "19:45" }
         ];
 
