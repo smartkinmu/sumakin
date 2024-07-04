@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || '';
             document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || '';
             document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
-            document.getElementById(`task-hours${i}`).value = localStorage.getItem(`task-hours${i}`) || '';
+     //       document.getElementById(`task-hours${i}`).value = localStorage.getItem(`task-hours${i}`) || '';
         }
         emailInput.value = localStorage.getItem('email') || '';
         startTimeInput.value = localStorage.getItem('startTime') || '';
