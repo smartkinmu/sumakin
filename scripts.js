@@ -9,6 +9,110 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshButton = document.getElementById('refresh-button');
     const refreshIndicator = document.getElementById('refresh-indicator');
 
+    const groupCountPicker = document.getElementById("group-count");
+    const taskGroupsContainer = document.getElementById("task-groups-container");
+
+    function createTaskGroup(index) {
+        return `
+            <div class="task-group">
+                <div class="input-group">
+                    <label for="task-number${index}">業務${index}:</label>
+                    <input type="text" id="task-number${index}" name="task-number${index}">
+                </div>
+                <div class="input-group">
+                    <label for="category${index}">分類${index}:</label>
+                    <input type="text" id="category${index}" name="category${index}">
+                </div>
+                <div class="input-group">
+                    <label for="task-hours${index}">工数${index}:</label>
+                    <input type="number" id="task-hours${index}" name="task-hours${index}" step="0.01" min="0">
+                </div>
+                <div class="input-group">
+                    <label for="title${index}">備考${index}:</label>
+                    <input type="text" id="title${index}" name="title${index}">
+                </div>
+            </div>
+            <hr>
+        `;
+    }
+
+    function saveTaskDataToStorage() {
+        const totalGroups = 10;  // 最大20グループまで保存
+        for (let i = 1; i <= totalGroups; i++) {
+            const title = document.getElementById(`title${i}`);
+            const taskNumber = document.getElementById(`task-number${i}`);
+            const category = document.getElementById(`category${i}`);
+            const taskHours = document.getElementById(`task-hours${i}`);
+            if (title) localStorage.setItem(`title${i}`, title.value);
+            if (taskNumber) localStorage.setItem(`task-number${i}`, taskNumber.value);
+            if (category) localStorage.setItem(`category${i}`, category.value);
+            if (taskHours) localStorage.setItem(`task-hours${i}`, taskHours.value);
+        }
+        localStorage.setItem('email', emailInput.value);
+        localStorage.setItem('startTime', startTimeInput.value);
+        localStorage.setItem('endTime', endTimeInput.value);
+        localStorage.setItem('groupCount', groupCountPicker.value);
+    }
+
+    function loadTaskDataFromStorage() {
+        const selectedCount = parseInt(groupCountPicker.value, 10);
+        for (let i = 1; i <= selectedCount; i++) {
+            document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || '';
+            document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || '';
+            document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
+            document.getElementById(`task-hours${i}`).value = localStorage.getItem(`task-hours${i}`) || '';
+        }
+        emailInput.value = localStorage.getItem('email') || '';
+        startTimeInput.value = localStorage.getItem('startTime') || '';
+        endTimeInput.value = localStorage.getItem('endTime') || '';
+    }
+
+    function updateTaskGroups() {
+        const selectedCount = parseInt(groupCountPicker.value, 10);
+        const existingData = {};
+
+        // 現在のデータを保存
+        for (let i = 1; i <= selectedCount; i++) {
+            existingData[`title${i}`] = document.getElementById(`title${i}`)?.value || '';
+            existingData[`task-number${i}`] = document.getElementById(`task-number${i}`)?.value || '';
+            existingData[`category${i}`] = document.getElementById(`category${i}`)?.value || '';
+            existingData[`task-hours${i}`] = document.getElementById(`task-hours${i}`)?.value || '';
+        }
+
+        taskGroupsContainer.innerHTML = '';
+        for (let i = 1; i <= selectedCount; i++) {
+            taskGroupsContainer.innerHTML += createTaskGroup(i);
+        }
+
+        // データを復元
+        for (let i = 1; i <= selectedCount; i++) {
+            document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || existingData[`title${i}`] || '';
+            document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || existingData[`task-number${i}`] || '';
+            document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || existingData[`category${i}`] || '';
+            document.getElementById(`task-hours${i}`).value = localStorage.getItem(`task-hours${i}`) || existingData[`task-hours${i}`] || '';
+        }
+
+        // 動的に生成された入力ボックスにイベントリスナーを追加
+        for (let i = 1; i <= selectedCount; i++) {
+            document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskData);
+            document.getElementById(`category${i}`).addEventListener('blur', saveTaskData);
+            document.getElementById(`title${i}`).addEventListener('blur', saveTaskData);
+            document.getElementById(`task-hours${i}`).addEventListener('blur', saveTaskData);
+        }
+    }
+
+    groupCountPicker.addEventListener("change", function() {
+        saveTaskDataToStorage();
+        updateTaskGroups();
+    });
+
+    // 初期表示の更新
+    if (localStorage.getItem('groupCount')) {
+        groupCountPicker.value = localStorage.getItem('groupCount');
+    }
+    updateTaskGroups();
+    loadTaskDataFromStorage();
+    
     // 更新ボタンのクリックイベントリスナー
     refreshButton.addEventListener('click', function() {
         refreshIndicator.style.display = 'block';
@@ -53,13 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
     startTimeInput.addEventListener('blur', saveTaskData);
     endTimeInput.addEventListener('blur', saveTaskData);
 
-    // 業務データ入力ボックスにもblurイベントを追加
-    for (let i = 1; i <= 6; i++) {
-        document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskData);
-        document.getElementById(`category${i}`).addEventListener('blur', saveTaskData);
-        document.getElementById(`title${i}`).addEventListener('blur', saveTaskData);
-    }
-
     // 勤務時間を計算する関数
     function calculateWorkingHours(startTime, endTime) {
         const start = new Date(`1970-01-01T${startTime}:00`);
@@ -88,7 +185,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 入力工数を計算する関数
     function calculateTotalTaskHours() {
         let totalTaskHours = 0;
-        for (let i = 1; i <= 6; i++) {
+        const selectedCount = parseInt(groupCountPicker.value, 10);
+        for (let i = 1; i <= selectedCount; i++) {
             const taskHours = parseFloat(document.getElementById(`task-hours${i}`).value) || 0;
             totalTaskHours += taskHours;
         }
@@ -97,26 +195,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 業務データを保存する関数
     function saveTaskData() {
-        for (let i = 1; i <= 6; i++) {
-            localStorage.setItem(`title${i}`, document.getElementById(`title${i}`).value);
-            localStorage.setItem(`task-number${i}`, document.getElementById(`task-number${i}`).value);
-            localStorage.setItem(`category${i}`, document.getElementById(`category${i}`).value);
-        }
-        localStorage.setItem('email', emailInput.value);
-        localStorage.setItem('startTime', startTimeInput.value);
-        localStorage.setItem('endTime', endTimeInput.value);
+        saveTaskDataToStorage();
     }
 
     // 業務データをロードする関数
     function loadTaskData() {
-        for (let i = 1; i <= 6; i++) {
-            document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || '';
-            document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || '';
-            document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
-        }
-        document.getElementById(`email`).value = localStorage.getItem(`email`) || '';
-        document.getElementById(`startTime`).value = localStorage.getItem(`startTime`) || '';
-        document.getElementById(`endTime`).value = localStorage.getItem(`endTime`) || '';
+        loadTaskDataFromStorage();
     }
 
     // 入力チェックボタンのクリックイベントリスナー
@@ -142,8 +226,9 @@ document.addEventListener('DOMContentLoaded', function() {
             issuesFound = true;
         }
 
+        const selectedCount = parseInt(groupCountPicker.value, 10);
         // 空の工数フィールドを自動的に埋める処理と業務情報が入力されているかのチェック
-        for (let i = 1; i <= 6; i++) {
+        for (let i = 1; i <= selectedCount; i++) {
             const taskNumber = document.getElementById(`task-number${i}`).value;
             const taskHours = document.getElementById(`task-hours${i}`).value;
             const category = document.getElementById(`category${i}`).value;
@@ -201,7 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let body = `@基本${newline}日付 ${selectedDate}${newline}始業 ${selectedStartTime}${newline}終業 ${selectedEndTime}${newline}`;
 
         // 業務情報をメール本文に追加
-        for (let i = 1; i <= 6; i++) {
+        const selectedCount = parseInt(groupCountPicker.value, 10);
+        for (let i = 1; i <= selectedCount; i++) {
             const title = document.getElementById(`title${i}`).value;
             const taskNumber = document.getElementById(`task-number${i}`).value;
             const category = document.getElementById(`category${i}`).value;
