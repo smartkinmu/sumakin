@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (title) localStorage.setItem(`title${i}`, title.value);
             if (taskNumber) localStorage.setItem(`task-number${i}`, taskNumber.value);
             if (category) localStorage.setItem(`category${i}`, category.value);
-            if (taskHours) localStorage.setItem(`task-hours${i}`, taskHours.value);
+   //         if (taskHours) localStorage.setItem(`task-hours${i}`, taskHours.value);
         }
         localStorage.setItem('email', emailInput.value);
         localStorage.setItem('startTime', startTimeInput.value);
@@ -76,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
             existingData[`title${i}`] = document.getElementById(`title${i}`)?.value || '';
             existingData[`task-number${i}`] = document.getElementById(`task-number${i}`)?.value || '';
             existingData[`category${i}`] = document.getElementById(`category${i}`)?.value || '';
-            existingData[`task-hours${i}`] = document.getElementById(`task-hours${i}`)?.value || '';
+      //      existingData[`task-hours${i}`] = document.getElementById(`task-hours${i}`)?.value || '';
         }
 
         taskGroupsContainer.innerHTML = '';
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(`title${i}`).value = localStorage.getItem(`title${i}`) || existingData[`title${i}`] || '';
             document.getElementById(`task-number${i}`).value = localStorage.getItem(`task-number${i}`) || existingData[`task-number${i}`] || '';
             document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || existingData[`category${i}`] || '';
-            document.getElementById(`task-hours${i}`).value = localStorage.getItem(`task-hours${i}`) || existingData[`task-hours${i}`] || '';
+         //   document.getElementById(`task-hours${i}`).value = localStorage.getItem(`task-hours${i}`) || existingData[`task-hours${i}`] || '';
         }
 
         // 動的に生成された入力ボックスにイベントリスナーを追加
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskData);
             document.getElementById(`category${i}`).addEventListener('blur', saveTaskData);
             document.getElementById(`title${i}`).addEventListener('blur', saveTaskData);
-            document.getElementById(`task-hours${i}`).addEventListener('blur', saveTaskData);
+     //       document.getElementById(`task-hours${i}`).addEventListener('blur', saveTaskData);
         }
     }
 
