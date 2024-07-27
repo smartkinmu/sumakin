@@ -162,12 +162,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const start = new Date(`1970-01-01T${startTime}:00`);
         const end = new Date(`1970-01-01T${endTime}:00`);
         let totalMinutes = (end - start) / (1000 * 60);
-
+    
         const breaks = [
             { start: "11:45", end: "12:45" },
             { start: "19:15", end: "19:45" }
         ];
-
+    
         // 休憩時間を差し引く処理
         breaks.forEach(b => {
             const breakStart = new Date(`1970-01-01T${b.start}:00`);
@@ -178,10 +178,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 totalMinutes -= (overlapEnd - overlapStart) / (1000 * 60);
             }
         });
-
-        return (totalMinutes / 60).toFixed(2);
+    
+        let workingHours = totalMinutes / 60;
+        // 小数点第3位を繰り上げる処理
+        return (Math.ceil(workingHours * 100) / 100).toFixed(2);
     }
-
+    
     // 入力工数を計算する関数
     function calculateTotalTaskHours() {
         let totalTaskHours = 0;
