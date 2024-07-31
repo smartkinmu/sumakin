@@ -180,8 +180,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     
         let workingHours = totalMinutes / 60;
-        // 小数点第3位を繰り上げる処理
-        return (Math.ceil(workingHours * 100) / 100).toFixed(2);
+        // 小数点第3位を四捨五入する処理
+        return (Math.round(workingHours * 100) / 100).toFixed(2);
     }
     
     // 入力工数を計算する関数
