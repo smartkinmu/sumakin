@@ -90,7 +90,7 @@ button:hover {
   
 .main-buttons {
     display: grid; /* Gridレイアウトを使用 */
-    grid-template-columns: 1fr 1fr; /* 2つのカラムを均等に */
+    grid-template-columns: 1fr 1fr 1fr; /* 3つのカラムを均等に */
     gap: 10px; /* ボタン間のスペース */
     width: 100%; /* 親要素の幅いっぱいに広げる */
 }
