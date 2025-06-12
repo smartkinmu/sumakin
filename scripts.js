@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailButton = document.getElementById('email-button');
     const refreshButton = document.getElementById('refresh-button');
     const refreshIndicator = document.getElementById('refresh-indicator');
+    const copyTask1Button = document.getElementById('copy-task1-button');
 
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");
@@ -119,6 +120,19 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             location.reload();
         }, 1500);
+    });
+
+    // 業務1を他の業務番号にコピーするボタン
+    copyTask1Button.addEventListener('click', function() {
+        const selectedCount = parseInt(groupCountPicker.value, 10);
+        const taskNumber1 = document.getElementById('task-number1').value;
+        for (let i = 2; i <= selectedCount; i++) {
+            const field = document.getElementById(`task-number${i}`);
+            if (field) {
+                field.value = taskNumber1;
+            }
+        }
+        saveTaskData();
     });
 
     // 曜日を取得する関数
