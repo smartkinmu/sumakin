@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div class="input-group">
                     <label for="category${index}">分類${index}:</label>
-                    <input type="text" id="category${index}" name="category${index}">
+                    <input type="text" id="category${index}" name="category${index}" maxlength="5" pattern="\\d{5}">
                 </div>
                 <div class="input-group">
                     <label for="task-hours${index}">工数${index}:</label>
@@ -195,6 +195,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return totalTaskHours;
     }
 
+    function isStartTimeBeforeEndTime(startTime, endTime) {
+        const start = new Date(`1970-01-01T${startTime}:00`);
+        const end = new Date(`1970-01-01T${endTime}:00`);
+        return start <= end;
+    }
+
     // 業務データを保存する関数
     function saveTaskData() {
         saveTaskDataToStorage();
@@ -212,11 +218,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
         const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
-        let totalTaskHours = calculateTotalTaskHours();
-
         let issuesFound = false;
         let firstEmptyTaskHoursIndex = -1;
         let allTaskCategoriesFilled = 0;
+        if (!isStartTimeBeforeEndTime(selectedStartTime, selectedEndTime)) {
+            alert("始業時刻が終業時刻より遅くなっています。");
+            issuesFound = true;
+        }
+        let totalTaskHours = calculateTotalTaskHours();
 
         // 現在の日付を取得
         const now = new Date();
