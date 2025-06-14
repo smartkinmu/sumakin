@@ -75,20 +75,16 @@ button:hover {
     color: white;
 }
 
-#refresh-button {
-    width: 60px; /* 固定幅 */
-    height: 40px; /* 固定高さ */
-    padding: 5px; /* ボタンを少し小さく表示 */
-    font-size: 1em; /* 文字サイズを調整 */
-}
-
+#refresh-button,
 #copy-task1-button {
     width: 100px; /* 横幅を広げて折り返しを防ぐ */
-    height: 55px;
-    line-height: 55px;
+    height: 55px; /* 統一した高さ */
+    line-height: 55px; /* テキストを中央寄せ */
     padding: 0;
     font-size: 1em;
     white-space: nowrap; /* 文字を折り返さない */
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .button-group {
@@ -107,7 +103,7 @@ button:hover {
 .side-buttons {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 5px;
 }
   
 .button-group button {
