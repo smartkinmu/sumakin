@@ -83,11 +83,12 @@ button:hover {
 }
 
 #copy-task1-button {
-    width: 60px;
+    width: 100px; /* 横幅を広げて折り返しを防ぐ */
     height: 55px;
     line-height: 55px;
     padding: 0;
     font-size: 1em;
+    white-space: nowrap; /* 文字を折り返さない */
 }
 
 .button-group {
