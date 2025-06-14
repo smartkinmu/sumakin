@@ -29,6 +29,23 @@
             padding: 10px;
             margin: 10px 0;
         }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 8px;
+        }
+        .actions a {
+            display: block;
+            padding: 10px 16px;
+            font-size: 20px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            flex-grow: 1;
+        }
     </style>
 </head>
 <body>
@@ -139,6 +156,9 @@
             <li><strong>更新ボタン</strong>: 更新ボタンが搭載されています。更新ボタンを押すと「更新中...」と表示され、ページが再読み込みされます。これにより、日時と工数が初期化されます。</li>
             <li><strong>日付のバリデーション</strong>: 過去の日付が選択されると警告が表示されます。これにより、誤って過去の日付を入力するミスを防ぐことができます。</li>
         </ul>
+    </div>
+    <div class="actions">
+        <a href="index.html">戻る</a>
     </div>
 </body>
 </html>
