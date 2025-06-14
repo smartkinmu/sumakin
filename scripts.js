@@ -37,6 +37,17 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
+    // ログ保存用関数
+    // ヘッダー例: timestamp,action,workingHours,"content"
+    function saveLog(action, content, workingHours) {
+        const timestamp = new Date().toISOString();
+        const sanitized = content.replace(/"/g, '""');
+        const line = `${timestamp},${action},${workingHours},"${sanitized}"`;
+        const existing = localStorage.getItem('logs');
+        const updated = existing ? `${existing}\n${line}` : line;
+        localStorage.setItem('logs', updated);
+    }
+
     function saveTaskDataToStorage() {
         const totalGroups = 10;  // 最大20グループまで保存
         for (let i = 1; i <= totalGroups; i++) {
@@ -346,6 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskData();  // データを保存
+        saveLog('メール作成', body.replace(/\r?\n/g, ' '), workingHours);
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
