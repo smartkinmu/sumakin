@@ -107,19 +107,21 @@ button:active {
     gap: 8px;
 }
 
-/* メインボタン（入力確認・メール作成）を大きく */
+/* メインボタン（入力確認・メール作成）をやや狭くして幅を揃える */
 .main-buttons {
     display: flex;
     gap: 16px;
     align-items: flex-start; /* 上端揃え */
 }
 .main-buttons button {
-    font-size: 1.15em;
-    padding: 18px 36px;
-    min-width: 150px;
+    font-size: 1.10em;
+    padding: 14px 24px;
+    min-width: 110px;
+    max-width: 140px;
     min-height: 56px;
     white-space: nowrap;
-    margin: 0; /* 余計なマージンを消す */
+    margin: 0;
+    width: 130px; /* 幅を固定して2つ並べた時に全体のバランスが良くなる */
 }
 
 /* サイドボタン（更新・業務1コピー）を小さく縦並びに */
