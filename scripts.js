@@ -148,6 +148,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 業務1を他の業務番号にコピーするボタン
     copyTask1Button.addEventListener('click', function() {
+        if (!confirm('業務1を他の業務番号へコピーしますか？')) {
+            return;
+        }
         const selectedCount = parseInt(groupCountPicker.value, 10);
         const taskNumber1 = document.getElementById('task-number1').value;
         const format1 = getFormat(taskNumber1);
