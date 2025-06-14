@@ -27,7 +27,6 @@
             padding: 6px 14px;
             font-size: 15px;
             margin-top: 10px;
-            width: 100%;
             box-sizing: border-box;
             background-color: #333;
             color: white;
@@ -36,6 +35,23 @@
             cursor: pointer;
             transition: background 0.2s;
             white-space: nowrap;
+        }
+        .actions a {
+            display: block;
+            padding: 10px 16px;
+            font-size: 20px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            flex-grow: 1;
+        }
+        .actions button.small {
+            padding: 4px 8px;
+            font-size: 12px;
+            flex-grow: 0;
         }
         button:hover {
             background-color: #3a4d57;
@@ -56,8 +72,8 @@
         <ul id="log-list"></ul>
         <div class="actions">
             <a href="index.html">戻る</a>
-            <button id="clear-logs">ログをクリア</button>
-            <button id="download-logs">CSVダウンロード</button>
+            <button id="clear-logs" class="small">ログをクリア</button>
+            <button id="download-logs" class="small">CSVダウンロード</button>
         </div>
     </div>
     <script>
@@ -74,8 +90,10 @@
             logList.innerHTML = '<li>ログはありません</li>';
         }
         document.getElementById('clear-logs').addEventListener('click', function () {
-            localStorage.removeItem('logs');
-            logList.innerHTML = '<li>ログはありません</li>';
+            if (confirm('ログをクリアしますか？')) {
+                localStorage.removeItem('logs');
+                logList.innerHTML = '<li>ログはありません</li>';
+            }
         });
         document.getElementById('download-logs').addEventListener('click', downloadLogs);
 
