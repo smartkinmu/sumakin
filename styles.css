@@ -82,6 +82,13 @@ button:hover {
     font-size: 1em; /* 文字サイズを調整 */
 }
 
+#copy-task1-button {
+    width: 60px;
+    height: 40px;
+    padding: 0;
+    font-size: 1em;
+}
+
 .button-group {
     display: flex;
     justify-content: space-between;
@@ -90,9 +97,15 @@ button:hover {
   
 .main-buttons {
     display: grid; /* Gridレイアウトを使用 */
-    grid-template-columns: 1fr 1fr 1fr; /* 3つのカラムを均等に */
+    grid-template-columns: 1fr 1fr; /* 2つのカラムを均等に */
     gap: 10px; /* ボタン間のスペース */
     width: 100%; /* 親要素の幅いっぱいに広げる */
+}
+
+.side-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
   
 .button-group button {
@@ -103,4 +116,8 @@ button:hover {
 #refresh-button {
     /* 更新ボタンのスタイル */
     padding: 5px; /* 小さくする */
+}
+
+#copy-task1-button {
+    padding: 5px; /* 更新ボタンと同じ余白 */
 }
