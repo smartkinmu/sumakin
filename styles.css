@@ -108,7 +108,7 @@ button:hover {
   
 .button-group button {
     /* すべてのボタンの共通スタイル */
-    padding: 5px 10px;
+    padding: 2px 2px;
     font-size: 1.2em;
     white-space: nowrap;
 }
