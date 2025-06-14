@@ -78,7 +78,7 @@ button:hover {
 #refresh-button {
     width: 60px; /* 固定幅 */
     height: 40px; /* 固定高さ */
-    padding: 0; /* 既存のパディングを無効化 */
+    padding: 5px; /* ボタンを少し小さく表示 */
     font-size: 1em; /* 文字サイズを調整 */
 }
 
@@ -117,8 +117,3 @@ button:hover {
     white-space: nowrap;
 }
   
-#refresh-button {
-    /* 更新ボタンのスタイル */
-    padding: 5px; /* 小さくする */
-}
-
