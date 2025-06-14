@@ -16,7 +16,7 @@ body {
 }
 
 .container {
-    padding: 20px;
+    padding: 12px 8px;
 }
 
 .input-group {
@@ -43,20 +43,26 @@ input[type="number"] {
 }
 
 button {
-    padding: 8px 15px;
-    font-size: 1.2em;
+    padding: 6px 14px;
+    font-size: 15px;
     margin-top: 10px;
     width: 100%;
     box-sizing: border-box;
     background-color: #333;
     color: white;
-    border: none;
+    border: 1px solid #aaa;
     border-radius: 5px;
     cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap; /* 文字を折り返さない */
 }
 
 button:hover {
     background-color: #3a4d57;
+}
+
+button:active {
+    background: #e0e0e0;
 }
 
 .result {
@@ -89,27 +95,55 @@ button:hover {
 
 .button-group {
     display: flex;
-    justify-content: space-between;
-    gap: 10px;
-}
-  
-.main-buttons {
-    display: grid; /* Gridレイアウトを使用 */
-    grid-template-columns: 1fr 1fr; /* 2つのカラムを均等に */
-    gap: 10px; /* ボタン間のスペース */
-    width: 100%; /* 親要素の幅いっぱいに広げる */
+    justify-content: flex-start; /* 左寄せに変更 */
+    align-items: flex-start;
+    margin-bottom: 12px;
+    gap: 24px; /* メインとサイドの間を広げる */
 }
 
+.main-buttons,
+.side-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+/* メインボタン（入力確認・メール作成）を大きく */
+.main-buttons {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start; /* 上端揃え */
+}
+.main-buttons button {
+    font-size: 1.15em;
+    padding: 18px 36px;
+    min-width: 150px;
+    min-height: 56px;
+    white-space: nowrap;
+    margin: 0; /* 余計なマージンを消す */
+}
+
+/* サイドボタン（更新・業務1コピー）を小さく縦並びに */
 .side-buttons {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
+    align-items: flex-start; /* 左端揃え */
+    margin-top: 0; /* 余計なマージンを消す */
 }
-  
-.button-group button {
-    /* すべてのボタンの共通スタイル */
-    padding: 2px 2px;
-    font-size: 1.2em;
+#refresh-button,
+#copy-task1-button {
+    font-size: 0.95em;
+    padding: 0 12px;
+    min-width: 70px;
+    min-height: 28px;
+    height: 28px;
+    line-height: 28px;
+    white-space: nowrap;
+    margin: 0;
+}
+
+/* ボタンのテキストは折り返さない */
+button {
     white-space: nowrap;
 }
-  
+
