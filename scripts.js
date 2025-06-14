@@ -40,7 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // ログ保存用関数
     // ヘッダー例: timestamp,action,workingHours,"content"
     function saveLog(action, content, workingHours) {
-        const timestamp = new Date().toISOString();
+        const timestamp = new Date(Date.now() + 9 * 60 * 60 * 1000)
+            .toISOString()
+            .replace('Z', '+09:00');
         const sanitized = content.replace(/"/g, '""');
         const line = `${timestamp},${action},${workingHours},"${sanitized}"`;
         const existing = localStorage.getItem('logs');
