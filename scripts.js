@@ -135,14 +135,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 1500);
     });
 
+    function getFormat(str) {
+        return Array.from(str).map(ch => {
+            if (/[A-Za-z]/.test(ch)) {
+                return 'A';
+            } else if (/[0-9]/.test(ch)) {
+                return '0';
+            }
+            return ch;
+        }).join('');
+    }
+
     // 業務1を他の業務番号にコピーするボタン
     copyTask1Button.addEventListener('click', function() {
         const selectedCount = parseInt(groupCountPicker.value, 10);
         const taskNumber1 = document.getElementById('task-number1').value;
+        const format1 = getFormat(taskNumber1);
         for (let i = 2; i <= selectedCount; i++) {
             const field = document.getElementById(`task-number${i}`);
             if (field) {
-                field.value = taskNumber1;
+                const fieldFormat = getFormat(field.value);
+                if (field.value === '' || fieldFormat === format1) {
+                    field.value = taskNumber1;
+                }
             }
         }
         saveTaskData();
