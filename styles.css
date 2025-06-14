@@ -84,7 +84,8 @@ button:hover {
 
 #copy-task1-button {
     width: 60px;
-    height: 40px;
+    height: 55px;
+    line-height: 55px;
     padding: 0;
     font-size: 1em;
 }
@@ -118,6 +119,3 @@ button:hover {
     padding: 5px; /* 小さくする */
 }
 
-#copy-task1-button {
-    padding: 5px; /* 更新ボタンと同じ余白 */
-}

@@ -9,6 +9,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshButton = document.getElementById('refresh-button');
     const refreshIndicator = document.getElementById('refresh-indicator');
     const copyTask1Button = document.getElementById('copy-task1-button');
+    const showLogButton = document.getElementById('show-log-button');
+    const logDisplay = document.getElementById('log-display');
 
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");
@@ -35,6 +37,21 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <hr>
         `;
+    }
+
+    // ログ保存用関数
+    // ヘッダー例: timestamp,action,workingHours,"content"
+    function saveLog(action, content, workingHours) {
+        const timestamp = new Date().toISOString();
+        const sanitized = content.replace(/"/g, '""');
+        const line = `${timestamp},${action},${workingHours},"${sanitized}"`;
+        const existing = localStorage.getItem('logs');
+        if (!existing) {
+            const header = 'timestamp,action,workingHours,content';
+            localStorage.setItem('logs', `${header}\n${line}`);
+        } else {
+            localStorage.setItem('logs', `${existing}\n${line}`);
+        }
     }
 
     function saveTaskDataToStorage() {
@@ -135,6 +152,26 @@ document.addEventListener('DOMContentLoaded', function() {
         saveTaskData();
     });
 
+    // ログ表示ボタン
+    showLogButton.addEventListener('click', function() {
+        const logs = localStorage.getItem('logs') || '';
+        if (!logs) {
+            alert('ログはありません');
+            return;
+        }
+        logDisplay.innerHTML = '';
+        logDisplay.style.display = 'block';
+        logDisplay.textContent = logs;
+        const blob = new Blob([logs], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'sumakin_logs.txt';
+        link.textContent = 'ログをダウンロード';
+        link.style.display = 'block';
+        logDisplay.appendChild(link);
+    });
+
     // 曜日を取得する関数
     function getDayOfWeek(dateString) {
         const days = ['日', '月', '火', '水', '木', '金', '土'];
@@ -225,6 +262,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadTaskDataFromStorage();
     }
 
+
     // 入力チェックボタンのクリックイベントリスナー
     submitButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
@@ -294,6 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間<br>入力工数 ${totalTaskHours.toFixed(2)} 時間</p>`;
         saveTaskData();  // データを保存
+        saveLog('入力確認', resultDiv.textContent.trim(), workingHours);
     });
 
     // メール作成ボタンのクリックイベントリスナー
@@ -346,6 +385,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskData();  // データを保存
+        saveLog('メール作成', body.replace(/\r?\n/g, ' '), workingHours);
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
