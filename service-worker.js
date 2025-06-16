@@ -1,18 +1,19 @@
 const CACHE_NAME = 'pwa-sample-cache-v2';
 
-self.addEventListener('install', function(event) {
+self.addEventListener('install', event => {
+    self.skipWaiting();
     event.waitUntil(
-        caches.open(CACHE_NAME).then(function(cache) {
+        caches.open(CACHE_NAME).then(cache => {
             return cache.addAll([
-                '/',
-                '/index.html',
-                '/logs.html',
-                '/manifest.json',
-                '/scripts.js',
-                '/styles.css',
-                '/service-worker.js',
-                '/icon-192x192.png',
-                '/icon-512x512.png'
+                './',
+                './index.html',
+                './logs.html',
+                './manifest.json',
+                './scripts.js',
+                './styles.css',
+                './service-worker.js',
+                './icon-192x192.png',
+                './icon-512x512.png'
             ]).catch(error => {
                 console.error('Failed to cache', error);
             });
