@@ -1,8 +1,8 @@
 function parseCsv(csv) {
     return csv.trim().split('\n').map(line => {
-        const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+        const parts = line.split(',');
         const date = new Date(parts[0]);
-        return { date: date, hours: parseFloat(parts[2]) || 0 };
+        return { date: date, hours: parseFloat(parts[3]) || 0 };
     });
 }
 
