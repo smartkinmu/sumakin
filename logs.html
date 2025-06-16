@@ -72,6 +72,7 @@
         <ul id="log-list"></ul>
         <h2>月別集計</h2>
         <div id="monthly-summary-section">
+            <label for="summary-month">集計対象年月:</label>
             <input type="month" id="summary-month">
             <button id="show-summary" class="small">集計表示</button>
             <div id="monthly-summary"></div>
@@ -134,16 +135,26 @@
                 return;
             }
             const records = parseCsv(csv);
-            let totalHours = 0;
-            const days = new Set();
+            const dailyRecords = {};
             records.forEach(r => {
                 if (r.date.getFullYear() === year && r.date.getMonth() + 1 === month) {
                     const dayStr = r.date.toISOString().split('T')[0];
-                    days.add(dayStr);
-                    totalHours += r.hours;
+                    if (!dailyRecords[dayStr] || r.date > dailyRecords[dayStr].date) {
+                        dailyRecords[dayStr] = r;
+                    }
                 }
             });
-            const workingDays = days.size;
+
+            let totalHours = 0;
+            Object.values(dailyRecords).forEach(rec => {
+                let hours = rec.hours;
+                if (hours > 9) {
+                    hours -= 0.5; // 19:15-19:45 の休憩を考慮
+                }
+                totalHours += hours;
+            });
+
+            const workingDays = Object.keys(dailyRecords).length;
             const base = workingDays * 7.75;
             const overtime = totalHours - base;
             const summary = `勤務日数 ${workingDays} 日, 合計 ${totalHours.toFixed(2)} 時間, 残業 ${overtime.toFixed(2)} 時間`;
