@@ -38,13 +38,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ログ保存用関数
-    // ヘッダー例: timestamp,action,workingHours,"content"
-    function saveLog(action, content, workingHours) {
-        const timestamp = new Date(Date.now() + 9 * 60 * 60 * 1000)
-            .toISOString()
-            .replace('Z', '+09:00');
-        const sanitized = content.replace(/"/g, '""');
-        const line = `${timestamp},${action},${workingHours},"${sanitized}"`;
+    // 日付,始業,終業,勤務時間,残業時間 の形式で保存する
+    function saveLog(date, start, end, work, overtime) {
+        const line = `${date},${start},${end},${work},${overtime}`;
         const existing = localStorage.getItem('logs');
         const updated = existing ? `${existing}\n${line}` : line;
         localStorage.setItem('logs', updated);
@@ -377,7 +373,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskData();  // データを保存
-        saveLog('メール作成', body.replace(/\r?\n/g, ' '), workingHours);
+        const overtime = (Math.max(0, parseFloat(workingHours) - 7.75)).toFixed(2);
+        saveLog(selectedDate, selectedStartTime, selectedEndTime, workingHours, overtime);
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 

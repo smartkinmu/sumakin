@@ -2,9 +2,9 @@ const assert = require('assert');
 const { parseCsv, computeMonthlySummary } = require('./summary');
 
 const sampleCsv = [
-    '2025-06-01T09:00:00+09:00,start,7.75,"login"',
-    '2025-06-02T09:00:00+09:00,start,8.00,"work"',
-    '2025-07-01T09:00:00+09:00,start,7.00,"other"'
+    '2025-06-01,08:30,17:15,7.75,0.00',
+    '2025-06-02,08:30,17:30,8.00,0.25',
+    '2025-07-01,08:30,16:30,7.00,0.00'
 ].join('\n');
 
 const records = parseCsv(sampleCsv);

@@ -81,11 +81,22 @@
             <button id="show-summary" class="small">集計表示</button>
             <div id="monthly-summary"></div>
         </div>
-        <ul id="log-list"></ul>
+        <table id="log-table" style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">日付</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">始業</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">終業</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">勤務時間</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">残業時間</th>
+                </tr>
+            </thead>
+            <tbody id="log-body"></tbody>
+        </table>
     </div>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const logList = document.getElementById('log-list');
+        const logBody = document.getElementById('log-body');
         const summaryMonth = document.getElementById('summary-month');
         const now = new Date();
         summaryMonth.value = now.toISOString().slice(0, 7);
@@ -93,19 +104,29 @@
         if (data) {
             data.split('\n')
                 .filter(l => l)
-                .sort((a, b) => new Date(b.split(',')[0]) - new Date(a.split(',')[0]))
+                .sort((a, b) => new Date(a.split(',')[0]) - new Date(b.split(',')[0]))
                 .forEach(line => {
-                    const li = document.createElement('li');
-                    li.textContent = line;
-                    logList.appendChild(li);
+                    const [date, start, end, work, overtime] = line.split(',');
+                    const tr = document.createElement('tr');
+                    [date, start, end, work, overtime].forEach(text => {
+                        const td = document.createElement('td');
+                        td.textContent = text;
+                        tr.appendChild(td);
+                    });
+                    logBody.appendChild(tr);
                 });
         } else {
-            logList.innerHTML = '<li>ログはありません</li>';
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 5;
+            td.textContent = 'ログはありません';
+            tr.appendChild(td);
+            logBody.appendChild(tr);
         }
         document.getElementById('clear-logs').addEventListener('click', function () {
             if (confirm('ログをクリアしますか？')) {
                 localStorage.removeItem('logs');
-                logList.innerHTML = '<li>ログはありません</li>';
+                logBody.innerHTML = '<tr><td colspan="5">ログはありません</td></tr>';
             }
         });
         document.getElementById('download-logs').addEventListener('click', downloadLogs);
@@ -128,9 +149,9 @@
 
         function parseCsv(csv) {
             return csv.trim().split('\n').map(line => {
-                const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+                const parts = line.split(',');
                 const date = new Date(parts[0]);
-                return { date: date, hours: parseFloat(parts[2]) || 0 };
+                return { date: date, hours: parseFloat(parts[3]) || 0 };
             });
         }
 
