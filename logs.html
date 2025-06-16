@@ -69,7 +69,11 @@
 <body>
     <div class="container">
         <h1>ログ表示</h1>
-        <ul id="log-list"></ul>
+        <div class="actions">
+            <a href="index.html">戻る</a>
+            <button id="clear-logs" class="small">ログをクリア</button>
+            <button id="download-logs" class="small">CSVダウンロード</button>
+        </div>
         <h2>月別集計</h2>
         <div id="monthly-summary-section">
             <label for="summary-month">集計対象年月:</label>
@@ -77,22 +81,24 @@
             <button id="show-summary" class="small">集計表示</button>
             <div id="monthly-summary"></div>
         </div>
-        <div class="actions">
-            <a href="index.html">戻る</a>
-            <button id="clear-logs" class="small">ログをクリア</button>
-            <button id="download-logs" class="small">CSVダウンロード</button>
-        </div>
+        <ul id="log-list"></ul>
     </div>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const logList = document.getElementById('log-list');
+        const summaryMonth = document.getElementById('summary-month');
+        const now = new Date();
+        summaryMonth.value = now.toISOString().slice(0, 7);
         const data = localStorage.getItem('logs');
         if (data) {
-            data.split('\n').forEach(line => {
-                const li = document.createElement('li');
-                li.textContent = line;
-                logList.appendChild(li);
-            });
+            data.split('\n')
+                .filter(l => l)
+                .sort((a, b) => new Date(b.split(',')[0]) - new Date(a.split(',')[0]))
+                .forEach(line => {
+                    const li = document.createElement('li');
+                    li.textContent = line;
+                    logList.appendChild(li);
+                });
         } else {
             logList.innerHTML = '<li>ログはありません</li>';
         }
