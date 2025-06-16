@@ -70,6 +70,14 @@
     <div class="container">
         <h1>ログ表示</h1>
         <ul id="log-list"></ul>
+        <h2>月別集計</h2>
+        <div id="monthly-summary-section">
+            <input type="month" id="summary-month">
+            <button id="show-summary" class="small">集計表示</button>
+            <button id="load-csv" class="small">CSV読み込み</button>
+            <input type="file" id="csv-file" accept=".csv" style="display:none">
+            <div id="monthly-summary"></div>
+        </div>
         <div class="actions">
             <a href="index.html">戻る</a>
             <button id="clear-logs" class="small">ログをクリア</button>
@@ -97,6 +105,8 @@
         });
         document.getElementById('download-logs').addEventListener('click', downloadLogs);
 
+        let fileLogs = '';
+
         function downloadLogs() {
             const csv = localStorage.getItem('logs');
             if (!csv) {
@@ -111,6 +121,60 @@
             a.click();
             URL.revokeObjectURL(url);
         }
+
+        function parseCsv(csv) {
+            return csv.trim().split('\n').map(line => {
+                const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+                const date = new Date(parts[0]);
+                return { date: date, hours: parseFloat(parts[2]) || 0 };
+            });
+        }
+
+        function showMonthlySummary(year, month) {
+            const csv = fileLogs || localStorage.getItem('logs');
+            if (!csv) {
+                alert('ログはありません');
+                return;
+            }
+            const records = parseCsv(csv);
+            let totalHours = 0;
+            const days = new Set();
+            records.forEach(r => {
+                if (r.date.getFullYear() === year && r.date.getMonth() + 1 === month) {
+                    const dayStr = r.date.toISOString().split('T')[0];
+                    days.add(dayStr);
+                    totalHours += r.hours;
+                }
+            });
+            const workingDays = days.size;
+            const base = workingDays * 7.75;
+            const overtime = totalHours - base;
+            const summary = `勤務日数 ${workingDays} 日, 合計 ${totalHours.toFixed(2)} 時間, 残業 ${overtime.toFixed(2)} 時間`;
+            document.getElementById('monthly-summary').textContent = summary;
+        }
+
+        document.getElementById('show-summary').addEventListener('click', function () {
+            const value = document.getElementById('summary-month').value;
+            if (!value) return;
+            const [y, m] = value.split('-').map(Number);
+            showMonthlySummary(y, m);
+        });
+
+        document.getElementById('load-csv').addEventListener('click', function () {
+            document.getElementById('csv-file').click();
+        });
+
+        document.getElementById('csv-file').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (evt) {
+                    fileLogs = evt.target.result;
+                    alert('CSVを読み込みました');
+                };
+                reader.readAsText(file);
+            }
+        });
     });
     </script>
 </body>
