@@ -1,3 +1,7 @@
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('email');
     const dateInput = document.getElementById('date');
@@ -124,11 +128,14 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTaskDataFromStorage();
     
     // 更新ボタンのクリックイベントリスナー
-    refreshButton.addEventListener('click', function() {
+    refreshButton.addEventListener('click', async () => {
+        if (navigator.serviceWorker?.controller) {
+            navigator.serviceWorker.controller.postMessage({ action: 'sync' });
+            const reg = await navigator.serviceWorker.getRegistration();
+            reg?.update();
+        }
         refreshIndicator.style.display = 'block';
-        setTimeout(() => {
-            location.reload();
-        }, 1500);
+        setTimeout(() => location.reload(), 1500);
     });
 
     function getFormat(str) {
