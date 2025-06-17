@@ -99,6 +99,12 @@
         const summaryMonth = document.getElementById('summary-month');
         const now = new Date();
         summaryMonth.value = now.toISOString().slice(0, 7);
+
+        function formatDateWithDay(dateStr) {
+            const d = new Date(dateStr);
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}(${days[d.getDay()]})`;
+        }
         const data = localStorage.getItem('logs');
         if (data) {
             const daily = {};
@@ -110,7 +116,8 @@
             Object.keys(daily).sort().forEach(date => {
                 const { start, end, work, overtime } = daily[date];
                 const tr = document.createElement('tr');
-                [date, start, end, work, overtime].forEach(text => {
+                const row = [formatDateWithDay(date), start, end, work, overtime];
+                row.forEach(text => {
                     const td = document.createElement('td');
                     td.textContent = text;
                     tr.appendChild(td);
