@@ -105,6 +105,64 @@
             const days = ['日', '月', '火', '水', '木', '金', '土'];
             return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}(${days[d.getDay()]})`;
         }
+
+        function parseLogLine(line) {
+            const simple = line.split(',');
+            if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
+                return simple.slice(0, 5).join(',');
+            }
+            const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+            if (parts.length >= 4 && /^\d{4}-\d{2}-\d{2}T/.test(parts[0])) {
+                const body = parts[3].replace(/^"|"$/g, '').replace(/""/g, '"');
+                const date = body.match(/日付\s*(\d{4}-\d{2}-\d{2})/);
+                const start = body.match(/始業\s*(\d{2}:\d{2})/);
+                const end = body.match(/終業\s*(\d{2}:\d{2})/);
+                const work = parseFloat(parts[2]) || 0;
+                if (date && start && end) {
+                    const overtime = (work - 7.75).toFixed(2);
+                    return `${date[1]},${start[1]},${end[1]},${work.toFixed(2)},${overtime}`;
+                }
+            }
+            return null;
+        }
+
+        const data = localStorage.getItem('logs');
+        if (data) {
+            const daily = {};
+            const newLines = [];
+            data.split('\n').forEach(line => {
+                if (!line) return;
+                const parsed = parseLogLine(line);
+                if (!parsed) return;
+                const [date, start, end, work, overtime] = parsed.split(',');
+                daily[date] = { start, end, work, overtime };
+                newLines.push(parsed);
+            });
+            if (newLines.length > 0) {
+                localStorage.setItem('logs', newLines.join('\n'));
+            } else {
+                localStorage.removeItem('logs');
+            }
+            Object.keys(daily).sort().forEach(date => {
+                const { start, end, work, overtime } = daily[date];
+                const tr = document.createElement('tr');
+                const row = [formatDateWithDay(date), start, end, work, overtime];
+                row.forEach(text => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                logBody.appendChild(tr);
+            });
+        } else {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 5;
+            td.textContent = 'ログはありません';
+            tr.appendChild(td);
+            logBody.appendChild(tr);
+        }
+
         document.getElementById('clear-logs').addEventListener('click', function () {
             if (confirm('ログをクリアしますか？')) {
                 localStorage.removeItem('logs');
@@ -186,7 +244,9 @@
             }
             const dailyRecords = {};
             csv.trim().split('\n').forEach(line => {
-                const parts = line.split(',');
+                const parsed = parseLogLine(line);
+                if (!parsed) return;
+                const parts = parsed.split(',');
                 const dateStr = parts[0];
                 const hours = parseFloat(parts[3]) || 0;
                 dailyRecords[dateStr] = { date: new Date(dateStr), hours: hours };
