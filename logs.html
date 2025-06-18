@@ -105,33 +105,6 @@
             const days = ['日', '月', '火', '水', '木', '金', '土'];
             return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}(${days[d.getDay()]})`;
         }
-        const data = localStorage.getItem('logs');
-        if (data) {
-            const daily = {};
-            data.split('\n').forEach(line => {
-                if (!line) return;
-                const [date, start, end, work, overtime] = line.split(',');
-                daily[date] = { start, end, work, overtime };
-            });
-            Object.keys(daily).sort().forEach(date => {
-                const { start, end, work, overtime } = daily[date];
-                const tr = document.createElement('tr');
-                const row = [formatDateWithDay(date), start, end, work, overtime];
-                row.forEach(text => {
-                    const td = document.createElement('td');
-                    td.textContent = text;
-                    tr.appendChild(td);
-                });
-                logBody.appendChild(tr);
-            });
-        } else {
-            const tr = document.createElement('tr');
-            const td = document.createElement('td');
-            td.colSpan = 5;
-            td.textContent = 'ログはありません';
-            tr.appendChild(td);
-            logBody.appendChild(tr);
-        }
         document.getElementById('clear-logs').addEventListener('click', function () {
             if (confirm('ログをクリアしますか？')) {
                 localStorage.removeItem('logs');
@@ -156,6 +129,53 @@
             a.download = 'logs.csv';
             a.click();
             URL.revokeObjectURL(url);
+        }
+
+        function showMonthlyLogs(year, month) {
+            logBody.innerHTML = '';
+            const csv = localStorage.getItem('logs');
+            if (!csv) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 5;
+                td.textContent = 'ログはありません';
+                tr.appendChild(td);
+                logBody.appendChild(tr);
+                return;
+            }
+
+            const rows = [];
+            csv.split('\n').forEach(line => {
+                if (!line) return;
+                const [date, start, end, work, overtime] = line.split(',');
+                const d = new Date(date);
+                if (d.getFullYear() === year && d.getMonth() + 1 === month) {
+                    rows.push({ date, start, end, work, overtime });
+                }
+            });
+
+            rows.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (rows.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 5;
+                td.textContent = 'ログはありません';
+                tr.appendChild(td);
+                logBody.appendChild(tr);
+                return;
+            }
+
+            rows.forEach(r => {
+                const tr = document.createElement('tr');
+                const row = [formatDateWithDay(r.date), r.start, r.end, r.work, r.overtime];
+                row.forEach(text => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    tr.appendChild(td);
+                });
+                logBody.appendChild(tr);
+            });
         }
 
         function showMonthlySummary(year, month) {
@@ -190,6 +210,7 @@
             const value = document.getElementById('summary-month').value;
             if (!value) return;
             const [y, m] = value.split('-').map(Number);
+            showMonthlyLogs(y, m);
             showMonthlySummary(y, m);
         }
 
