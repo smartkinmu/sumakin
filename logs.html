@@ -64,6 +64,10 @@
             display: flex;
             gap: 8px;
         }
+        td:nth-child(4),
+        td:nth-child(5) {
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -86,8 +90,8 @@
                     <th style="border-bottom:1px solid #ccc; text-align:left;">日付</th>
                     <th style="border-bottom:1px solid #ccc; text-align:left;">始業</th>
                     <th style="border-bottom:1px solid #ccc; text-align:left;">終業</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">勤務時間</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">残業時間</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:right;">勤務時間</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:right;">残業時間</th>
                 </tr>
             </thead>
             <tbody id="log-body"></tbody>
