@@ -183,8 +183,17 @@
                 alert('ログはありません');
                 return;
             }
-            const header = '日付,始業,終業,勤務時間,残業時間\n';
-            const blob = new Blob([header + csv], { type: 'text/csv' });
+            const lines = csv.split('\n').filter(line => line);
+            let totalWork = 0;
+            let totalOvertime = 0;
+            lines.forEach(line => {
+                const parts = line.split(',');
+                totalWork += parseFloat(parts[3]) || 0;
+                totalOvertime += parseFloat(parts[4]) || 0;
+            });
+            lines.push(`Total,,,${totalWork.toFixed(2)},${totalOvertime.toFixed(2)}`);
+            const header = 'Date,Start,End,Work Hours,Overtime\n';
+            const blob = new Blob([header + lines.join('\n')], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
