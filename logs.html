@@ -177,17 +177,17 @@
         const data = restoreLogsIfNeeded();
         if (data) {
             const daily = {};
-            const newLines = [];
+            const lines = [];
             data.split('\n').forEach(line => {
                 if (!line) return;
                 const parsed = parseLogLine(line);
                 if (!parsed) return;
                 const [date, start, end, work, overtime] = parsed.split(',');
                 daily[date] = { start, end, work, overtime };
-                newLines.push(parsed);
+                lines.push(parsed);
             });
-            if (newLines.length > 0) {
-                localStorage.setItem('logs', newLines.join('\n'));
+            if (lines.length > 0) {
+                localStorage.setItem('logs', lines.join('\n'));
             } else {
                 localStorage.removeItem('logs');
             }
@@ -227,25 +227,22 @@
                 alert('ログはありません');
                 return;
             }
+            const rawLines = csv.split('\n').filter(line => line);
             const daily = {};
-            csv.split('\n').forEach(line => {
-                if (!line) return;
+            rawLines.forEach(line => {
                 const parts = line.split(',');
                 if (parts.length < 5) return;
                 const [date, start, end, work, overtime] = parts;
                 daily[date] = { start, end, work, overtime };
             });
-            const lines = Object.keys(daily).sort().map(d => {
-                const { start, end, work, overtime } = daily[d];
-                return `${d},${start},${end},${work},${overtime}`;
-            });
             let totalWork = 0;
             let totalOvertime = 0;
-            lines.forEach(line => {
-                const parts = line.split(',');
-                totalWork += parseFloat(parts[3]) || 0;
-                totalOvertime += parseFloat(parts[4]) || 0;
+            Object.keys(daily).forEach(d => {
+                const { work, overtime } = daily[d];
+                totalWork += parseFloat(work) || 0;
+                totalOvertime += parseFloat(overtime) || 0;
             });
+            const lines = [...rawLines];
             lines.push(`Total,,,${totalWork.toFixed(2)},${totalOvertime.toFixed(2)}`);
             const header = 'Date,Start,End,Work Hours,Overtime\n';
             const blob = new Blob([header + lines.join('\n')], { type: 'text/csv' });
