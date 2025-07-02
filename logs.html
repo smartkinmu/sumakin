@@ -115,6 +115,19 @@
             return h * 60 + m;
         }
 
+        function restoreLogsIfNeeded() {
+            let data = localStorage.getItem('logs');
+            if (!data) {
+                const backup = localStorage.getItem('logs_backup');
+                if (backup) {
+                    localStorage.setItem('logs', backup);
+                    data = backup;
+                    alert('ログファイルを復元しました。');
+                }
+            }
+            return data;
+        }
+
         function calculateWorkingHours(startTime, endTime) {
             let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
             const breaks = [
@@ -161,7 +174,7 @@
             return null;
         }
 
-        const data = localStorage.getItem('logs');
+        const data = restoreLogsIfNeeded();
         if (data) {
             const daily = {};
             const newLines = [];
@@ -209,7 +222,7 @@
 
 
         function downloadLogs() {
-            const csv = localStorage.getItem('logs');
+            const csv = restoreLogsIfNeeded();
             if (!csv) {
                 alert('ログはありません');
                 return;
@@ -235,7 +248,7 @@
 
         function showMonthlyLogs(year, month) {
             logBody.innerHTML = '';
-            const csv = localStorage.getItem('logs');
+            const csv = restoreLogsIfNeeded();
             if (!csv) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
@@ -281,7 +294,7 @@
         }
 
         function showMonthlySummary(year, month) {
-            const csv = localStorage.getItem('logs');
+            const csv = restoreLogsIfNeeded();
             if (!csv) {
                 alert('ログはありません');
                 return;
