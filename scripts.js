@@ -41,6 +41,20 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
+    // ログが存在しない、または0バイトのときにバックアップから復元する
+    function restoreLogsIfNeeded() {
+        let logs = localStorage.getItem('logs');
+        if (!logs) {
+            const backup = localStorage.getItem('logs_backup');
+            if (backup) {
+                localStorage.setItem('logs', backup);
+                logs = backup;
+                alert('ログファイルを復元しました。');
+            }
+        }
+        return logs;
+    }
+
     // ログ保存用関数
     // 日付,始業,終業,勤務時間,残業時間 の形式で保存する
     function saveLog(date, start, end, work, overtime) {
@@ -48,6 +62,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const existing = localStorage.getItem('logs');
         const updated = existing ? `${existing}\n${line}` : line;
         localStorage.setItem('logs', updated);
+        localStorage.setItem('logs_backup', updated);
     }
 
     function saveTaskDataToStorage() {
@@ -334,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function checkMissingLogs() {
-        const logsStr = localStorage.getItem('logs') || '';
+        const logsStr = restoreLogsIfNeeded() || '';
         const loggedDates = new Set();
         logsStr.split('\n').forEach(line => {
             if (!line) return;
