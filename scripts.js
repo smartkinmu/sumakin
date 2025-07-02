@@ -254,6 +254,118 @@ document.addEventListener('DOMContentLoaded', function() {
         return toMinutes(startTime) <= toMinutes(endTime);
     }
 
+    // 日本の祝日計算用補助関数
+    function nthMonday(year, month, nth) {
+        const first = new Date(year, month - 1, 1);
+        const firstMonday = 1 + ((8 - first.getDay()) % 7);
+        return firstMonday + (nth - 1) * 7;
+    }
+
+    const holidayCache = {};
+
+    function getJapaneseHolidays(year) {
+        if (holidayCache[year]) {
+            return holidayCache[year];
+        }
+        const pad = n => n.toString().padStart(2, '0');
+        const holidays = new Set();
+        const add = (m, d) => holidays.add(`${year}-${pad(m)}-${pad(d)}`);
+
+        add(1, 1); // 元日
+        add(1, nthMonday(year, 1, 2)); // 成人の日
+        add(2, 11); // 建国記念の日
+        add(2, 23); // 天皇誕生日
+        const spring = Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+        add(3, spring); // 春分の日
+        add(4, 29); // 昭和の日
+        add(5, 3); // 憲法記念日
+        add(5, 4); // みどりの日
+        add(5, 5); // こどもの日
+        add(7, nthMonday(year, 7, 3)); // 海の日
+        add(8, 11); // 山の日
+        add(9, nthMonday(year, 9, 3)); // 敬老の日
+        const autumn = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+        add(9, autumn); // 秋分の日
+        add(10, nthMonday(year, 10, 2)); // スポーツの日
+        add(11, 3); // 文化の日
+        add(11, 23); // 勤労感謝の日
+
+        // 振替休日
+        const addSubstitute = dateStr => {
+            let d = new Date(dateStr);
+            if (d.getDay() !== 0) return;
+            do {
+                d.setDate(d.getDate() + 1);
+                const s = d.toISOString().split('T')[0];
+                if (!holidays.has(s)) {
+                    holidays.add(s);
+                    return;
+                }
+            } while (true);
+        };
+        Array.from(holidays).forEach(addSubstitute);
+
+        // 国民の休日
+        const daysInYear = (new Date(year, 11, 31) - new Date(year, 0, 1)) / 86400000 + 1;
+        for (let i = 2; i < daysInYear; i++) {
+            const d = new Date(year, 0, i);
+            const prev = new Date(d);
+            const next = new Date(d);
+            prev.setDate(prev.getDate() - 1);
+            next.setDate(next.getDate() + 1);
+            const ds = d.toISOString().split('T')[0];
+            const prevStr = prev.toISOString().split('T')[0];
+            const nextStr = next.toISOString().split('T')[0];
+            if (!holidays.has(ds) && holidays.has(prevStr) && holidays.has(nextStr) && d.getDay() !== 0 && d.getDay() !== 6) {
+                holidays.add(ds);
+            }
+        }
+
+        holidayCache[year] = holidays;
+        return holidays;
+    }
+
+    function isHolidayDate(date) {
+        const holidays = getJapaneseHolidays(date.getFullYear());
+        const dateStr = date.toISOString().split('T')[0];
+        if (holidays.has(dateStr)) return true;
+        const day = date.getDay();
+        return day === 0 || day === 6;
+    }
+
+    function checkMissingLogs() {
+        const logsStr = localStorage.getItem('logs') || '';
+        const loggedDates = new Set();
+        logsStr.split('\n').forEach(line => {
+            if (!line) return;
+            const parts = line.split(',');
+            if (parts[0]) {
+                loggedDates.add(parts[0]);
+            }
+        });
+        const messages = [];
+        const today = new Date();
+        let checked = 0;
+        let d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        while (checked < 2) {
+            d.setDate(d.getDate() - 1);
+            while (isHolidayDate(d)) {
+                d.setDate(d.getDate() - 1);
+            }
+            const str = d.toISOString().split('T')[0];
+            if (!loggedDates.has(str)) {
+                const m = d.getMonth() + 1;
+                const day = d.getDate();
+                const w = ['日', '月', '火', '水', '木', '金', '土'][d.getDay()];
+                messages.push(`${m}/${day}(${w})の入力がありません。ご確認ください。`);
+            }
+            checked++;
+        }
+        if (messages.length > 0) {
+            alert(messages.join('\n'));
+        }
+    }
+
     // 業務データを保存する関数
     function saveTaskData() {
         saveTaskDataToStorage();
@@ -437,6 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const savedMailFormat = localStorage.getItem('mailformat') || 'plain';
         document.querySelector(`input[name="mailformat"][value="${savedMailFormat}"]`).checked = true;
+        checkMissingLogs();
     });
 
     // サービスワーカーが変更された場合の処理
