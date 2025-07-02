@@ -227,7 +227,18 @@
                 alert('ログはありません');
                 return;
             }
-            const lines = csv.split('\n').filter(line => line);
+            const daily = {};
+            csv.split('\n').forEach(line => {
+                if (!line) return;
+                const parts = line.split(',');
+                if (parts.length < 5) return;
+                const [date, start, end, work, overtime] = parts;
+                daily[date] = { start, end, work, overtime };
+            });
+            const lines = Object.keys(daily).sort().map(d => {
+                const { start, end, work, overtime } = daily[d];
+                return `${d},${start},${end},${work},${overtime}`;
+            });
             let totalWork = 0;
             let totalOvertime = 0;
             lines.forEach(line => {
@@ -259,17 +270,18 @@
                 return;
             }
 
-            const rows = [];
+            const daily = {};
             csv.split('\n').forEach(line => {
                 if (!line) return;
                 const [date, start, end, work, overtime] = line.split(',');
                 const d = new Date(date);
                 if (d.getFullYear() === year && d.getMonth() + 1 === month) {
-                    rows.push({ date, start, end, work, overtime });
+                    daily[date] = { start, end, work, overtime };
                 }
             });
 
-            rows.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const rows = Object.keys(daily).map(d => ({ date: d, ...daily[d] }))
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
 
             if (rows.length === 0) {
                 const tr = document.createElement('tr');
