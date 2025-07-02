@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function saveTaskDataToStorage() {
-        const totalGroups = 10;  // 最大20グループまで保存
+        const totalGroups = 10;  // 最大10グループまで保存
         for (let i = 1; i <= totalGroups; i++) {
             const title = document.getElementById(`title${i}`);
             const taskNumber = document.getElementById(`task-number${i}`);
@@ -205,25 +205,32 @@ document.addEventListener('DOMContentLoaded', function() {
     startTimeInput.addEventListener('blur', saveTaskData);
     endTimeInput.addEventListener('blur', saveTaskData);
 
+    // 時刻文字列("HH:MM")を分単位の数値へ変換する
+    function toMinutes(timeStr) {
+        const [h, m] = timeStr.split(':').map(Number);
+        return h * 60 + m;
+    }
+
     // 勤務時間を計算する関数
     function calculateWorkingHours(startTime, endTime) {
-        const start = new Date(`1970-01-01T${startTime}:00`);
-        const end = new Date(`1970-01-01T${endTime}:00`);
-        let totalMinutes = (end - start) / (1000 * 60);
+        let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
     
         const breaks = [
             { start: "11:45", end: "12:45" },
             { start: "19:15", end: "19:45" }
         ];
-    
+
+        const workStart = toMinutes(startTime);
+        const workEnd = toMinutes(endTime);
+
         // 休憩時間を差し引く処理
         breaks.forEach(b => {
-            const breakStart = new Date(`1970-01-01T${b.start}:00`);
-            const breakEnd = new Date(`1970-01-01T${b.end}:00`);
-            if (start < breakEnd && end > breakStart) {
-                const overlapStart = start < breakStart ? breakStart : start;
-                const overlapEnd = end > breakEnd ? breakEnd : end;
-                totalMinutes -= (overlapEnd - overlapStart) / (1000 * 60);
+            const breakStart = toMinutes(b.start);
+            const breakEnd = toMinutes(b.end);
+            if (workStart < breakEnd && workEnd > breakStart) {
+                const overlapStart = Math.max(workStart, breakStart);
+                const overlapEnd = Math.min(workEnd, breakEnd);
+                totalMinutes -= overlapEnd - overlapStart;
             }
         });
     
@@ -244,9 +251,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function isStartTimeBeforeEndTime(startTime, endTime) {
-        const start = new Date(`1970-01-01T${startTime}:00`);
-        const end = new Date(`1970-01-01T${endTime}:00`);
-        return start <= end;
+        return toMinutes(startTime) <= toMinutes(endTime);
     }
 
     // 業務データを保存する関数
@@ -326,7 +331,8 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("問題は見つかりませんでした。");
         }
 
-        resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours} 時間<br>入力工数 ${totalTaskHours.toFixed(2)} 時間</p>`;
+        const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
+        resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>残業時間 ${overtime} 時間</p>`;
         saveTaskData();  // データを保存
     });
 
@@ -380,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskData();  // データを保存
-        const overtime = (Math.max(0, parseFloat(workingHours) - 7.75)).toFixed(2);
+        const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
         saveLog(selectedDate, selectedStartTime, selectedEndTime, workingHours, overtime);
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
