@@ -110,10 +110,41 @@
             return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}(${days[d.getDay()]})`;
         }
 
+        function toMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function calculateWorkingHours(startTime, endTime) {
+            let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
+            const breaks = [
+                { start: '11:45', end: '12:45' },
+                { start: '19:15', end: '19:45' }
+            ];
+            const workStart = toMinutes(startTime);
+            const workEnd = toMinutes(endTime);
+            breaks.forEach(b => {
+                const breakStart = toMinutes(b.start);
+                const breakEnd = toMinutes(b.end);
+                if (workStart < breakEnd && workEnd > breakStart) {
+                    const overlapStart = Math.max(workStart, breakStart);
+                    const overlapEnd = Math.min(workEnd, breakEnd);
+                    totalMinutes -= overlapEnd - overlapStart;
+                }
+            });
+            const workingHours = totalMinutes / 60;
+            return (Math.round(workingHours * 100) / 100).toFixed(2);
+        }
+
         function parseLogLine(line) {
             const simple = line.split(',');
             if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
-                return simple.slice(0, 5).join(',');
+                const date = simple[0];
+                const start = simple[1];
+                const end = simple[2];
+                const work = calculateWorkingHours(start, end);
+                const overtime = (parseFloat(work) - 7.75).toFixed(2);
+                return `${date},${start},${end},${work},${overtime}`;
             }
             const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
             if (parts.length >= 4 && /^\d{4}-\d{2}-\d{2}T/.test(parts[0])) {
@@ -121,10 +152,10 @@
                 const date = body.match(/日付\s*(\d{4}-\d{2}-\d{2})/);
                 const start = body.match(/始業\s*(\d{2}:\d{2})/);
                 const end = body.match(/終業\s*(\d{2}:\d{2})/);
-                const work = parseFloat(parts[2]) || 0;
                 if (date && start && end) {
-                    const overtime = (work - 7.75).toFixed(2);
-                    return `${date[1]},${start[1]},${end[1]},${work.toFixed(2)},${overtime}`;
+                    const work = calculateWorkingHours(start[1], end[1]);
+                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
+                    return `${date[1]},${start[1]},${end[1]},${work},${overtime}`;
                 }
             }
             return null;
