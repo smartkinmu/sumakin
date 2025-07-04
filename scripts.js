@@ -423,6 +423,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const taskNumber = document.getElementById(`task-number${i}`).value;
             const taskHours = document.getElementById(`task-hours${i}`).value;
             const category = document.getElementById(`category${i}`).value;
+            if (/^[A-Za-z]/.test(taskNumber) && taskNumber.length !== 10) {
+                alert(`業務${i}の業務コードは10桁で入力してください。`);
+                issuesFound = true;
+            }
             if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                 firstEmptyTaskHoursIndex = i;
             }
