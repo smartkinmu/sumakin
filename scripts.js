@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 勤務工数と作業工数に違いがある場合のチェック
         if (Math.abs(workingHours - totalTaskHours) > 0.01) {
             const confirmSend = confirm("勤務時間と入力工数に差分があります。続行しますか？");
-            if (!confirmSend) {
+        if (!confirmSend) {
                 return;
             }
         }
@@ -508,6 +508,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // 現在の日付を取得
         const now = new Date();
         const today = now.toISOString().split('T')[0];
+
+        const selectedDateTime = new Date(`${selectedDate}T${selectedEndTime}`);
+        if (selectedDateTime > now) {
+            alert('未来の日時が入力されています');
+            return;
+        }
 
         // 今日以外の日付が指定された場合の確認
         if (selectedDate !== today) {
