@@ -216,7 +216,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return date.toISOString().split('T')[0];
     }
 
-    dateInput.value = getDefaultDate();
+    function setDefaultDate() {
+        dateInput.value = getDefaultDate();
+    }
+
+    setDefaultDate();
+    window.addEventListener('pageshow', setDefaultDate);
 
     // 時刻の初期値を設定（ローカルストレージから取得）
     startTimeInput.value = localStorage.getItem('startTime') || "08:30";
