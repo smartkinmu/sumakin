@@ -216,8 +216,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return date;
     }
 
+    function formatDate(d) {
+        return d.toISOString().split('T')[0];
+    }
+
     function setDefaultDate() {
-        dateInput.valueAsDate = getDefaultDate();
+        dateInput.value = formatDate(getDefaultDate());
     }
 
     setDefaultDate();
