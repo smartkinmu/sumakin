@@ -213,7 +213,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function formatDate(d) {
-        return d.toISOString().split('T')[0];
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
     }
 
     function setDefaultDate() {
@@ -338,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (d.getDay() !== 0) return;
             do {
                 d.setDate(d.getDate() + 1);
-                const s = d.toISOString().split('T')[0];
+                const s = formatDate(d);
                 if (!holidays.has(s)) {
                     holidays.add(s);
                     return;
@@ -355,9 +358,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const next = new Date(d);
             prev.setDate(prev.getDate() - 1);
             next.setDate(next.getDate() + 1);
-            const ds = d.toISOString().split('T')[0];
-            const prevStr = prev.toISOString().split('T')[0];
-            const nextStr = next.toISOString().split('T')[0];
+            const ds = formatDate(d);
+            const prevStr = formatDate(prev);
+            const nextStr = formatDate(next);
             if (!holidays.has(ds) && holidays.has(prevStr) && holidays.has(nextStr) && d.getDay() !== 0 && d.getDay() !== 6) {
                 holidays.add(ds);
             }
@@ -369,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function isHolidayDate(date) {
         const holidays = getJapaneseHolidays(date.getFullYear());
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = formatDate(date);
         if (holidays.has(dateStr)) return true;
         const day = date.getDay();
         return day === 0 || day === 6;
@@ -394,7 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
             while (isHolidayDate(d)) {
                 d.setDate(d.getDate() - 1);
             }
-            const str = d.toISOString().split('T')[0];
+            const str = formatDate(d);
             if (!loggedDates.has(str)) {
                 const m = d.getMonth() + 1;
                 const day = d.getDate();
@@ -436,7 +439,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 現在の日付を取得
         const now = new Date();
-        const today = now.toISOString().split('T')[0];
+        const today = formatDate(now);
 
         // 今日以外の日付が指定された場合の警告表示
         if (selectedDate !== today) {
@@ -534,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 現在の日付を取得
         const now = new Date();
-        const today = now.toISOString().split('T')[0];
+        const today = formatDate(now);
 
         const selectedDateTime = new Date(`${selectedDate}T${selectedEndTime}`);
         if (selectedDateTime > now) {

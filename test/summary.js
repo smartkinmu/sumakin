@@ -12,7 +12,10 @@ function computeMonthlySummary(csv, year, month) {
     const days = new Set();
     records.forEach(r => {
         if (r.date.getFullYear() === year && r.date.getMonth() + 1 === month) {
-            const dayStr = r.date.toISOString().split('T')[0];
+            const y = r.date.getFullYear();
+            const m = String(r.date.getMonth() + 1).padStart(2, '0');
+            const d = String(r.date.getDate()).padStart(2, '0');
+            const dayStr = `${y}-${m}-${d}`;
             days.add(dayStr);
             totalHours += r.hours;
         }
