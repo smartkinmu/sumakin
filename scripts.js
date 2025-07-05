@@ -213,11 +213,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isHolidayDate(date)) {
             date = getNearestWeekday(date);
         }
-        return date.toISOString().split('T')[0];
+        return date;
     }
 
     function setDefaultDate() {
-        dateInput.value = getDefaultDate();
+        dateInput.valueAsDate = getDefaultDate();
     }
 
     setDefaultDate();
