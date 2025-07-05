@@ -193,15 +193,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 日付入力の初期値を設定
     function getNearestWeekday(date) {
-        for (let i = 1; i <= 7; i++) {
-            const prev = new Date(date);
-            prev.setDate(date.getDate() - i);
-            if (!isHolidayDate(prev)) return prev;
-            const next = new Date(date);
-            next.setDate(date.getDate() + i);
-            if (!isHolidayDate(next)) return next;
+        const d = new Date(date);
+        while (isHolidayDate(d)) {
+            d.setDate(d.getDate() - 1);
         }
-        return date;
+        return d;
     }
 
     function getDefaultDate() {
