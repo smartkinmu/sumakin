@@ -200,8 +200,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return d;
     }
 
-    function getDefaultDate() {
+    function getJSTNow() {
         const now = new Date();
+        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+        return new Date(utc + 9 * 60 * 60000);
+    }
+
+    function getDefaultDate() {
+        const now = getJSTNow();
         if (now.getHours() < 6) {
             now.setDate(now.getDate() - 1);
         }
@@ -222,9 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function setDefaultDate() {
         dateInput.value = formatDate(getDefaultDate());
     }
-
-    setDefaultDate();
-    window.addEventListener('pageshow', setDefaultDate);
 
     // 時刻の初期値を設定（ローカルストレージから取得）
     startTimeInput.value = localStorage.getItem('startTime') || "08:30";
@@ -378,6 +381,9 @@ document.addEventListener('DOMContentLoaded', function() {
         return day === 0 || day === 6;
     }
 
+    setDefaultDate();
+    window.addEventListener('pageshow', setDefaultDate);
+
     function checkMissingLogs() {
         const logsStr = restoreLogsIfNeeded() || '';
         const loggedDates = new Set();
@@ -389,7 +395,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         const messages = [];
-        const today = new Date();
+        const today = getJSTNow();
         let checked = 0;
         let d = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         while (checked < 2) {
@@ -438,7 +444,7 @@ document.addEventListener('DOMContentLoaded', function() {
         let totalTaskHours = calculateTotalTaskHours();
 
         // 現在の日付を取得
-        const now = new Date();
+        const now = getJSTNow();
         const today = formatDate(now);
 
         // 今日以外の日付が指定された場合の警告表示
@@ -536,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 現在の日付を取得
-        const now = new Date();
+        const now = getJSTNow();
         const today = formatDate(now);
 
         const selectedDateTime = new Date(`${selectedDate}T${selectedEndTime}`);
