@@ -53,6 +53,12 @@
             font-size: 12px;
             flex-grow: 0;
         }
+        .actions input.tiny,
+        .actions button.tiny {
+            padding: 2px 6px;
+            font-size: 10px;
+            flex-grow: 0;
+        }
         button:hover {
             background-color: #3a4d57;
         }
@@ -84,6 +90,11 @@
             <input type="month" id="summary-month">
         </div>
         <p id="monthly-summary"></p>
+        <div class="actions">
+            <input type="date" id="delete-date" class="tiny">
+            <button id="delete-date-btn" class="tiny">指定日削除</button>
+            <button id="undo-delete-btn" class="tiny">UNDO</button>
+        </div>
         <table id="log-table" style="width:100%; border-collapse: collapse;">
             <thead>
                 <tr>
@@ -174,6 +185,64 @@
             }
             return null;
         }
+        let lastLogsBackup = null;
+
+        /**
+         * Delete record of specified date.
+         * @param {string} date - YYYY-MM-DD
+         * @returns {boolean} Deletion result
+         */
+        function deleteLogByDate(date) {
+            const logsStr = restoreLogsIfNeeded();
+            if (!logsStr) {
+                alert("ログはありません");
+                return false;
+            }
+            const lines = logsStr.split("\n").filter(line => line);
+            const remaining = [];
+            let found = false;
+            lines.forEach(line => {
+                const [d] = line.split(",");
+                if (d === date) {
+                    found = true;
+                } else {
+                    remaining.push(line);
+                }
+            });
+            if (!found) {
+                alert("指定した日付のデータはありません");
+                return false;
+            }
+            if (!confirm(`${date} のログを削除しますか？`)) {
+                return false;
+            }
+            lastLogsBackup = logsStr;
+            if (remaining.length > 0) {
+                const updated = remaining.join("\n");
+                localStorage.setItem('logs', updated);
+                localStorage.setItem('logs_backup', updated);
+            } else {
+                localStorage.removeItem('logs');
+                localStorage.removeItem('logs_backup');
+            }
+            return true;
+        }
+
+        /**
+         * Undo the last delete action.
+         * @returns {void}
+         */
+        function undoDelete() {
+            if (!lastLogsBackup) {
+                alert("元に戻せる操作はありません");
+                return;
+            }
+            localStorage.setItem('logs', lastLogsBackup);
+            localStorage.setItem('logs_backup', lastLogsBackup);
+            lastLogsBackup = null;
+            updateSummary();
+        }
+
 
         const data = restoreLogsIfNeeded();
         if (data) {
@@ -220,6 +289,14 @@
             }
         });
         document.getElementById('download-logs').addEventListener('click', downloadLogs);
+        document.getElementById("delete-date-btn").addEventListener("click", function () {
+            const date = document.getElementById("delete-date").value;
+            if (!date) return;
+            if (deleteLogByDate(date)) {
+                updateSummary();
+            }
+        });
+        document.getElementById("undo-delete-btn").addEventListener("click", undoDelete);
 
 
         function downloadLogs() {
