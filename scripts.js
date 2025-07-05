@@ -592,10 +592,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         loadTaskData();
         const savedNewline = localStorage.getItem('newline') || 'CRLF';
-        document.querySelector(`input[name="newline"][value="${savedNewline}"]`).checked = true;
+        const newlineInput = document.querySelector(
+            `input[name="newline"][value="${savedNewline}"]`
+        );
+        if (newlineInput) {
+            newlineInput.checked = true;
+        }
 
         const savedMailFormat = localStorage.getItem('mailformat') || 'plain';
-        document.querySelector(`input[name="mailformat"][value="${savedMailFormat}"]`).checked = true;
+        const mailFormatInput = document.querySelector(
+            `input[name="mailformat"][value="${savedMailFormat}"]`
+        );
+        if (mailFormatInput) {
+            mailFormatInput.checked = true;
+        }
         checkMissingLogs();
     });
 
