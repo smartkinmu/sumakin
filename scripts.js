@@ -191,10 +191,32 @@ document.addEventListener('DOMContentLoaded', function() {
         return days[date.getDay()];
     }
 
-    // 今日の日付をデフォルト値として設定
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    dateInput.value = today;
+    // 日付入力の初期値を設定
+    function getNearestWeekday(date) {
+        for (let i = 1; i <= 7; i++) {
+            const prev = new Date(date);
+            prev.setDate(date.getDate() - i);
+            if (!isHolidayDate(prev)) return prev;
+            const next = new Date(date);
+            next.setDate(date.getDate() + i);
+            if (!isHolidayDate(next)) return next;
+        }
+        return date;
+    }
+
+    function getDefaultDate() {
+        const now = new Date();
+        if (now.getHours() < 6) {
+            now.setDate(now.getDate() - 1);
+        }
+        let date = now;
+        if (isHolidayDate(date)) {
+            date = getNearestWeekday(date);
+        }
+        return date.toISOString().split('T')[0];
+    }
+
+    dateInput.value = getDefaultDate();
 
     // 時刻の初期値を設定（ローカルストレージから取得）
     startTimeInput.value = localStorage.getItem('startTime') || "08:30";
