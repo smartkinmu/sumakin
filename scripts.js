@@ -13,6 +13,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshButton = document.getElementById('refresh-button');
     const refreshIndicator = document.getElementById('refresh-indicator');
     const copyTask1Button = document.getElementById('copy-task1-button');
+    const menuButton = document.getElementById('menu-button');
+    const sideMenu = document.getElementById('side-menu');
+
+    if (menuButton && sideMenu) {
+        menuButton.addEventListener('click', () => {
+            sideMenu.classList.toggle('show');
+        });
+    }
 
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");

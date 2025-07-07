@@ -4,81 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ログ表示</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f7f7f7;
-            color: #333;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        ul {
-            padding-left: 1em;
-        }
-        li {
-            word-wrap: break-word;
-            margin-bottom: 6px;
-        }
-        button {
-            padding: 6px 14px;
-            font-size: 15px;
-            margin-top: 10px;
-            box-sizing: border-box;
-            background-color: #333;
-            color: white;
-            border: 1px solid #aaa;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .actions a {
-            display: block;
-            padding: 10px 16px;
-            font-size: 20px;
-            background-color: #333;
-            color: white;
-            border: 1px solid #aaa;
-            border-radius: 5px;
-            text-decoration: none;
-            text-align: center;
-            flex-grow: 1;
-        }
-        .actions button.small {
-            padding: 4px 8px;
-            font-size: 12px;
-            flex-grow: 0;
-        }
-        .actions input.tiny,
-        .actions button.tiny {
-            padding: 2px 6px;
-            font-size: 10px;
-            flex-grow: 0;
-        }
-        button:hover {
-            background-color: #3a4d57;
-        }
-        button:active {
-            background: #e0e0e0;
-        }
-        .actions {
-            margin-top: 20px;
-            display: flex;
-            gap: 8px;
-        }
-        td:nth-child(4),
-        td:nth-child(5) {
-            text-align: right;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="app-header">
+        <button id="menu-button" class="menu-button">&#9776;</button>
+        <span>ログ表示</span><span class="version">ver.1.1.0</span>
+    </div>
+    <nav id="side-menu" class="side-menu">
+        <a href="index.html">メイン画面</a>
+        <a href="manual.html" target="_blank">使い方</a>
+    </nav>
     <div class="container">
-        <h1>ログ表示</h1>
         <div class="actions">
             <a href="index.html">戻る</a>
             <button id="clear-logs" class="small">ログをクリア</button>
@@ -95,14 +32,14 @@
             <button id="delete-date-btn" class="tiny">指定日削除</button>
             <button id="undo-delete-btn" class="tiny">UNDO</button>
         </div>
-        <table id="log-table" style="width:100%; border-collapse: collapse;">
+        <table id="log-table" class="log-table">
             <thead>
                 <tr>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">日付</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">始業</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">終業</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:right;">勤務時間</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:right;">残業時間</th>
+                    <th>日付</th>
+                    <th>始業</th>
+                    <th>終業</th>
+                    <th class="right">勤務時間</th>
+                    <th class="right">残業時間</th>
                 </tr>
             </thead>
             <tbody id="log-body"></tbody>
@@ -112,6 +49,13 @@
     document.addEventListener('DOMContentLoaded', function () {
         const logBody = document.getElementById('log-body');
         const summaryMonth = document.getElementById('summary-month');
+        const menuButton = document.getElementById('menu-button');
+        const sideMenu = document.getElementById('side-menu');
+        if (menuButton && sideMenu) {
+            menuButton.addEventListener('click', () => {
+                sideMenu.classList.toggle('show');
+            });
+        }
         const now = new Date();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         summaryMonth.value = `${now.getFullYear()}-${month}`;

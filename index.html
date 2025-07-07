@@ -19,11 +19,16 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.0.0</span></div>
-    <div style="display: flex; justify-content: space-around;">
+    <div class="app-header">
+        <button id="menu-button" class="menu-button">&#9776;</button>
+        <span>スマ勤サポートアプリ</span><span class="version">ver.1.1.0</span>
+    </div>
+    <nav id="side-menu" class="side-menu">
         <a href="manual.html" target="_blank">使い方</a>
         <a href="logs.html">ログ表示</a>
-    </div>
+        <button id="refresh-button">更新</button>
+        <button id="copy-task1-button">業務1コピー</button>
+    </nav>
     <div class="container">
         <div id="refresh-indicator">更新中...</div>
 
@@ -31,10 +36,6 @@
             <div class="main-buttons">
                 <button id="submit-button">入力確認</button>
                 <button id="email-button">メール作成</button>
-            </div>
-            <div class="side-buttons">
-                <button id="refresh-button">更新</button>
-                <button id="copy-task1-button">業務1コピー</button>
             </div>
         </div>
         <div id="result" class="result"></div>
