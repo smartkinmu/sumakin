@@ -19,11 +19,15 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.0.0</span></div>
-    <div style="display: flex; justify-content: space-around;">
+    <div class="app-header">
+        <span>スマ勤サポートアプリ</span><span class="version">ver.1.1.2</span>
+    </div>
+    <nav id="side-menu" class="side-menu">
         <a href="manual.html" target="_blank">使い方</a>
         <a href="logs.html">ログ表示</a>
-    </div>
+        <button id="refresh-button">更新</button>
+        <button id="copy-task1-button">業務1コピー</button>
+    </nav>
     <div class="container">
         <div id="refresh-indicator">更新中...</div>
 
@@ -31,10 +35,7 @@
             <div class="main-buttons">
                 <button id="submit-button">入力確認</button>
                 <button id="email-button">メール作成</button>
-            </div>
-            <div class="side-buttons">
-                <button id="refresh-button">更新</button>
-                <button id="copy-task1-button">業務1コピー</button>
+                <button id="menu-button" class="menu-button">&#9776;</button>
             </div>
         </div>
         <div id="result" class="result"></div>
@@ -45,15 +46,15 @@
             <input type="email" id="email" name="email" value="mail@address.com">
         </div>
         <div class="input-group">
-            <label for="date">日付を選択してください:</label>
+            <label for="date">日付を選択:</label>
             <input type="date" id="date" name="date" pattern="\d{4}-\d{2}-\d{2}">
         </div>
         <div class="input-group">
-            <label for="start-time">始業時刻を選択してください:</label>
+            <label for="start-time">始業時刻を選択:</label>
             <input type="time" id="start-time" name="start-time">
         </div>
         <div class="input-group">
-            <label for="end-time">終業時刻を選択してください:</label>
+            <label for="end-time">終業時刻を選択:</label>
             <input type="time" id="end-time" name="end-time">
         </div>
         <hr>
