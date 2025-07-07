@@ -2,14 +2,14 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #eaeaea;
+    background-color: #f4f7fb;
     color: #333;
     overscroll-behavior: contain;
 }
 
 .app-header {
-    background-color: #007bff;
-    color: white;
+    background: linear-gradient(90deg, #3f51b5, #5c6bc0);
+    color: #fff;
     padding: 16px;
     text-align: center;
     font-size: 1.5em;
@@ -24,25 +24,24 @@ body {
 }
 
 .menu-button {
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
     background: none;
     border: none;
     color: inherit;
     font-size: 1.5em;
+}
+.app-header .menu-button {
+    margin-left: auto;
 }
 
 .side-menu {
     display: none;
     position: fixed;
     top: 0;
-    left: 0;
+    right: 0;
     width: 200px;
     height: 100%;
     background-color: #fff;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
     padding: 60px 10px 10px 10px;
     box-sizing: border-box;
     z-index: 1000;
@@ -57,7 +56,7 @@ body {
     display: block;
     margin-bottom: 10px;
     padding: 10px 15px;
-    background-color: #007bff;
+    background-color: #3f51b5;
     color: #fff;
     text-decoration: none;
     border: none;
@@ -98,9 +97,9 @@ button {
     margin-top: 10px;
     width: 100%;
     box-sizing: border-box;
-    background-color: #007bff;
-    color: white;
-    border: 1px solid #0056b3;
+    background-color: #3f51b5;
+    color: #fff;
+    border: 1px solid #303f9f;
     border-radius: 5px;
     cursor: pointer;
     transition: background 0.2s;
@@ -108,11 +107,11 @@ button {
 }
 
 button:hover {
-    background-color: #0069d9;
+    background-color: #303f9f;
 }
 
 button:active {
-    background: #0056b3;
+    background: #283593;
 }
 
 .result {
@@ -127,7 +126,7 @@ button:active {
     font-size: 1.2em;
     margin-top: 10px;
     color: #fff;
-    background-color: #007bff;
+    background-color: #3f51b5;
 }
 
 
