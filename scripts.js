@@ -384,6 +384,9 @@ document.addEventListener('DOMContentLoaded', function() {
     setDefaultDate();
     window.addEventListener('pageshow', setDefaultDate);
 
+    // 過去2回の平日ログの有無を確認し、欠落があれば警告を表示する。
+    // 引数: なし
+    // 戻り値: なし
     function checkMissingLogs() {
         const logsStr = restoreLogsIfNeeded() || '';
         const loggedDates = new Set();
@@ -620,7 +623,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (mailFormatInput) {
             mailFormatInput.checked = true;
         }
-        checkMissingLogs();
+        // 起動時のみ一度だけ入力漏れ警告を表示する
+        if (!sessionStorage.getItem('missingLogsChecked')) {
+            checkMissingLogs();
+            sessionStorage.setItem('missingLogsChecked', '1');
+        }
     });
 
     // サービスワーカーが変更された場合の処理
