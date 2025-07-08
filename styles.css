@@ -85,38 +85,22 @@ button:active {
     color: white;
 }
 
-#refresh-button,
-#copy-task1-button {
-    width: 100px; /* 横幅を広げて折り返しを防ぐ */
-    height: 55px; /* 統一した高さ */
-    line-height: 55px; /* テキストを中央寄せ */
-    padding: 0;
-    font-size: 1em;
-    white-space: nowrap; /* 文字を折り返さない */
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
 
 .button-group {
     display: flex;
-    justify-content: flex-start; /* 左寄せに変更 */
+    justify-content: flex-start;
     align-items: flex-start;
     margin-bottom: 12px;
-    gap: 24px; /* メインとサイドの間を広げる */
+    gap: 24px;
+    position: relative;
 }
 
-.main-buttons,
-.side-buttons {
-    display: flex;
-    gap: 8px;
-}
-
-/* メインボタン（入力確認・メール作成）をやや狭くして幅を揃える */
 .main-buttons {
     display: flex;
     gap: 16px;
-    align-items: flex-start; /* 上端揃え */
+    align-items: flex-start;
 }
+
 .main-buttons button {
     font-size: 1.10em;
     padding: 14px 24px;
@@ -128,24 +112,42 @@ button:active {
     width: 130px; /* 幅を固定して2つ並べた時に全体のバランスが良くなる */
 }
 
-/* サイドボタン（更新・業務1コピー）を小さく縦並びに */
-.side-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start; /* 左端揃え */
-    margin-top: 0; /* 余計なマージンを消す */
-}
-#refresh-button,
-#copy-task1-button {
-    font-size: 0.95em;
-    padding: 0 12px;
-    min-width: 70px;
-    min-height: 28px;
-    height: 28px;
-    line-height: 28px;
-    white-space: nowrap;
+#menu-button {
+    font-size: 1.2em;
+    padding: 14px;
+    min-width: 56px;
+    min-height: 56px;
     margin: 0;
+}
+
+.hamburger-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 60px;
+    background-color: #333;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    padding: 8px;
+    z-index: 1000;
+    width: 160px;
+}
+.hamburger-menu button,
+.hamburger-menu a {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin: 4px 0;
+    padding: 6px 14px;
+    background-color: #333;
+    color: white;
+    border: 1px solid #aaa;
+    border-radius: 5px;
+    text-decoration: none;
+}
+.hamburger-menu button:hover,
+.hamburger-menu a:hover {
+    background-color: #3a4d57;
 }
 
 /* ボタンのテキストは折り返さない */
