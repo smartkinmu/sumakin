@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshButton = document.getElementById('refresh-button');
     const refreshIndicator = document.getElementById('refresh-indicator');
     const copyTask1Button = document.getElementById('copy-task1-button');
+    const menuButton = document.getElementById('menu-button');
+    const hamburgerMenu = document.getElementById('hamburger-menu');
 
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");
@@ -141,6 +143,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     updateTaskGroups();
     loadTaskDataFromStorage();
+
+    menuButton.addEventListener('click', function (e) {
+        e.stopPropagation();
+        hamburgerMenu.style.display =
+            hamburgerMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', function (e) {
+        if (e.target !== menuButton && !hamburgerMenu.contains(e.target)) {
+            hamburgerMenu.style.display = 'none';
+        }
+    });
     
     // 更新ボタンのクリックイベントリスナー
     refreshButton.addEventListener('click', async () => {
