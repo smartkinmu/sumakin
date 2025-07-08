@@ -93,12 +93,14 @@ button:active {
     margin-bottom: 12px;
     gap: 24px;
     position: relative;
+    width: 100%;
 }
 
 .main-buttons {
     display: flex;
     gap: 16px;
     align-items: flex-start;
+    width: 100%;
 }
 
 .main-buttons button {
@@ -120,6 +122,7 @@ button:active {
     min-width: 44px;
     min-height: 44px;
     margin: 0;
+    margin-left: auto;
 }
 
 .hamburger-menu {
