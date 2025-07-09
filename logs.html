@@ -103,6 +103,7 @@
                     <th style="border-bottom:1px solid #ccc; text-align:left;">終業</th>
                     <th style="border-bottom:1px solid #ccc; text-align:right;">勤務時間</th>
                     <th style="border-bottom:1px solid #ccc; text-align:right;">残業時間</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">操作</th>
                 </tr>
             </thead>
             <tbody id="log-body"></tbody>
@@ -243,6 +244,124 @@
             updateSummary();
         }
 
+        /**
+         * Update a log record.
+         * @param {string} oldDate - existing date in YYYY-MM-DD
+         * @param {string} newDate - new date
+         * @param {string} start - start time HH:MM
+         * @param {string} end - end time HH:MM
+         * @returns {boolean} Update result
+         */
+        function updateLog(oldDate, newDate, start, end) {
+            const logsStr = restoreLogsIfNeeded();
+            if (!logsStr) {
+                alert('ログはありません');
+                return false;
+            }
+            const lines = logsStr.split('\n').filter(line => line);
+            let found = false;
+            for (let i = 0; i < lines.length; i++) {
+                const [d] = lines[i].split(',');
+                if (d === oldDate) {
+                    const work = calculateWorkingHours(start, end);
+                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
+                    lines[i] = `${newDate},${start},${end},${work},${overtime}`;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                alert('指定した日付のデータはありません');
+                return false;
+            }
+            lastLogsBackup = logsStr;
+            const updated = lines.join('\n');
+            localStorage.setItem('logs', updated);
+            localStorage.setItem('logs_backup', updated);
+            return true;
+        }
+
+        /**
+         * Create table row for a log record with edit button.
+         * @param {string} date - YYYY-MM-DD
+         * @param {string} start - start time
+         * @param {string} end - end time
+         * @param {string} work - working hours
+         * @param {string} overtime - overtime hours
+         * @returns {HTMLTableRowElement} Created row
+         */
+        function createRow(date, start, end, work, overtime) {
+            const tr = document.createElement('tr');
+
+            function renderView() {
+                tr.innerHTML = '';
+                [formatDateWithDay(date), start, end, work, overtime].forEach(t => {
+                    const td = document.createElement('td');
+                    td.textContent = t;
+                    tr.appendChild(td);
+                });
+                const opTd = document.createElement('td');
+                const editBtn = document.createElement('button');
+                editBtn.textContent = '編集';
+                editBtn.className = 'tiny';
+                editBtn.addEventListener('click', enterEdit);
+                opTd.appendChild(editBtn);
+                tr.appendChild(opTd);
+            }
+
+            function enterEdit() {
+                tr.innerHTML = '';
+                const dateInput = document.createElement('input');
+                dateInput.type = 'date';
+                dateInput.value = date;
+                const startInput = document.createElement('input');
+                startInput.type = 'time';
+                startInput.value = start;
+                const endInput = document.createElement('input');
+                endInput.type = 'time';
+                endInput.value = end;
+                [dateInput, startInput, endInput].forEach(inp => {
+                    const td = document.createElement('td');
+                    td.appendChild(inp);
+                    tr.appendChild(td);
+                });
+                tr.appendChild(document.createElement('td'));
+                tr.appendChild(document.createElement('td'));
+                const opTd = document.createElement('td');
+                const saveBtn = document.createElement('button');
+                saveBtn.textContent = '保存';
+                saveBtn.className = 'tiny';
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = 'キャンセル';
+                cancelBtn.className = 'tiny';
+                opTd.appendChild(saveBtn);
+                opTd.appendChild(cancelBtn);
+                tr.appendChild(opTd);
+
+                cancelBtn.addEventListener('click', renderView);
+                saveBtn.addEventListener('click', function () {
+                    const newDate = dateInput.value;
+                    const newStart = startInput.value;
+                    const newEnd = endInput.value;
+                    if (!newDate || !newStart || !newEnd) {
+                        alert('日付と時刻を入力してください');
+                        return;
+                    }
+                    if (updateLog(date, newDate, newStart, newEnd)) {
+                        date = newDate;
+                        start = newStart;
+                        end = newEnd;
+                        work = calculateWorkingHours(start, end);
+                        overtime = (parseFloat(work) - 7.75).toFixed(2);
+                        renderView();
+                        updateSummary();
+                    }
+                });
+            }
+
+            renderView();
+            return tr;
+        }
 
         const data = restoreLogsIfNeeded();
         if (data) {
@@ -263,19 +382,13 @@
             }
             Object.keys(daily).sort().forEach(date => {
                 const { start, end, work, overtime } = daily[date];
-                const tr = document.createElement('tr');
-                const row = [formatDateWithDay(date), start, end, work, overtime];
-                row.forEach(text => {
-                    const td = document.createElement('td');
-                    td.textContent = text;
-                    tr.appendChild(td);
-                });
+                const tr = createRow(date, start, end, work, overtime);
                 logBody.appendChild(tr);
             });
         } else {
             const tr = document.createElement('tr');
             const td = document.createElement('td');
-            td.colSpan = 5;
+            td.colSpan = 6;
             td.textContent = 'ログはありません';
             tr.appendChild(td);
             logBody.appendChild(tr);
@@ -284,7 +397,7 @@
         document.getElementById('clear-logs').addEventListener('click', function () {
             if (confirm('ログをクリアしますか？')) {
                 localStorage.removeItem('logs');
-                logBody.innerHTML = '<tr><td colspan="5">ログはありません</td></tr>';
+                logBody.innerHTML = '<tr><td colspan="6">ログはありません</td></tr>';
                 updateSummary();
             }
         });
@@ -338,7 +451,7 @@
             if (!csv) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 5;
+                td.colSpan = 6;
                 td.textContent = 'ログはありません';
                 tr.appendChild(td);
                 logBody.appendChild(tr);
@@ -361,7 +474,7 @@
             if (rows.length === 0) {
                 const tr = document.createElement('tr');
                 const td = document.createElement('td');
-                td.colSpan = 5;
+                td.colSpan = 6;
                 td.textContent = 'ログはありません';
                 tr.appendChild(td);
                 logBody.appendChild(tr);
@@ -369,14 +482,8 @@
             }
 
             rows.forEach(r => {
-                const tr = document.createElement('tr');
-                const row = [formatDateWithDay(r.date), r.start, r.end, r.work, r.overtime];
-                row.forEach(text => {
-                    const td = document.createElement('td');
-                    td.textContent = text;
-                    tr.appendChild(td);
-                });
-                logBody.appendChild(tr);
+                const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
+                logBody.appendChild(rowEl);
             });
         }
 
