@@ -75,8 +75,15 @@
             gap: 8px;
         }
         td:nth-child(4),
-        td:nth-child(5) {
+        td:nth-child(5),
+        td:nth-child(6) {
             text-align: right;
+            vertical-align: middle;
+        }
+        .edit-btn {
+            margin-top: 0;
+            background-color: #fff;
+            color: #333;
         }
     </style>
 </head>
@@ -308,7 +315,7 @@
                 const editBtn = document.createElement('button');
                 editBtn.textContent = '✎';
                 editBtn.title = '編集';
-                editBtn.className = 'tiny';
+                editBtn.className = 'tiny edit-btn';
                 editBtn.addEventListener('click', enterEdit);
                 opTd.appendChild(editBtn);
                 tr.appendChild(opTd);
