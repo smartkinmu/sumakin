@@ -119,6 +119,26 @@
             </thead>
             <tbody id="log-body"></tbody>
         </table>
+        <dialog id="edit-dialog">
+            <form method="dialog" id="edit-form">
+                <div>
+                    <label for="edit-date">日付:</label>
+                    <input type="date" id="edit-date">
+                </div>
+                <div>
+                    <label for="edit-start">始業:</label>
+                    <input type="time" id="edit-start">
+                </div>
+                <div>
+                    <label for="edit-end">終業:</label>
+                    <input type="time" id="edit-end">
+                </div>
+                <div style="text-align:right;margin-top:8px;">
+                    <button id="edit-cancel" type="button">キャンセル</button>
+                    <button id="edit-save" type="submit">保存</button>
+                </div>
+            </form>
+        </dialog>
     </div>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -127,6 +147,13 @@
         const now = new Date();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         summaryMonth.value = `${now.getFullYear()}-${month}`;
+        const editDialog = document.getElementById('edit-dialog');
+        const editDate = document.getElementById('edit-date');
+        const editStart = document.getElementById('edit-start');
+        const editEnd = document.getElementById('edit-end');
+        const editSave = document.getElementById('edit-save');
+        const editCancel = document.getElementById('edit-cancel');
+        let originalDate = '';
 
         function formatDateWithDay(dateStr) {
             const d = new Date(dateStr);
@@ -301,6 +328,21 @@
          * @param {string} overtime - overtime hours
          * @returns {HTMLTableRowElement} Created row
          */
+        /**
+         * Show edit dialog for a log record.
+         * @param {string} date - existing date in YYYY-MM-DD
+         * @param {string} start - start time HH:MM
+         * @param {string} end - end time HH:MM
+         * @returns {void}
+         */
+        function openEditDialog(date, start, end) {
+            originalDate = date;
+            editDate.value = date;
+            editStart.value = start;
+            editEnd.value = end;
+            editDialog.showModal();
+        }
+
         function createRow(date, start, end, work, overtime) {
             const tr = document.createElement('tr');
 
@@ -316,59 +358,11 @@
                 editBtn.textContent = '✎';
                 editBtn.title = '編集';
                 editBtn.className = 'tiny edit-btn';
-                editBtn.addEventListener('click', enterEdit);
+                editBtn.addEventListener('click', function () {
+                    openEditDialog(date, start, end);
+                });
                 opTd.appendChild(editBtn);
                 tr.appendChild(opTd);
-            }
-
-            function enterEdit() {
-                tr.innerHTML = '';
-                const dateInput = document.createElement('input');
-                dateInput.type = 'date';
-                dateInput.value = date;
-                const startInput = document.createElement('input');
-                startInput.type = 'time';
-                startInput.value = start;
-                const endInput = document.createElement('input');
-                endInput.type = 'time';
-                endInput.value = end;
-                [dateInput, startInput, endInput].forEach(inp => {
-                    const td = document.createElement('td');
-                    td.appendChild(inp);
-                    tr.appendChild(td);
-                });
-                tr.appendChild(document.createElement('td'));
-                tr.appendChild(document.createElement('td'));
-                const opTd = document.createElement('td');
-                const saveBtn = document.createElement('button');
-                saveBtn.textContent = '保存';
-                saveBtn.className = 'tiny';
-                const cancelBtn = document.createElement('button');
-                cancelBtn.textContent = 'キャンセル';
-                cancelBtn.className = 'tiny';
-                opTd.appendChild(saveBtn);
-                opTd.appendChild(cancelBtn);
-                tr.appendChild(opTd);
-
-                cancelBtn.addEventListener('click', renderView);
-                saveBtn.addEventListener('click', function () {
-                    const newDate = dateInput.value;
-                    const newStart = startInput.value;
-                    const newEnd = endInput.value;
-                    if (!newDate || !newStart || !newEnd) {
-                        alert('日付と時刻を入力してください');
-                        return;
-                    }
-                    if (updateLog(date, newDate, newStart, newEnd)) {
-                        date = newDate;
-                        start = newStart;
-                        end = newEnd;
-                        work = calculateWorkingHours(start, end);
-                        overtime = (parseFloat(work) - 7.75).toFixed(2);
-                        renderView();
-                        updateSummary();
-                    }
-                });
             }
 
             renderView();
@@ -422,6 +416,25 @@
             }
         });
         document.getElementById("undo-delete-btn").addEventListener("click", undoDelete);
+
+        editCancel.addEventListener('click', function () {
+            editDialog.close();
+        });
+
+        editSave.addEventListener('click', function (e) {
+            e.preventDefault();
+            const newDate = editDate.value;
+            const newStart = editStart.value;
+            const newEnd = editEnd.value;
+            if (!newDate || !newStart || !newEnd) {
+                alert('日付と時刻を入力してください');
+                return;
+            }
+            if (updateLog(originalDate, newDate, newStart, newEnd)) {
+                editDialog.close();
+                updateSummary();
+            }
+        });
 
 
         function downloadLogs() {
