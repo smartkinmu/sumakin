@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const reg = await navigator.serviceWorker.getRegistration();
             reg?.update();
         }
+        localStorage.setItem('refreshLogs', Date.now().toString());
         refreshIndicator.style.display = 'block';
         setTimeout(() => location.reload(), 1500);
     });

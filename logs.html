@@ -541,6 +541,19 @@
         updateSummary();
 
     });
+
+    /**
+     * 更新要求を受け取ったら画面をリロードする。
+     * @param {StorageEvent} e - storageイベント
+     * @returns {void}
+     */
+    function handleRefreshRequest(e) {
+        if (e.key === 'refreshLogs') {
+            location.reload();
+        }
+    }
+
+    window.addEventListener('storage', handleRefreshRequest);
     </script>
 </body>
 </html>
