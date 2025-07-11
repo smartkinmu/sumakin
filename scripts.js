@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const startTimeInput = document.getElementById('start-time');
     const endTimeInput = document.getElementById('end-time');
     const annualLeaveCheckbox = document.getElementById('annual-leave');
+    const amLeaveCheckbox = document.getElementById('am-leave');
+    const pmLeaveCheckbox = document.getElementById('pm-leave');
     const resultDiv = document.getElementById('result');
     const submitButton = document.getElementById('submit-button');
     const emailButton = document.getElementById('email-button');
@@ -20,13 +22,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");
 
-    annualLeaveCheckbox.addEventListener('change', () => {
-        const on = annualLeaveCheckbox.checked;
-        startTimeInput.disabled = on;
-        endTimeInput.disabled = on;
-        submitButton.disabled = on;
-        emailButton.textContent = on ? '登録' : 'メール作成';
-    });
+    function updateLeaveControls() {
+        if (annualLeaveCheckbox.checked) {
+            amLeaveCheckbox.checked = false;
+            pmLeaveCheckbox.checked = false;
+        } else if (amLeaveCheckbox.checked) {
+            annualLeaveCheckbox.checked = false;
+            pmLeaveCheckbox.checked = false;
+        } else if (pmLeaveCheckbox.checked) {
+            annualLeaveCheckbox.checked = false;
+            amLeaveCheckbox.checked = false;
+        }
+
+        const disable = annualLeaveCheckbox.checked;
+        startTimeInput.disabled = disable;
+        endTimeInput.disabled = disable;
+        submitButton.disabled = disable;
+        emailButton.textContent = disable ? '登録' : 'メール作成';
+    }
+
+    annualLeaveCheckbox.addEventListener('change', updateLeaveControls);
+    amLeaveCheckbox.addEventListener('change', updateLeaveControls);
+    pmLeaveCheckbox.addEventListener('change', updateLeaveControls);
 
     function createTaskGroup(index) {
         return `
@@ -93,6 +110,8 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('endTime', endTimeInput.value);
         localStorage.setItem('groupCount', groupCountPicker.value);
         localStorage.setItem('annualLeave', annualLeaveCheckbox.checked ? '1' : '0');
+        localStorage.setItem('amLeave', amLeaveCheckbox.checked ? '1' : '0');
+        localStorage.setItem('pmLeave', pmLeaveCheckbox.checked ? '1' : '0');
     }
 
     function loadTaskDataFromStorage() {
@@ -107,7 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
         startTimeInput.value = localStorage.getItem('startTime') || '';
         endTimeInput.value = localStorage.getItem('endTime') || '';
         annualLeaveCheckbox.checked = localStorage.getItem('annualLeave') === '1';
-        annualLeaveCheckbox.dispatchEvent(new Event('change'));
+        amLeaveCheckbox.checked = localStorage.getItem('amLeave') === '1';
+        pmLeaveCheckbox.checked = localStorage.getItem('pmLeave') === '1';
+        updateLeaveControls();
     }
 
     function updateTaskGroups() {
@@ -286,14 +307,28 @@ document.addEventListener('DOMContentLoaded', function() {
         return h * 60 + m;
     }
 
+    /**
+     * 保存された休憩時間を取得する。
+     * @returns {{start:string,end:string}[]} 休憩時間リスト
+     */
+    function getBreakTimes() {
+        return [
+            {
+                start: localStorage.getItem('break1Start') || '12:00',
+                end: localStorage.getItem('break1End') || '13:00'
+            },
+            {
+                start: localStorage.getItem('break2Start') || '19:15',
+                end: localStorage.getItem('break2End') || '19:45'
+            }
+        ];
+    }
+
     // 勤務時間を計算する関数
     function calculateWorkingHours(startTime, endTime) {
         let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
-    
-        const breaks = [
-            { start: "11:45", end: "12:45" },
-            { start: "19:15", end: "19:45" }
-        ];
+
+        const breaks = getBreakTimes();
 
         const workStart = toMinutes(startTime);
         const workEnd = toMinutes(endTime);
@@ -463,7 +498,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDayOfWeek = getDayOfWeek(selectedDate);
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
-        const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+        let workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+        if (amLeaveCheckbox.checked) {
+            workingHours = (
+                parseFloat(calculateWorkingHours('08:30', '12:00')) +
+                parseFloat(workingHours)
+            ).toFixed(2);
+        } else if (pmLeaveCheckbox.checked) {
+            workingHours = (
+                parseFloat(calculateWorkingHours('13:00', '17:15')) +
+                parseFloat(workingHours)
+            ).toFixed(2);
+        }
         let issuesFound = false;
         let firstEmptyTaskHoursIndex = -1;
         let allTaskCategoriesFilled = 0;
@@ -539,7 +585,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDate = dateInput.value;
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
-        const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+        let workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+        if (amLeaveCheckbox.checked) {
+            workingHours = (
+                parseFloat(calculateWorkingHours('08:30', '12:00')) +
+                parseFloat(workingHours)
+            ).toFixed(2);
+        } else if (pmLeaveCheckbox.checked) {
+            workingHours = (
+                parseFloat(calculateWorkingHours('13:00', '17:15')) +
+                parseFloat(workingHours)
+            ).toFixed(2);
+        }
         const totalTaskHours = calculateTotalTaskHours();
 
         if (annualLeaveCheckbox.checked) {

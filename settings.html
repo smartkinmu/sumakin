@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>休憩時間設定</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>休憩時間設定</h1>
+        <div class="input-group">
+            <label for="lunch-start">昼休み開始:</label>
+            <input type="time" id="lunch-start">
+        </div>
+        <div class="input-group">
+            <label for="lunch-end">昼休み終了:</label>
+            <input type="time" id="lunch-end">
+        </div>
+        <div class="input-group">
+            <label for="evening-start">夕休み開始:</label>
+            <input type="time" id="evening-start">
+        </div>
+        <div class="input-group">
+            <label for="evening-end">夕休み終了:</label>
+            <input type="time" id="evening-end">
+        </div>
+        <button id="save-settings">保存</button>
+        <div class="actions" style="margin-top:20px;">
+            <a href="index.html">戻る</a>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const lunchStart = document.getElementById('lunch-start');
+            const lunchEnd = document.getElementById('lunch-end');
+            const eveningStart = document.getElementById('evening-start');
+            const eveningEnd = document.getElementById('evening-end');
+            const saveBtn = document.getElementById('save-settings');
+
+            function load() {
+                lunchStart.value = localStorage.getItem('break1Start') || '12:00';
+                lunchEnd.value = localStorage.getItem('break1End') || '13:00';
+                eveningStart.value = localStorage.getItem('break2Start') || '19:15';
+                eveningEnd.value = localStorage.getItem('break2End') || '19:45';
+            }
+
+            function save() {
+                localStorage.setItem('break1Start', lunchStart.value);
+                localStorage.setItem('break1End', lunchEnd.value);
+                localStorage.setItem('break2Start', eveningStart.value);
+                localStorage.setItem('break2End', eveningEnd.value);
+                alert('保存しました');
+            }
+
+            saveBtn.addEventListener('click', save);
+            load();
+        });
+    </script>
+</body>
+</html>

@@ -179,12 +179,22 @@
             return data;
         }
 
+        function getBreakTimes() {
+            return [
+                {
+                    start: localStorage.getItem('break1Start') || '12:00',
+                    end: localStorage.getItem('break1End') || '13:00'
+                },
+                {
+                    start: localStorage.getItem('break2Start') || '19:15',
+                    end: localStorage.getItem('break2End') || '19:45'
+                }
+            ];
+        }
+
         function calculateWorkingHours(startTime, endTime) {
             let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
-            const breaks = [
-                { start: '11:45', end: '12:45' },
-                { start: '19:15', end: '19:45' }
-            ];
+            const breaks = getBreakTimes();
             const workStart = toMinutes(startTime);
             const workEnd = toMinutes(endTime);
             breaks.forEach(b => {
