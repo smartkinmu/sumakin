@@ -102,8 +102,6 @@
         </div>
         <p id="monthly-summary"></p>
         <div class="actions">
-            <input type="date" id="delete-date" class="tiny">
-            <button id="delete-date-btn" class="tiny">指定日削除</button>
             <button id="undo-delete-btn" class="tiny">UNDO</button>
         </div>
         <table id="log-table" style="width:100%; border-collapse: collapse;">
@@ -119,7 +117,7 @@
             </thead>
             <tbody id="log-body"></tbody>
         </table>
-        <dialog id="edit-dialog">
+        <dialog id="edit-dialog" tabindex="-1">
             <form method="dialog" id="edit-form">
                 <div>
                     <label for="edit-date">日付:</label>
@@ -359,6 +357,7 @@
             editStart.value = start;
             editEnd.value = end;
             editDialog.showModal();
+            editDialog.focus();
         }
 
         function createRow(date, start, end, work, overtime) {
@@ -379,7 +378,18 @@
                 editBtn.addEventListener('click', function () {
                     openEditDialog(date, start, end);
                 });
+                const deleteBtn = document.createElement('button');
+                deleteBtn.textContent = '🗑';
+                deleteBtn.title = '削除';
+                deleteBtn.className = 'tiny delete-btn';
+                deleteBtn.addEventListener('click', function () {
+                    if (deleteLogByDate(date)) {
+                        tr.remove();
+                        updateSummary();
+                    }
+                });
                 opTd.appendChild(editBtn);
+                opTd.appendChild(deleteBtn);
                 tr.appendChild(opTd);
             }
 
@@ -426,13 +436,6 @@
             }
         });
         document.getElementById('download-logs').addEventListener('click', downloadLogs);
-        document.getElementById("delete-date-btn").addEventListener("click", function () {
-            const date = document.getElementById("delete-date").value;
-            if (!date) return;
-            if (deleteLogByDate(date)) {
-                updateSummary();
-            }
-        });
         document.getElementById("undo-delete-btn").addEventListener("click", undoDelete);
 
         editCancel.addEventListener('click', function () {
