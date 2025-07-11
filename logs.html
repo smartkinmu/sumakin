@@ -132,6 +132,7 @@
                     <input type="time" id="edit-end">
                 </div>
                 <div style="text-align:right;margin-top:8px;">
+                    <button id="edit-delete" type="button">削除</button>
                     <button id="edit-cancel" type="button">キャンセル</button>
                     <button id="edit-save" type="submit">保存</button>
                 </div>
@@ -151,6 +152,7 @@
         const editEnd = document.getElementById('edit-end');
         const editSave = document.getElementById('edit-save');
         const editCancel = document.getElementById('edit-cancel');
+        const editDelete = document.getElementById('edit-delete');
         let originalDate = '';
 
         function formatDateWithDay(dateStr) {
@@ -336,15 +338,6 @@
         }
 
         /**
-         * Create table row for a log record with edit button.
-         * @param {string} date - YYYY-MM-DD
-         * @param {string} start - start time
-         * @param {string} end - end time
-         * @param {string} work - working hours
-         * @param {string} overtime - overtime hours
-         * @returns {HTMLTableRowElement} Created row
-         */
-        /**
          * Show edit dialog for a log record.
          * @param {string} date - existing date in YYYY-MM-DD
          * @param {string} start - start time HH:MM
@@ -359,6 +352,15 @@
             editDialog.showModal();
             editDialog.focus();
         }
+        /**
+         * Create table row for a log record with edit option.
+         * @param {string} date - YYYY-MM-DD
+         * @param {string} start - start time
+         * @param {string} end - end time
+         * @param {string} work - working hours
+         * @param {string} overtime - overtime hours
+         * @returns {HTMLTableRowElement} Created row
+         */
 
         function createRow(date, start, end, work, overtime) {
             const tr = document.createElement('tr');
@@ -378,18 +380,7 @@
                 editBtn.addEventListener('click', function () {
                     openEditDialog(date, start, end);
                 });
-                const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = '🗑';
-                deleteBtn.title = '削除';
-                deleteBtn.className = 'tiny delete-btn';
-                deleteBtn.addEventListener('click', function () {
-                    if (deleteLogByDate(date)) {
-                        tr.remove();
-                        updateSummary();
-                    }
-                });
                 opTd.appendChild(editBtn);
-                opTd.appendChild(deleteBtn);
                 tr.appendChild(opTd);
             }
 
@@ -440,6 +431,13 @@
 
         editCancel.addEventListener('click', function () {
             editDialog.close();
+        });
+
+        editDelete.addEventListener('click', function () {
+            if (deleteLogByDate(originalDate)) {
+                editDialog.close();
+                updateSummary();
+            }
         });
 
         editSave.addEventListener('click', function (e) {
