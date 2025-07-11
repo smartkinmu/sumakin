@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.1.3</span></div>
+    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.1.8</span></div>
     <div class="container">
         <div id="refresh-indicator">更新中...</div>
 
@@ -33,6 +33,7 @@
         <div id="hamburger-menu" class="hamburger-menu">
             <button id="refresh-button">更新</button>
             <button id="copy-task1-button">業務1コピー</button>
+            <a href="settings.html">設定</a>
             <a href="manual.html" target="_blank">使い方</a>
             <a href="logs.html">ログ表示</a>
         </div>
@@ -54,6 +55,11 @@
         <div class="input-group">
             <label for="end-time">終業時刻:</label>
             <input type="time" id="end-time" name="end-time">
+        </div>
+        <div class="input-group">
+            <label><input type="checkbox" id="annual-leave"> 年休</label>
+            <label><input type="checkbox" id="am-leave"> AM休</label>
+            <label><input type="checkbox" id="pm-leave"> PM休</label>
         </div>
         <hr>
 
