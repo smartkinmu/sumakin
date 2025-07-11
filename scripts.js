@@ -115,21 +115,10 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('startTime', startTimeInput.value);
         localStorage.setItem('endTime', endTimeInput.value);
         localStorage.setItem('groupCount', groupCountPicker.value);
-        if (annualLeaveCheckbox.checked) {
-            localStorage.setItem('annualLeave', '1');
-        } else {
-            localStorage.removeItem('annualLeave');
-        }
-        if (amLeaveCheckbox.checked) {
-            localStorage.setItem('amLeave', '1');
-        } else {
-            localStorage.removeItem('amLeave');
-        }
-        if (pmLeaveCheckbox.checked) {
-            localStorage.setItem('pmLeave', '1');
-        } else {
-            localStorage.removeItem('pmLeave');
-        }
+        // 休暇選択状態は保存しない
+        localStorage.removeItem('annualLeave');
+        localStorage.removeItem('amLeave');
+        localStorage.removeItem('pmLeave');
     }
 
     function loadTaskDataFromStorage() {
@@ -143,9 +132,12 @@ document.addEventListener('DOMContentLoaded', function() {
         emailInput.value = localStorage.getItem('email') || '';
         startTimeInput.value = localStorage.getItem('startTime') || '';
         endTimeInput.value = localStorage.getItem('endTime') || '';
-        annualLeaveCheckbox.checked = localStorage.getItem('annualLeave') === '1';
-        amLeaveCheckbox.checked = localStorage.getItem('amLeave') === '1';
-        pmLeaveCheckbox.checked = localStorage.getItem('pmLeave') === '1';
+        annualLeaveCheckbox.checked = false;
+        amLeaveCheckbox.checked = false;
+        pmLeaveCheckbox.checked = false;
+        localStorage.removeItem('annualLeave');
+        localStorage.removeItem('amLeave');
+        localStorage.removeItem('pmLeave');
         updateLeaveControls();
     }
 
