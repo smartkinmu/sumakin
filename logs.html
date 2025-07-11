@@ -179,12 +179,22 @@
             return data;
         }
 
+        function getBreakTimes() {
+            return [
+                {
+                    start: localStorage.getItem('break1Start') || '12:00',
+                    end: localStorage.getItem('break1End') || '13:00'
+                },
+                {
+                    start: localStorage.getItem('break2Start') || '19:15',
+                    end: localStorage.getItem('break2End') || '19:45'
+                }
+            ];
+        }
+
         function calculateWorkingHours(startTime, endTime) {
             let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
-            const breaks = [
-                { start: '11:45', end: '12:45' },
-                { start: '19:15', end: '19:45' }
-            ];
+            const breaks = getBreakTimes();
             const workStart = toMinutes(startTime);
             const workEnd = toMinutes(endTime);
             breaks.forEach(b => {
@@ -200,14 +210,22 @@
             return (Math.round(workingHours * 100) / 100).toFixed(2);
         }
 
+        /**
+         * CSVまたはメール本文の行を解析し標準化する。
+         * @param {string} line - ログの1行
+         * @returns {string|null} 解析結果
+         */
         function parseLogLine(line) {
             const simple = line.split(',');
             if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
                 const date = simple[0];
                 const start = simple[1];
                 const end = simple[2];
-                const work = calculateWorkingHours(start, end);
-                const overtime = (parseFloat(work) - 7.75).toFixed(2);
+                if (start === '年休') {
+                    return `${date},年休,年休,0.00,0.00`;
+                }
+                const work = simple[3];
+                const overtime = simple[4];
                 return `${date},${start},${end},${work},${overtime}`;
             }
             const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
