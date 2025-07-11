@@ -224,8 +224,8 @@
                 if (start === '年休') {
                     return `${date},年休,年休,0.00,0.00`;
                 }
-                const work = calculateWorkingHours(start, end);
-                const overtime = (parseFloat(work) - 7.75).toFixed(2);
+                const work = simple[3];
+                const overtime = simple[4];
                 return `${date},${start},${end},${work},${overtime}`;
             }
             const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);

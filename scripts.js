@@ -42,7 +42,9 @@ document.addEventListener('DOMContentLoaded', function() {
         startTimeInput.disabled = disable;
         endTimeInput.disabled = disable;
         submitButton.disabled = disable;
-        emailButton.textContent = disable ? '登録' : 'メール作成';
+        const register = annualLeaveCheckbox.checked ||
+            amLeaveCheckbox.checked || pmLeaveCheckbox.checked;
+        emailButton.textContent = register ? '登録' : 'メール作成';
     }
 
     annualLeaveCheckbox.addEventListener('change', updateLeaveControls);
@@ -606,6 +608,19 @@ document.addEventListener('DOMContentLoaded', function() {
         if (annualLeaveCheckbox.checked) {
             saveLog(selectedDate, '年休', '年休', '0.00', '0.00');
             alert('年休を登録しました');
+            saveTaskData();
+            return;
+        } else if (amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
+            const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
+            saveLog(
+                selectedDate,
+                selectedStartTime,
+                selectedEndTime,
+                workingHours,
+                overtime
+            );
+            const type = amLeaveCheckbox.checked ? 'AM休' : 'PM休';
+            alert(`${type}を登録しました`);
             saveTaskData();
             return;
         }
