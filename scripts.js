@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('date');
     const startTimeInput = document.getElementById('start-time');
     const endTimeInput = document.getElementById('end-time');
+    const annualLeaveCheckbox = document.getElementById('annual-leave');
     const resultDiv = document.getElementById('result');
     const submitButton = document.getElementById('submit-button');
     const emailButton = document.getElementById('email-button');
@@ -18,6 +19,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");
+
+    annualLeaveCheckbox.addEventListener('change', () => {
+        const on = annualLeaveCheckbox.checked;
+        startTimeInput.disabled = on;
+        endTimeInput.disabled = on;
+        submitButton.disabled = on;
+        emailButton.textContent = on ? '登録' : 'メール作成';
+    });
 
     function createTaskGroup(index) {
         return `
@@ -83,6 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('startTime', startTimeInput.value);
         localStorage.setItem('endTime', endTimeInput.value);
         localStorage.setItem('groupCount', groupCountPicker.value);
+        localStorage.setItem('annualLeave', annualLeaveCheckbox.checked ? '1' : '0');
     }
 
     function loadTaskDataFromStorage() {
@@ -96,6 +106,8 @@ document.addEventListener('DOMContentLoaded', function() {
         emailInput.value = localStorage.getItem('email') || '';
         startTimeInput.value = localStorage.getItem('startTime') || '';
         endTimeInput.value = localStorage.getItem('endTime') || '';
+        annualLeaveCheckbox.checked = localStorage.getItem('annualLeave') === '1';
+        annualLeaveCheckbox.dispatchEvent(new Event('change'));
     }
 
     function updateTaskGroups() {
@@ -529,6 +541,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedEndTime = endTimeInput.value;
         const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
         const totalTaskHours = calculateTotalTaskHours();
+
+        if (annualLeaveCheckbox.checked) {
+            saveLog(selectedDate, '年休', '年休', '0.00', '0.00');
+            alert('年休を登録しました');
+            saveTaskData();
+            return;
+        }
 
         const subject = "スマ勤";
         const newline = '\r\n';

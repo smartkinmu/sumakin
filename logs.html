@@ -200,12 +200,20 @@
             return (Math.round(workingHours * 100) / 100).toFixed(2);
         }
 
+        /**
+         * CSVまたはメール本文の行を解析し標準化する。
+         * @param {string} line - ログの1行
+         * @returns {string|null} 解析結果
+         */
         function parseLogLine(line) {
             const simple = line.split(',');
             if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
                 const date = simple[0];
                 const start = simple[1];
                 const end = simple[2];
+                if (start === '年休') {
+                    return `${date},年休,年休,0.00,0.00`;
+                }
                 const work = calculateWorkingHours(start, end);
                 const overtime = (parseFloat(work) - 7.75).toFixed(2);
                 return `${date},${start},${end},${work},${overtime}`;
