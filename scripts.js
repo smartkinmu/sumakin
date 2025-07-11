@@ -22,6 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");
 
+    /**
+     * 休暇チェック状態に応じて入力欄の有効／無効を切り替える。
+     * @returns {void}
+     */
     function updateLeaveControls() {
         if (annualLeaveCheckbox.checked) {
             amLeaveCheckbox.checked = false;

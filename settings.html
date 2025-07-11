@@ -38,6 +38,10 @@
             const eveningEnd = document.getElementById('evening-end');
             const saveBtn = document.getElementById('save-settings');
 
+            /**
+             * ローカルストレージから休憩時間設定を読み込む。
+             * @returns {void}
+             */
             function load() {
                 lunchStart.value = localStorage.getItem('break1Start') || '12:00';
                 lunchEnd.value = localStorage.getItem('break1End') || '13:00';
@@ -45,6 +49,10 @@
                 eveningEnd.value = localStorage.getItem('break2End') || '19:45';
             }
 
+            /**
+             * 入力された休憩時間を保存する。
+             * @returns {void}
+             */
             function save() {
                 localStorage.setItem('break1Start', lunchStart.value);
                 localStorage.setItem('break1End', lunchEnd.value);
