@@ -24,16 +24,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /**
      * 休暇チェック状態に応じて入力欄の有効／無効を切り替える。
+     * 違う項目を直接チェックした場合でも切り替えられるようにする。
+     * @param {Event} e changeイベント
      * @returns {void}
      */
-    function updateLeaveControls() {
-        if (annualLeaveCheckbox.checked) {
+    function updateLeaveControls(e) {
+        const target = e?.target;
+        if (target === annualLeaveCheckbox && annualLeaveCheckbox.checked) {
             amLeaveCheckbox.checked = false;
             pmLeaveCheckbox.checked = false;
-        } else if (amLeaveCheckbox.checked) {
+        } else if (target === amLeaveCheckbox && amLeaveCheckbox.checked) {
             annualLeaveCheckbox.checked = false;
             pmLeaveCheckbox.checked = false;
-        } else if (pmLeaveCheckbox.checked) {
+        } else if (target === pmLeaveCheckbox && pmLeaveCheckbox.checked) {
             annualLeaveCheckbox.checked = false;
             amLeaveCheckbox.checked = false;
         }
@@ -647,7 +650,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const totalTaskHours = calculateTotalTaskHours();
 
         if (annualLeaveCheckbox.checked) {
-            saveLog(selectedDate, '年休', '年休', '0.00', '0.00');
+            saveLog(selectedDate, '年休', '年休', '7.75', '0.00');
             alert('年休を登録しました');
             saveTaskData();
             return;
