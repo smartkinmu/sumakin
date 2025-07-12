@@ -377,7 +377,9 @@
                 editBtn.textContent = '✎';
                 editBtn.title = '編集';
                 editBtn.className = 'tiny edit-btn';
-                editBtn.addEventListener('click', function () {
+                editBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     openEditDialog(date, start, end);
                 });
                 opTd.appendChild(editBtn);
