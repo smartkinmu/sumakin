@@ -222,7 +222,8 @@
                 const start = simple[1];
                 const end = simple[2];
                 if (start === '年休') {
-                    return `${date},年休,年休,0.00,0.00`;
+                    // 年休の場合は 8:30-17:15 勤務として扱う
+                    return `${date},年休,年休,7.75,0.00`;
                 }
                 const work = simple[3];
                 const overtime = simple[4];
@@ -347,8 +348,14 @@
         function openEditDialog(date, start, end) {
             originalDate = date;
             editDate.value = date;
-            editStart.value = start;
-            editEnd.value = end;
+            if (start === '年休') {
+                // 年休はデフォルト時間を入力欄に設定する
+                editStart.value = '08:30';
+                editEnd.value = '17:15';
+            } else {
+                editStart.value = start;
+                editEnd.value = end;
+            }
             editDialog.showModal();
             editDialog.focus();
         }
@@ -377,7 +384,9 @@
                 editBtn.textContent = '✎';
                 editBtn.title = '編集';
                 editBtn.className = 'tiny edit-btn';
-                editBtn.addEventListener('click', function () {
+                editBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     openEditDialog(date, start, end);
                 });
                 opTd.appendChild(editBtn);
