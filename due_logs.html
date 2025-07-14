@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>納期ログ表示</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f7;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        ul {
+            padding-left: 1em;
+        }
+        li {
+            word-wrap: break-word;
+            margin-bottom: 6px;
+        }
+        button {
+            padding: 6px 14px;
+            font-size: 15px;
+            margin-top: 10px;
+            box-sizing: border-box;
+            background-color: #333;
+            color: white;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .actions a {
+            display: block;
+            padding: 10px 16px;
+            font-size: 20px;
+            background-color: #333;
+            color: white;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+            flex-grow: 1;
+        }
+        .actions button.small {
+            padding: 4px 8px;
+            font-size: 12px;
+            flex-grow: 0;
+        }
+        .actions input.tiny,
+        .actions button.tiny {
+            padding: 2px 6px;
+            font-size: 10px;
+            flex-grow: 0;
+        }
+        .tiny {
+            padding: 2px 6px;
+            font-size: 10px;
+        }
+        button:hover {
+            background-color: #3a4d57;
+        }
+        button:active {
+            background: #e0e0e0;
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 8px;
+        }
+        td:nth-child(4),
+        td:nth-child(5),
+        td:nth-child(6) {
+            text-align: right;
+            vertical-align: middle;
+        }
+        .edit-btn {
+            margin-top: 0;
+            background-color: #fff;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>納期ログ表示</h1>
+        <div class="actions">
+            <a href="index.html">戻る</a>
+            <button id="clear-logs" class="small">ログをクリア</button>
+            <button id="download-logs" class="small">CSVダウンロード</button>
+        </div>
+        <h2>納期集計</h2>
+        <div id="monthly-summary-section">
+            <label for="due-start">納期:</label>
+            <input type="date" id="due-start"> ～
+            <input type="date" id="due-end">
+        </div>
+        <div id="due-display"></div>
+        <p id="monthly-summary"></p>
+        <div class="actions">
+            <button id="undo-delete-btn" class="tiny">UNDO</button>
+        </div>
+        <table id="log-table" style="width:100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">日付</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">始業</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">終業</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:right;">勤務時間</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:right;">残業時間</th>
+                    <th style="border-bottom:1px solid #ccc; text-align:left;">操作</th>
+                </tr>
+            </thead>
+            <tbody id="log-body"></tbody>
+        </table>
+        <dialog id="edit-dialog" tabindex="-1">
+            <form method="dialog" id="edit-form">
+                <div>
+                    <label for="edit-date">日付:</label>
+                    <input type="date" id="edit-date">
+                </div>
+                <div>
+                    <label for="edit-start">始業:</label>
+                    <input type="time" id="edit-start">
+                </div>
+                <div>
+                    <label for="edit-end">終業:</label>
+                    <input type="time" id="edit-end">
+                </div>
+                <div style="text-align:right;margin-top:8px;">
+                    <button id="edit-save" type="submit">保存</button>
+                    <button id="edit-delete" type="button">削除</button>
+                    <button id="edit-cancel" type="button">キャンセル</button>
+                </div>
+            </form>
+        </dialog>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const logBody = document.getElementById('log-body');
+        const dueStart = document.getElementById('due-start');
+        const dueEnd = document.getElementById('due-end');
+        const dueDisplay = document.getElementById('due-display');
+        const defaultStart = '2025-06-23';
+        const defaultEnd = '2025-07-23';
+        dueStart.value = localStorage.getItem('dueStart') || defaultStart;
+        dueEnd.value = localStorage.getItem('dueEnd') || defaultEnd;
+        updateDueDisplay();
+        function formatJp(d) {
+            const date = new Date(d);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            return `${y}年${m}月${day}日(${days[date.getDay()]})`;
+        }
+
+        function updateDueDisplay() {
+            if (dueStart.value && dueEnd.value) {
+                dueDisplay.textContent = `${formatJp(dueStart.value)}〜${formatJp(dueEnd.value)}`;
+            }
+        }
+        const editDialog = document.getElementById('edit-dialog');
+        const editDate = document.getElementById('edit-date');
+        const editStart = document.getElementById('edit-start');
+        const editEnd = document.getElementById('edit-end');
+        const editSave = document.getElementById('edit-save');
+        const editCancel = document.getElementById('edit-cancel');
+        const editDelete = document.getElementById('edit-delete');
+        let originalDate = '';
+
+        function formatDateWithDay(dateStr) {
+            const d = new Date(dateStr);
+            const days = ['日', '月', '火', '水', '木', '金', '土'];
+            return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}(${days[d.getDay()]})`;
+        }
+
+        function toMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function restoreLogsIfNeeded() {
+            let data = localStorage.getItem('logs');
+            if (!data) {
+                const backup = localStorage.getItem('logs_backup');
+                if (backup) {
+                    localStorage.setItem('logs', backup);
+                    data = backup;
+                    alert('ログファイルを復元しました。');
+                }
+            }
+            return data;
+        }
+
+        function getBreakTimes() {
+            return [
+                {
+                    start: localStorage.getItem('break1Start') || '12:00',
+                    end: localStorage.getItem('break1End') || '13:00'
+                },
+                {
+                    start: localStorage.getItem('break2Start') || '19:15',
+                    end: localStorage.getItem('break2End') || '19:45'
+                }
+            ];
+        }
+
+        function calculateWorkingHours(startTime, endTime) {
+            let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
+            const breaks = getBreakTimes();
+            const workStart = toMinutes(startTime);
+            const workEnd = toMinutes(endTime);
+            breaks.forEach(b => {
+                const breakStart = toMinutes(b.start);
+                const breakEnd = toMinutes(b.end);
+                if (workStart < breakEnd && workEnd > breakStart) {
+                    const overlapStart = Math.max(workStart, breakStart);
+                    const overlapEnd = Math.min(workEnd, breakEnd);
+                    totalMinutes -= overlapEnd - overlapStart;
+                }
+            });
+            const workingHours = totalMinutes / 60;
+            return (Math.round(workingHours * 100) / 100).toFixed(2);
+        }
+
+        /**
+         * CSVまたはメール本文の行を解析し標準化する。
+         * @param {string} line - ログの1行
+         * @returns {string|null} 解析結果
+         */
+        function parseLogLine(line) {
+            const simple = line.split(',');
+            if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
+                const date = simple[0];
+                const start = simple[1];
+                const end = simple[2];
+                if (start === '年休') {
+                    // 年休の場合は 8:30-17:15 勤務として扱う
+                    return `${date},年休,年休,7.75,0.00`;
+                }
+                const work = simple[3];
+                const overtime = simple[4];
+                return `${date},${start},${end},${work},${overtime}`;
+            }
+            const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+            if (parts.length >= 4 && /^\d{4}-\d{2}-\d{2}T/.test(parts[0])) {
+                const body = parts[3].replace(/^"|"$/g, '').replace(/""/g, '"');
+                const date = body.match(/日付\s*(\d{4}-\d{2}-\d{2})/);
+                const start = body.match(/始業\s*(\d{2}:\d{2})/);
+                const end = body.match(/終業\s*(\d{2}:\d{2})/);
+                if (date && start && end) {
+                    const work = calculateWorkingHours(start[1], end[1]);
+                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
+                    return `${date[1]},${start[1]},${end[1]},${work},${overtime}`;
+                }
+            }
+            return null;
+        }
+        let lastLogsBackup = null;
+
+        /**
+         * Delete record of specified date.
+         * @param {string} date - YYYY-MM-DD
+         * @returns {boolean} Deletion result
+         */
+        function deleteLogByDate(date) {
+            const logsStr = restoreLogsIfNeeded();
+            if (!logsStr) {
+                alert("ログはありません");
+                return false;
+            }
+            const lines = logsStr.split("\n").filter(line => line);
+            const remaining = [];
+            let found = false;
+            lines.forEach(line => {
+                const [d] = line.split(",");
+                if (d === date) {
+                    found = true;
+                } else {
+                    remaining.push(line);
+                }
+            });
+            if (!found) {
+                alert("指定した日付のデータはありません");
+                return false;
+            }
+            if (!confirm(`${date} のログを削除しますか？`)) {
+                return false;
+            }
+            lastLogsBackup = logsStr;
+            if (remaining.length > 0) {
+                const updated = remaining.join("\n");
+                localStorage.setItem('logs', updated);
+                localStorage.setItem('logs_backup', updated);
+            } else {
+                localStorage.removeItem('logs');
+                localStorage.removeItem('logs_backup');
+            }
+            return true;
+        }
+
+        /**
+         * Undo the last delete action.
+         * @returns {void}
+         */
+        function undoDelete() {
+            if (!lastLogsBackup) {
+                alert("元に戻せる操作はありません");
+                return;
+            }
+            localStorage.setItem('logs', lastLogsBackup);
+            localStorage.setItem('logs_backup', lastLogsBackup);
+            lastLogsBackup = null;
+            updateSummary();
+        }
+
+        /**
+         * Update a log record.
+         * @param {string} oldDate - existing date in YYYY-MM-DD
+         * @param {string} newDate - new date
+         * @param {string} start - start time HH:MM
+         * @param {string} end - end time HH:MM
+         * @returns {boolean} Update result
+         */
+        function updateLog(oldDate, newDate, start, end) {
+            const logsStr = restoreLogsIfNeeded();
+            if (!logsStr) {
+                alert('ログはありません');
+                return false;
+            }
+            const lines = logsStr.split('\n').filter(line => line);
+            let found = false;
+            for (let i = 0; i < lines.length; i++) {
+                const [d] = lines[i].split(',');
+                if (d === oldDate) {
+                    const work = calculateWorkingHours(start, end);
+                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
+                    lines[i] = `${newDate},${start},${end},${work},${overtime}`;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                alert('指定した日付のデータはありません');
+                return false;
+            }
+            lastLogsBackup = logsStr;
+            const updated = lines.join('\n');
+            localStorage.setItem('logs', updated);
+            localStorage.setItem('logs_backup', updated);
+            return true;
+        }
+
+        /**
+         * Show edit dialog for a log record without opening the date picker.
+         * @param {string} date - existing date in YYYY-MM-DD
+         * @param {string} start - start time HH:MM
+         * @param {string} end - end time HH:MM
+         * @returns {void}
+         */
+        function openEditDialog(date, start, end) {
+            originalDate = date;
+            editDate.value = date;
+            if (start === '年休') {
+                // 年休はデフォルト時間を入力欄に設定する
+                editStart.value = '08:30';
+                editEnd.value = '17:15';
+            } else {
+                editStart.value = start;
+                editEnd.value = end;
+            }
+            const originalType = editDate.type;
+            // 一時的に text 型へ変更しフォーカス時のピッカー表示を抑制
+            editDate.type = 'text';
+            editDialog.showModal();
+            editDate.type = originalType;
+        }
+        /**
+         * Create table row for a log record with edit option.
+         * @param {string} date - YYYY-MM-DD
+         * @param {string} start - start time
+         * @param {string} end - end time
+         * @param {string} work - working hours
+         * @param {string} overtime - overtime hours
+         * @returns {HTMLTableRowElement} Created row
+         */
+
+        function createRow(date, start, end, work, overtime) {
+            const tr = document.createElement('tr');
+
+            function renderView() {
+                tr.innerHTML = '';
+                [formatDateWithDay(date), start, end, work, overtime].forEach(t => {
+                    const td = document.createElement('td');
+                    td.textContent = t;
+                    tr.appendChild(td);
+                });
+                const opTd = document.createElement('td');
+                const editBtn = document.createElement('button');
+                editBtn.textContent = '✎';
+                editBtn.title = '編集';
+                editBtn.className = 'tiny edit-btn';
+                editBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    openEditDialog(date, start, end);
+                });
+                opTd.appendChild(editBtn);
+                tr.appendChild(opTd);
+            }
+
+            renderView();
+            return tr;
+        }
+
+        const data = restoreLogsIfNeeded();
+        if (data) {
+            const daily = {};
+            const lines = [];
+            data.split('\n').forEach(line => {
+                if (!line) return;
+                const parsed = parseLogLine(line);
+                if (!parsed) return;
+                const [date, start, end, work, overtime] = parsed.split(',');
+                daily[date] = { start, end, work, overtime };
+                lines.push(parsed);
+            });
+            if (lines.length > 0) {
+                localStorage.setItem('logs', lines.join('\n'));
+            } else {
+                localStorage.removeItem('logs');
+            }
+            Object.keys(daily).sort().forEach(date => {
+                const { start, end, work, overtime } = daily[date];
+                const tr = createRow(date, start, end, work, overtime);
+                logBody.appendChild(tr);
+            });
+        } else {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            td.colSpan = 6;
+            td.textContent = 'ログはありません';
+            tr.appendChild(td);
+            logBody.appendChild(tr);
+        }
+
+        document.getElementById('clear-logs').addEventListener('click', function () {
+            if (confirm('ログをクリアしますか？')) {
+                localStorage.removeItem('logs');
+                logBody.innerHTML = '<tr><td colspan="6">ログはありません</td></tr>';
+                updateSummary();
+            }
+        });
+        document.getElementById('download-logs').addEventListener('click', downloadLogs);
+        document.getElementById("undo-delete-btn").addEventListener("click", undoDelete);
+
+        editCancel.addEventListener('click', function () {
+            editDialog.close();
+        });
+
+        editDelete.addEventListener('click', function () {
+            if (deleteLogByDate(originalDate)) {
+                editDialog.close();
+                updateSummary();
+            }
+        });
+
+        editSave.addEventListener('click', function (e) {
+            e.preventDefault();
+            const newDate = editDate.value;
+            const newStart = editStart.value;
+            const newEnd = editEnd.value;
+            if (!newDate || !newStart || !newEnd) {
+                alert('日付と時刻を入力してください');
+                return;
+            }
+            if (updateLog(originalDate, newDate, newStart, newEnd)) {
+                editDialog.close();
+                updateSummary();
+            }
+        });
+
+
+        function downloadLogs() {
+            const csv = restoreLogsIfNeeded();
+            if (!csv) {
+                alert('ログはありません');
+                return;
+            }
+            const rawLines = csv.split('\n').filter(line => line);
+            const daily = {};
+            rawLines.forEach(line => {
+                const parts = line.split(',');
+                if (parts.length < 5) return;
+                const [date, start, end, work, overtime] = parts;
+                daily[date] = { start, end, work, overtime };
+            });
+            let totalWork = 0;
+            let totalOvertime = 0;
+            Object.keys(daily).forEach(d => {
+                const { work, overtime } = daily[d];
+                totalWork += parseFloat(work) || 0;
+                totalOvertime += parseFloat(overtime) || 0;
+            });
+            const lines = [...rawLines];
+            lines.push(`Total,,,${totalWork.toFixed(2)},${totalOvertime.toFixed(2)}`);
+            const header = 'Date,Start,End,Work Hours,Overtime\n';
+            const blob = new Blob([header + lines.join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'logs.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function showRangeLogs(startDate, endDate) {
+            logBody.innerHTML = '';
+            const csv = restoreLogsIfNeeded();
+            if (!csv) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 6;
+                td.textContent = 'ログはありません';
+                tr.appendChild(td);
+                logBody.appendChild(tr);
+                return;
+            }
+
+            const daily = {};
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            csv.split('\n').forEach(line => {
+                if (!line) return;
+                const [date, startT, endT, work, overtime] = line.split(',');
+                const d = new Date(date);
+                if (d >= start && d <= end) {
+                    daily[date] = { start: startT, end: endT, work, overtime };
+                }
+            });
+
+            const rows = Object.keys(daily).map(d => ({ date: d, ...daily[d] }))
+                .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            if (rows.length === 0) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 6;
+                td.textContent = 'ログはありません';
+                tr.appendChild(td);
+                logBody.appendChild(tr);
+                return;
+            }
+
+            rows.forEach(r => {
+                const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
+                logBody.appendChild(rowEl);
+            });
+        }
+
+        function showRangeSummary(startDate, endDate) {
+            const csv = restoreLogsIfNeeded();
+            if (!csv) {
+                alert('ログはありません');
+                return;
+            }
+            const dailyRecords = {};
+            csv.trim().split('\n').forEach(line => {
+                const parsed = parseLogLine(line);
+                if (!parsed) return;
+                const parts = parsed.split(',');
+                const dateStr = parts[0];
+                const hours = parseFloat(parts[3]) || 0;
+                dailyRecords[dateStr] = { date: new Date(dateStr), hours: hours };
+            });
+
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const records = Object.values(dailyRecords).filter(r => {
+                return r.date >= start && r.date <= end;
+            });
+
+            const totalHours = records.reduce((sum, rec) => sum + rec.hours, 0);
+
+            const workingDays = records.length;
+            const base = workingDays * 7.75;
+            const overtime = totalHours - base;
+            const summary = `勤務日数 ${workingDays} 日, 合計 ${totalHours.toFixed(2)} 時間, 残業 ${overtime.toFixed(2)} 時間`;
+            document.getElementById('monthly-summary').textContent = summary;
+        }
+
+
+        function updateSummary() {
+            const s = dueStart.value;
+            const e = dueEnd.value;
+            if (!s || !e) return;
+            showRangeLogs(s, e);
+            showRangeSummary(s, e);
+            localStorage.setItem('dueStart', s);
+            localStorage.setItem('dueEnd', e);
+            updateDueDisplay();
+        }
+
+        dueStart.addEventListener('change', updateSummary);
+        dueEnd.addEventListener('change', updateSummary);
+        updateSummary();
+
+    });
+
+    /**
+     * 更新要求を受け取ったら画面をリロードする。
+     * @param {StorageEvent} e - storageイベント
+     * @returns {void}
+     */
+    function handleRefreshRequest(e) {
+        if (e.key === 'refreshLogs') {
+            location.reload();
+        }
+    }
+
+    window.addEventListener('storage', handleRefreshRequest);
+    </script>
+</body>
+</html>

@@ -24,19 +24,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /**
      * 休暇チェック状態に応じて入力欄の有効／無効を切り替える。
-     * 違う項目を直接チェックした場合でも切り替えられるようにする。
-     * @param {Event} e changeイベント
+     * 選択肢は排他的で、別の項目を直接選び直せる。
      * @returns {void}
      */
-    function updateLeaveControls(e) {
-        const target = e?.target;
-        if (target === annualLeaveCheckbox && annualLeaveCheckbox.checked) {
+    function updateLeaveControls() {
+        if (annualLeaveCheckbox.checked) {
             amLeaveCheckbox.checked = false;
             pmLeaveCheckbox.checked = false;
-        } else if (target === amLeaveCheckbox && amLeaveCheckbox.checked) {
+        } else if (amLeaveCheckbox.checked) {
             annualLeaveCheckbox.checked = false;
             pmLeaveCheckbox.checked = false;
-        } else if (target === pmLeaveCheckbox && pmLeaveCheckbox.checked) {
+        } else if (pmLeaveCheckbox.checked) {
             annualLeaveCheckbox.checked = false;
             amLeaveCheckbox.checked = false;
         }
