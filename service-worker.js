@@ -8,6 +8,7 @@ self.addEventListener('install', event => {
                 './',
                 './index.html',
                 './logs.html',
+                './due_logs.html',
                 './settings.html',
                 './manifest.json',
                 './scripts.js',
