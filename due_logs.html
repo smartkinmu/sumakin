@@ -248,6 +248,12 @@
                 const work = simple[3];
                 const overtime = simple[4];
                 return `${date},${start},${end},${work},${overtime}`;
+            } else if (simple.length >= 4 && /^BREAK@/.test(simple[0])) {
+                const id = simple[0];
+                const start = simple[1];
+                const end = simple[2];
+                const work = simple[3];
+                return `${id},${start},${end},${work},`;
             }
             const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
             if (parts.length >= 4 && /^\d{4}-\d{2}-\d{2}T/.test(parts[0])) {
@@ -338,11 +344,17 @@
             const lines = logsStr.split('\n').filter(line => line);
             let found = false;
             for (let i = 0; i < lines.length; i++) {
-                const [d] = lines[i].split(',');
+                const parts = lines[i].split(',');
+                const d = parts[0];
                 if (d === oldDate) {
-                    const work = calculateWorkingHours(start, end);
-                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
-                    lines[i] = `${newDate},${start},${end},${work},${overtime}`;
+                    if (d.startsWith('BREAK@')) {
+                        const duration = calculateDuration(start, end);
+                        lines[i] = `${d},${start},${end},${duration},`;
+                    } else {
+                        const work = calculateWorkingHours(start, end);
+                        const overtime = (parseFloat(work) - 7.75).toFixed(2);
+                        lines[i] = `${newDate},${start},${end},${work},${overtime}`;
+                    }
                     found = true;
                     break;
                 }
@@ -367,9 +379,13 @@
          */
         function openEditDialog(date, start, end) {
             originalDate = date;
-            editDate.value = date;
+            if (date.startsWith('BREAK@')) {
+                editDate.parentElement.style.display = 'none';
+            } else {
+                editDate.parentElement.style.display = '';
+                editDate.value = date;
+            }
             if (start === '年休') {
-                // 年休はデフォルト時間を入力欄に設定する
                 editStart.value = '08:30';
                 editEnd.value = '17:15';
             } else {
@@ -377,7 +393,6 @@
                 editEnd.value = end;
             }
             const originalType = editDate.type;
-            // 一時的に text 型へ変更しフォーカス時のピッカー表示を抑制
             editDate.type = 'text';
             editDialog.showModal();
             editDate.type = originalType;
@@ -397,11 +412,19 @@
 
             function renderView() {
                 tr.innerHTML = '';
-                [formatDateWithDay(date), start, end, work, overtime].forEach(t => {
-                    const td = document.createElement('td');
-                    td.textContent = t;
-                    tr.appendChild(td);
-                });
+                if (date.startsWith('BREAK@')) {
+                    ['中断時間', start, end, work, ''].forEach(t => {
+                        const td = document.createElement('td');
+                        td.textContent = t;
+                        tr.appendChild(td);
+                    });
+                } else {
+                    [formatDateWithDay(date), start, end, work, overtime].forEach(t => {
+                        const td = document.createElement('td');
+                        td.textContent = t;
+                        tr.appendChild(td);
+                    });
+                }
                 const opTd = document.createElement('td');
                 const editBtn = document.createElement('button');
                 editBtn.textContent = '✎';
@@ -477,7 +500,7 @@
             const newDate = editDate.value;
             const newStart = editStart.value;
             const newEnd = editEnd.value;
-            if (!newDate || !newStart || !newEnd) {
+            if (!newStart || !newEnd || (!originalDate.startsWith('BREAK@') && !newDate)) {
                 alert('日付と時刻を入力してください');
                 return;
             }

@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('date');
     const startTimeInput = document.getElementById('start-time');
     const endTimeInput = document.getElementById('end-time');
+    const interruptStartInput = document.getElementById('interrupt-start');
+    const interruptEndInput = document.getElementById('interrupt-end');
     const annualLeaveCheckbox = document.getElementById('annual-leave');
     const amLeaveCheckbox = document.getElementById('am-leave');
     const pmLeaveCheckbox = document.getElementById('pm-leave');
@@ -100,6 +102,22 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('logs_backup', updated);
     }
 
+    /**
+     * 中断時間のログを保存する。
+     * @param {string} date - YYYY-MM-DD
+     * @param {string} start - start time
+     * @param {string} end - end time
+     * @returns {void}
+     */
+    function saveInterruptLog(date, start, end) {
+        const duration = calculateDuration(start, end);
+        const line = `BREAK@${date},${start},${end},${duration},`;
+        const existing = localStorage.getItem('logs');
+        const updated = existing ? `${existing}\n${line}` : line;
+        localStorage.setItem('logs', updated);
+        localStorage.setItem('logs_backup', updated);
+    }
+
     function saveTaskDataToStorage() {
         const totalGroups = 10;  // 最大10グループまで保存
         for (let i = 1; i <= totalGroups; i++) {
@@ -115,6 +133,8 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('email', emailInput.value);
         localStorage.setItem('startTime', startTimeInput.value);
         localStorage.setItem('endTime', endTimeInput.value);
+        localStorage.setItem('interruptStart', interruptStartInput.value);
+        localStorage.setItem('interruptEnd', interruptEndInput.value);
         localStorage.setItem('groupCount', groupCountPicker.value);
         // 休暇選択状態は保存しない
         localStorage.removeItem('annualLeave');
@@ -133,6 +153,8 @@ document.addEventListener('DOMContentLoaded', function() {
         emailInput.value = localStorage.getItem('email') || '';
         startTimeInput.value = localStorage.getItem('startTime') || '';
         endTimeInput.value = localStorage.getItem('endTime') || '';
+        interruptStartInput.value = localStorage.getItem('interruptStart') || '';
+        interruptEndInput.value = localStorage.getItem('interruptEnd') || '';
         annualLeaveCheckbox.checked = false;
         amLeaveCheckbox.checked = false;
         pmLeaveCheckbox.checked = false;
@@ -319,6 +341,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * 2つの時刻の差を時間で計算する。
+     * @param {string} start - HH:MM
+     * @param {string} end - HH:MM
+     * @returns {string} 時間差
+     */
+    function calculateDuration(start, end) {
+        const diff = toMinutes(end) - toMinutes(start);
+        return (Math.round((diff / 60) * 100) / 100).toFixed(2);
+    }
+
+    /**
      * 保存された休憩時間を取得する。
      * @returns {{start:string,end:string}[]} 休憩時間リスト
      */
@@ -396,6 +429,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('PM休では昼休み前の時間を入力してください');
                 return false;
             }
+        }
+        return true;
+    }
+
+    /**
+     * 中断時刻が勤務時間内か検証する。
+     * @param {string} start - 中断開始
+     * @param {string} end - 中断終了
+     * @param {string} workStart - 始業
+     * @param {string} workEnd - 終業
+     * @returns {boolean} 妥当なら true
+     */
+    function validateInterrupt(start, end, workStart, workEnd) {
+        if (!start || !end) return true;
+        if (toMinutes(start) < toMinutes(workStart) || toMinutes(end) > toMinutes(workEnd)) {
+            alert('中断時刻が勤務時間外です');
+            return false;
         }
         return true;
     }
@@ -534,10 +584,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDayOfWeek = getDayOfWeek(selectedDate);
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
+        const interruptStart = interruptStartInput.value;
+        const interruptEnd = interruptEndInput.value;
         if (!checkHalfDayInput()) {
             return;
         }
+        if (!validateInterrupt(interruptStart, interruptEnd, selectedStartTime, selectedEndTime)) {
+            return;
+        }
         let workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+        let interruptHours = 0;
+        if (interruptStart && interruptEnd) {
+            interruptHours = parseFloat(calculateDuration(interruptStart, interruptEnd));
+            workingHours = (parseFloat(workingHours) - interruptHours).toFixed(2);
+        }
         const lunch = getBreakTimes()[0];
         const lunchStart = lunch.start;
         const lunchEnd = lunch.end;
@@ -617,7 +677,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
-        resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>残業時間 ${overtime} 時間</p>`;
+        resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>残業時間 ${overtime} 時間<br>中断時間 ${interruptHours.toFixed(2)} 時間</p>`;
         saveTaskData();  // データを保存
     });
 
@@ -627,10 +687,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDate = dateInput.value;
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
+        const interruptStart = interruptStartInput.value;
+        const interruptEnd = interruptEndInput.value;
         if (!checkHalfDayInput()) {
             return;
         }
+        if (!validateInterrupt(interruptStart, interruptEnd, selectedStartTime, selectedEndTime)) {
+            return;
+        }
         let workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+        let interruptHours = 0;
         const lunch = getBreakTimes()[0];
         const lunchStart = lunch.start;
         const lunchEnd = lunch.end;
@@ -644,6 +710,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 parseFloat(calculateWorkingHours(lunchEnd, '17:15')) +
                 parseFloat(workingHours)
             ).toFixed(2);
+        }
+        if (interruptStart && interruptEnd) {
+            interruptHours = parseFloat(calculateDuration(interruptStart, interruptEnd));
+            workingHours = (parseFloat(workingHours) - interruptHours).toFixed(2);
         }
         const totalTaskHours = calculateTotalTaskHours();
 
@@ -661,6 +731,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 workingHours,
                 overtime
             );
+            if (interruptHours > 0) {
+                saveInterruptLog(selectedDate, interruptStart, interruptEnd);
+            }
             const type = amLeaveCheckbox.checked ? 'AM休' : 'PM休';
             alert(`${type}を登録しました`);
             saveTaskData();
@@ -716,6 +789,9 @@ document.addEventListener('DOMContentLoaded', function() {
         saveTaskData();  // データを保存
         const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
         saveLog(selectedDate, selectedStartTime, selectedEndTime, workingHours, overtime);
+        if (interruptHours > 0) {
+            saveInterruptLog(selectedDate, interruptStart, interruptEnd);
+        }
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
