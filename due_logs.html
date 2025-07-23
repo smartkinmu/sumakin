@@ -174,6 +174,8 @@
         const editCancel = document.getElementById('edit-cancel');
         const editDelete = document.getElementById('edit-delete');
         let originalDate = '';
+        let originalStart = '';
+        let originalEnd = '';
 
         function formatDateWithDay(dateStr) {
             const d = new Date(dateStr);
@@ -237,6 +239,9 @@
          */
         function parseLogLine(line) {
             const simple = line.split(',');
+            if (simple[0] === '中断時刻' && simple.length >= 4) {
+                return `中断時刻,${simple[1]},${simple[2]},${simple[3]},`;
+            }
             if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
                 const date = simple[0];
                 const start = simple[1];
@@ -264,6 +269,49 @@
             return null;
         }
         let lastLogsBackup = null;
+
+        /**
+         * Get total break hours following the specified index.
+         * @param {number} idx - start index of main log
+         * @param {string[]} lines - all log lines
+         * @returns {number} break hours
+         */
+        function getBreakHours(idx, lines) {
+            let sum = 0;
+            for (let i = idx + 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts[0] !== '中断時刻') break;
+                sum += parseFloat(parts[3]) || 0;
+            }
+            return sum;
+        }
+
+        /**
+         * Recalculate overtime for the specified date.
+         * @param {number} idx - index of the log line
+         * @param {string[]} lines - all log lines
+         * @returns {void}
+         */
+        function recalcOvertime(idx, lines) {
+            const parts = lines[idx].split(',');
+            const work = parseFloat(parts[3]) || 0;
+            const pause = getBreakHours(idx, lines);
+            parts[4] = (work - pause - 7.75).toFixed(2);
+            lines[idx] = parts.join(',');
+        }
+
+        /**
+         * 全ての残業時間を再計算する。
+         * @param {string[]} lines - ログ配列
+         * @returns {void}
+         */
+        function recalcAll(lines) {
+            for (let i = 0; i < lines.length; i++) {
+                if (!lines[i].startsWith('中断時刻')) {
+                    recalcOvertime(i, lines);
+                }
+            }
+        }
 
         /**
          * Delete record of specified date.
@@ -341,8 +389,8 @@
                 const [d] = lines[i].split(',');
                 if (d === oldDate) {
                     const work = calculateWorkingHours(start, end);
-                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
-                    lines[i] = `${newDate},${start},${end},${work},${overtime}`;
+                    lines[i] = `${newDate},${start},${end},${work},0.00`;
+                    recalcOvertime(i, lines);
                     found = true;
                     break;
                 }
@@ -359,15 +407,65 @@
         }
 
         /**
+         * Update break record.
+         * @param {string} oldStart - old start time HH:MM
+         * @param {string} oldEnd - old end time HH:MM
+         * @param {string} newStart - new start time HH:MM
+         * @param {string} newEnd - new end time HH:MM
+         * @returns {boolean} Update result
+         */
+        function updateBreak(oldStart, oldEnd, newStart, newEnd) {
+            const logsStr = restoreLogsIfNeeded();
+            if (!logsStr) {
+                alert('ログはありません');
+                return false;
+            }
+            const lines = logsStr.split('\n').filter(line => line);
+            let found = false;
+            for (let i = 0; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts[0] === '中断時刻' && parts[1] === oldStart && parts[2] === oldEnd) {
+                    const work = calculateWorkingHours(newStart, newEnd);
+                    lines[i] = `中断時刻,${newStart},${newEnd},${work},`;
+                    let j = i - 1;
+                    while (j >= 0 && lines[j].startsWith('中断時刻')) {
+                        j--;
+                    }
+                    if (j >= 0) {
+                        recalcOvertime(j, lines);
+                    }
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                alert('指定した中断記録はありません');
+                return false;
+            }
+            lastLogsBackup = logsStr;
+            const updated = lines.join('\n');
+            localStorage.setItem('logs', updated);
+            localStorage.setItem('logs_backup', updated);
+            return true;
+        }
+
+        /**
          * Show edit dialog for a log record without opening the date picker.
          * @param {string} date - existing date in YYYY-MM-DD
          * @param {string} start - start time HH:MM
          * @param {string} end - end time HH:MM
          * @returns {void}
          */
-        function openEditDialog(date, start, end) {
+      function openEditDialog(date, start, end) {
             originalDate = date;
-            editDate.value = date;
+            originalStart = start;
+            originalEnd = end;
+            if (/^中断時間/.test(date) || date === '中断時刻') {
+                editDate.parentElement.style.display = 'none';
+            } else {
+                editDate.parentElement.style.display = 'block';
+                editDate.value = date;
+            }
             if (start === '年休') {
                 // 年休はデフォルト時間を入力欄に設定する
                 editStart.value = '08:30';
@@ -397,7 +495,14 @@
 
             function renderView() {
                 tr.innerHTML = '';
-                [formatDateWithDay(date), start, end, work, overtime].forEach(t => {
+                const cells = [
+                    /^中断時間/.test(date) || date === '中断時刻' ? date : formatDateWithDay(date),
+                    start,
+                    end,
+                    work,
+                    overtime
+                ];
+                cells.forEach(t => {
                     const td = document.createElement('td');
                     td.textContent = t;
                     tr.appendChild(td);
@@ -422,25 +527,30 @@
 
         const data = restoreLogsIfNeeded();
         if (data) {
-            const daily = {};
-            const lines = [];
-            data.split('\n').forEach(line => {
-                if (!line) return;
-                const parsed = parseLogLine(line);
-                if (!parsed) return;
-                const [date, start, end, work, overtime] = parsed.split(',');
-                daily[date] = { start, end, work, overtime };
-                lines.push(parsed);
+            const lines = data.split('\n').filter(l => l);
+            recalcAll(lines);
+            localStorage.setItem('logs', lines.join('\n'));
+            let currentDate = '';
+            const rows = [];
+            lines.forEach(line => {
+                const [date, start, end, work, overtime] = line.split(',');
+                if (date === '中断時刻') {
+                    if (rows.length && rows[rows.length - 1].date === currentDate) {
+                        const idx = rows[rows.length - 1].breaks.length + 1;
+                        rows[rows.length - 1].breaks.push({ start, end, work, idx });
+                    }
+                } else {
+                    currentDate = date;
+                    rows.push({ date, start, end, work, overtime, breaks: [] });
+                }
             });
-            if (lines.length > 0) {
-                localStorage.setItem('logs', lines.join('\n'));
-            } else {
-                localStorage.removeItem('logs');
-            }
-            Object.keys(daily).sort().forEach(date => {
-                const { start, end, work, overtime } = daily[date];
-                const tr = createRow(date, start, end, work, overtime);
+            rows.forEach(r => {
+                const tr = createRow(r.date, r.start, r.end, r.work, r.overtime);
                 logBody.appendChild(tr);
+                r.breaks.forEach(b => {
+                    const br = createRow(`中断時間${b.idx}`, b.start, b.end, b.work, '');
+                    logBody.appendChild(br);
+                });
             });
         } else {
             const tr = document.createElement('tr');
@@ -461,13 +571,15 @@
         document.getElementById('download-logs').addEventListener('click', downloadLogs);
         document.getElementById("undo-delete-btn").addEventListener("click", undoDelete);
 
-        editCancel.addEventListener('click', function () {
+       editCancel.addEventListener('click', function () {
             editDialog.close();
+            editDate.parentElement.style.display = 'block';
         });
 
         editDelete.addEventListener('click', function () {
             if (deleteLogByDate(originalDate)) {
                 editDialog.close();
+                editDate.parentElement.style.display = 'block';
                 updateSummary();
             }
         });
@@ -481,8 +593,12 @@
                 alert('日付と時刻を入力してください');
                 return;
             }
-            if (updateLog(originalDate, newDate, newStart, newEnd)) {
+            const ok = (originalDate === '中断時刻' || /^中断時間/.test(originalDate))
+                ? updateBreak(originalStart, originalEnd, newStart, newEnd)
+                : updateLog(originalDate, newDate, newStart, newEnd);
+            if (ok) {
                 editDialog.close();
+                editDate.parentElement.style.display = 'block';
                 updateSummary();
             }
         });
@@ -510,8 +626,8 @@
                 totalOvertime += parseFloat(overtime) || 0;
             });
             const lines = [...rawLines];
-            lines.push(`Total,,,${totalWork.toFixed(2)},${totalOvertime.toFixed(2)}`);
-            const header = 'Date,Start,End,Work Hours,Overtime\n';
+            lines.push(`合計,,,${totalWork.toFixed(2)},${totalOvertime.toFixed(2)}`);
+            const header = '日付,始業,終業,勤務時間,残業時間\n';
             const blob = new Blob([header + lines.join('\n')], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -534,20 +650,32 @@
                 return;
             }
 
-            const daily = {};
+            const lines = csv.split('\n').filter(line => line);
+            recalcAll(lines);
+            localStorage.setItem('logs', lines.join('\n'));
             const start = new Date(startDate);
             const end = new Date(endDate);
-            csv.split('\n').forEach(line => {
-                if (!line) return;
-                const [date, startT, endT, work, overtime] = line.split(',');
+            const rows = [];
+            let currentDate = '';
+            lines.forEach(line => {
+                const [date, s, e, work, overtime] = line.split(',');
+                if (date === '中断時刻') {
+                    if (rows.length && rows[rows.length - 1].date === currentDate) {
+                        const idx = rows[rows.length - 1].breaks.length + 1;
+                        rows[rows.length - 1].breaks.push({ start: s, end: e, work, idx });
+                    }
+                    return;
+                }
                 const d = new Date(date);
                 if (d >= start && d <= end) {
-                    daily[date] = { start: startT, end: endT, work, overtime };
+                    currentDate = date;
+                    rows.push({ date, start: s, end: e, work, overtime, breaks: [] });
+                } else {
+                    currentDate = date;
                 }
             });
 
-            const rows = Object.keys(daily).map(d => ({ date: d, ...daily[d] }))
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            rows.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             if (rows.length === 0) {
                 const tr = document.createElement('tr');
@@ -562,6 +690,11 @@
             rows.forEach(r => {
                 const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
                 logBody.appendChild(rowEl);
+                r.breaks.forEach(b => {
+                    const label = `中断時間${b.idx}`;
+                    const br = createRow(label, b.start, b.end, b.work, '');
+                    logBody.appendChild(br);
+                });
             });
         }
 
@@ -577,6 +710,7 @@
                 if (!parsed) return;
                 const parts = parsed.split(',');
                 const dateStr = parts[0];
+                if (dateStr === '中断時刻') return;
                 const hours = parseFloat(parts[3]) || 0;
                 dailyRecords[dateStr] = { date: new Date(dateStr), hours: hours };
             });
