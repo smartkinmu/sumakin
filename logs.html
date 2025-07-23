@@ -501,6 +501,12 @@
             URL.revokeObjectURL(url);
         }
 
+        /**
+         * 指定年月のログを一覧表示する。BREAK@ 行も含めて並び替える。
+         * @param {number} year - 年
+         * @param {number} month - 月(1-12)
+         * @returns {void}
+         */
         function showMonthlyLogs(year, month) {
             logBody.innerHTML = '';
             const csv = restoreLogsIfNeeded();
@@ -514,18 +520,34 @@
                 return;
             }
 
-            const daily = {};
+            const rows = [];
             csv.split('\n').forEach(line => {
                 if (!line) return;
-                const [date, start, end, work, overtime] = line.split(',');
-                const d = new Date(date);
-                if (d.getFullYear() === year && d.getMonth() + 1 === month) {
-                    daily[date] = { start, end, work, overtime };
+                const parsed = parseLogLine(line);
+                if (parsed) {
+                    const [date, start, end, work, overtime] = parsed.split(',');
+                    const d = new Date(date);
+                    if (d.getFullYear() === year && d.getMonth() + 1 === month) {
+                        rows.push({ type: 'log', date, start, end, work, overtime });
+                    }
+                } else if (line.startsWith('BREAK@')) {
+                    const m = line.match(/^BREAK@(\d{4}-\d{2}-\d{2})/);
+                    if (m) {
+                        const d = new Date(m[1]);
+                        if (d.getFullYear() === year && d.getMonth() + 1 === month) {
+                            rows.push({ type: 'break', date: m[1], raw: line });
+                        }
+                    }
                 }
             });
 
-            const rows = Object.keys(daily).map(d => ({ date: d, ...daily[d] }))
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            rows.sort((a, b) => {
+                const diff = new Date(a.date) - new Date(b.date);
+                if (diff !== 0) return diff;
+                if (a.type === 'break' && b.type !== 'break') return 1;
+                if (a.type !== 'break' && b.type === 'break') return -1;
+                return 0;
+            });
 
             if (rows.length === 0) {
                 const tr = document.createElement('tr');
@@ -538,8 +560,17 @@
             }
 
             rows.forEach(r => {
-                const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
-                logBody.appendChild(rowEl);
+                if (r.type === 'log') {
+                    const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
+                    logBody.appendChild(rowEl);
+                } else {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 6;
+                    td.textContent = r.raw;
+                    tr.appendChild(td);
+                    logBody.appendChild(tr);
+                }
             });
         }
 
