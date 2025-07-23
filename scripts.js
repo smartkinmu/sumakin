@@ -647,10 +647,13 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("問題は見つかりませんでした。");
         }
 
-        const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
         let pauseHours = '';
+        let overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
         if (pauseStart && pauseEnd && !issuesFound) {
             pauseHours = calculateWorkingHours(pauseStart, pauseEnd);
+            overtime = (
+                parseFloat(workingHours) - parseFloat(pauseHours) - 7.75
+            ).toFixed(2);
         }
         resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>残業時間 ${overtime} 時間${pauseHours ? `<br>中断時間 ${pauseHours} 時間` : ''}</p>`;
         saveTaskData();  // データを保存
@@ -698,7 +701,9 @@ document.addEventListener('DOMContentLoaded', function() {
             saveTaskData();
             return;
         } else if (amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
-            const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
+            const overtime = (
+                parseFloat(workingHours) - parseFloat(pauseHours || 0) - 7.75
+            ).toFixed(2);
             saveLog(
                 selectedDate,
                 selectedStartTime,
@@ -759,7 +764,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskData();  // データを保存
-        const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
+        const overtime = (
+            parseFloat(workingHours) - parseFloat(pauseHours || 0) - 7.75
+        ).toFixed(2);
         saveLog(selectedDate, selectedStartTime, selectedEndTime, workingHours, overtime);
         if (pauseHours) {
             saveBreakLog(pauseStart, pauseEnd);

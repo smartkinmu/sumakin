@@ -271,6 +271,36 @@
         let lastLogsBackup = null;
 
         /**
+         * Get total break hours following the specified index.
+         * @param {number} idx - start index of main log
+         * @param {string[]} lines - all log lines
+         * @returns {number} break hours
+         */
+        function getBreakHours(idx, lines) {
+            let sum = 0;
+            for (let i = idx + 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts[0] !== '中断時刻') break;
+                sum += parseFloat(parts[3]) || 0;
+            }
+            return sum;
+        }
+
+        /**
+         * Recalculate overtime for the specified date.
+         * @param {number} idx - index of the log line
+         * @param {string[]} lines - all log lines
+         * @returns {void}
+         */
+        function recalcOvertime(idx, lines) {
+            const parts = lines[idx].split(',');
+            const work = parseFloat(parts[3]) || 0;
+            const pause = getBreakHours(idx, lines);
+            parts[4] = (work - pause - 7.75).toFixed(2);
+            lines[idx] = parts.join(',');
+        }
+
+        /**
          * Delete record of specified date.
          * @param {string} date - YYYY-MM-DD
          * @returns {boolean} Deletion result
@@ -346,8 +376,8 @@
                 const [d] = lines[i].split(',');
                 if (d === oldDate) {
                     const work = calculateWorkingHours(start, end);
-                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
-                    lines[i] = `${newDate},${start},${end},${work},${overtime}`;
+                    lines[i] = `${newDate},${start},${end},${work},0.00`;
+                    recalcOvertime(i, lines);
                     found = true;
                     break;
                 }
@@ -384,6 +414,13 @@
                 if (parts[0] === '中断時刻' && parts[1] === oldStart && parts[2] === oldEnd) {
                     const work = calculateWorkingHours(newStart, newEnd);
                     lines[i] = `中断時刻,${newStart},${newEnd},${work},`;
+                    let j = i - 1;
+                    while (j >= 0 && lines[j].startsWith('中断時刻')) {
+                        j--;
+                    }
+                    if (j >= 0) {
+                        recalcOvertime(j, lines);
+                    }
                     found = true;
                     break;
                 }
@@ -571,8 +608,8 @@
                 totalOvertime += parseFloat(overtime) || 0;
             });
             const lines = [...rawLines];
-            lines.push(`Total,,,${totalWork.toFixed(2)},${totalOvertime.toFixed(2)}`);
-            const header = 'Date,Start,End,Work Hours,Overtime\n';
+            lines.push(`合計,,,${totalWork.toFixed(2)},${totalOvertime.toFixed(2)}`);
+            const header = '日付,始業,終業,勤務時間,残業時間\n';
             const blob = new Blob([header + lines.join('\n')], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
