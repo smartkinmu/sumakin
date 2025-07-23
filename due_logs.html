@@ -236,6 +236,9 @@
          * @returns {string|null} 解析結果
          */
         function parseLogLine(line) {
+            if (line.startsWith('BREAK@')) {
+                return line;
+            }
             const simple = line.split(',');
             if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
                 const date = simple[0];
@@ -534,20 +537,37 @@
                 return;
             }
 
-            const daily = {};
+            const rows = [];
             const start = new Date(startDate);
             const end = new Date(endDate);
             csv.split('\n').forEach(line => {
                 if (!line) return;
-                const [date, startT, endT, work, overtime] = line.split(',');
+                if (line.startsWith('BREAK@')) {
+                    const m = line.match(/^BREAK@(\d{4}-\d{2}-\d{2})/);
+                    if (m) {
+                        const d = new Date(m[1]);
+                        if (d >= start && d <= end) {
+                            rows.push({ type: 'break', date: m[1], raw: line });
+                        }
+                    }
+                    return;
+                }
+                const parsed = parseLogLine(line);
+                if (!parsed) return;
+                const [date, startT, endT, work, overtime] = parsed.split(',');
                 const d = new Date(date);
                 if (d >= start && d <= end) {
-                    daily[date] = { start: startT, end: endT, work, overtime };
+                    rows.push({ type: 'log', date, start: startT, end: endT, work, overtime });
                 }
             });
 
-            const rows = Object.keys(daily).map(d => ({ date: d, ...daily[d] }))
-                .sort((a, b) => new Date(a.date) - new Date(b.date));
+            rows.sort((a, b) => {
+                const diff = new Date(a.date) - new Date(b.date);
+                if (diff !== 0) return diff;
+                if (a.type === 'break' && b.type !== 'break') return 1;
+                if (a.type !== 'break' && b.type === 'break') return -1;
+                return 0;
+            });
 
             if (rows.length === 0) {
                 const tr = document.createElement('tr');
@@ -560,8 +580,17 @@
             }
 
             rows.forEach(r => {
-                const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
-                logBody.appendChild(rowEl);
+                if (r.type === 'log') {
+                    const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
+                    logBody.appendChild(rowEl);
+                } else {
+                    const tr = document.createElement('tr');
+                    const td = document.createElement('td');
+                    td.colSpan = 6;
+                    td.textContent = r.raw;
+                    tr.appendChild(td);
+                    logBody.appendChild(tr);
+                }
             });
         }
 
