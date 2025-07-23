@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('date');
     const startTimeInput = document.getElementById('start-time');
     const endTimeInput = document.getElementById('end-time');
+    const pauseStartInput = document.getElementById('pause-start');
+    const pauseEndInput = document.getElementById('pause-end');
     const annualLeaveCheckbox = document.getElementById('annual-leave');
     const amLeaveCheckbox = document.getElementById('am-leave');
     const pmLeaveCheckbox = document.getElementById('pm-leave');
@@ -100,6 +102,21 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('logs_backup', updated);
     }
 
+    /**
+     * 中断情報を保存する。
+     * @param {string} start - 開始時刻
+     * @param {string} end - 終了時刻
+     * @returns {void}
+     */
+    function saveBreakLog(start, end) {
+        const work = calculateWorkingHours(start, end);
+        const line = `中断時刻,${start},${end},${work},`;
+        const existing = localStorage.getItem('logs');
+        const updated = existing ? `${existing}\n${line}` : line;
+        localStorage.setItem('logs', updated);
+        localStorage.setItem('logs_backup', updated);
+    }
+
     function saveTaskDataToStorage() {
         const totalGroups = 10;  // 最大10グループまで保存
         for (let i = 1; i <= totalGroups; i++) {
@@ -115,6 +132,8 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('email', emailInput.value);
         localStorage.setItem('startTime', startTimeInput.value);
         localStorage.setItem('endTime', endTimeInput.value);
+        localStorage.setItem('pauseStart', pauseStartInput.value);
+        localStorage.setItem('pauseEnd', pauseEndInput.value);
         localStorage.setItem('groupCount', groupCountPicker.value);
         // 休暇選択状態は保存しない
         localStorage.removeItem('annualLeave');
@@ -133,6 +152,8 @@ document.addEventListener('DOMContentLoaded', function() {
         emailInput.value = localStorage.getItem('email') || '';
         startTimeInput.value = localStorage.getItem('startTime') || '';
         endTimeInput.value = localStorage.getItem('endTime') || '';
+        pauseStartInput.value = localStorage.getItem('pauseStart') || '';
+        pauseEndInput.value = localStorage.getItem('pauseEnd') || '';
         annualLeaveCheckbox.checked = false;
         amLeaveCheckbox.checked = false;
         pmLeaveCheckbox.checked = false;
@@ -311,6 +332,8 @@ document.addEventListener('DOMContentLoaded', function() {
     dateInput.addEventListener('blur', saveTaskData);
     startTimeInput.addEventListener('blur', saveTaskData);
     endTimeInput.addEventListener('blur', saveTaskData);
+    pauseStartInput.addEventListener('blur', saveTaskData);
+    pauseEndInput.addEventListener('blur', saveTaskData);
 
     // 時刻文字列("HH:MM")を分単位の数値へ変換する
     function toMinutes(timeStr) {
@@ -534,6 +557,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDayOfWeek = getDayOfWeek(selectedDate);
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
+        const pauseStart = pauseStartInput.value;
+        const pauseEnd = pauseEndInput.value;
         if (!checkHalfDayInput()) {
             return;
         }
@@ -558,6 +583,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!isStartTimeBeforeEndTime(selectedStartTime, selectedEndTime)) {
             alert("始業時刻が終業時刻より遅くなっています。");
             issuesFound = true;
+        }
+        if (pauseStart && pauseEnd) {
+            if (pauseStart < selectedStartTime || pauseEnd > selectedEndTime || !isStartTimeBeforeEndTime(pauseStart, pauseEnd)) {
+                alert('中断時刻が勤務時間外です');
+                issuesFound = true;
+            }
         }
         let totalTaskHours = calculateTotalTaskHours();
 
@@ -617,7 +648,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
-        resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>残業時間 ${overtime} 時間</p>`;
+        let pauseHours = '';
+        if (pauseStart && pauseEnd && !issuesFound) {
+            pauseHours = calculateWorkingHours(pauseStart, pauseEnd);
+        }
+        resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${workingHours}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>残業時間 ${overtime} 時間${pauseHours ? `<br>中断時間 ${pauseHours} 時間` : ''}</p>`;
         saveTaskData();  // データを保存
     });
 
@@ -627,6 +662,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDate = dateInput.value;
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
+        const pauseStart = pauseStartInput.value;
+        const pauseEnd = pauseEndInput.value;
         if (!checkHalfDayInput()) {
             return;
         }
@@ -646,6 +683,14 @@ document.addEventListener('DOMContentLoaded', function() {
             ).toFixed(2);
         }
         const totalTaskHours = calculateTotalTaskHours();
+        let pauseHours = '';
+        if (pauseStart && pauseEnd) {
+            if (pauseStart < selectedStartTime || pauseEnd > selectedEndTime || !isStartTimeBeforeEndTime(pauseStart, pauseEnd)) {
+                alert('中断時刻が勤務時間外です');
+                return;
+            }
+            pauseHours = calculateWorkingHours(pauseStart, pauseEnd);
+        }
 
         if (annualLeaveCheckbox.checked) {
             saveLog(selectedDate, '年休', '年休', '7.75', '0.00');
@@ -716,6 +761,9 @@ document.addEventListener('DOMContentLoaded', function() {
         saveTaskData();  // データを保存
         const overtime = (parseFloat(workingHours) - 7.75).toFixed(2);
         saveLog(selectedDate, selectedStartTime, selectedEndTime, workingHours, overtime);
+        if (pauseHours) {
+            saveBreakLog(pauseStart, pauseEnd);
+        }
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
