@@ -681,26 +681,25 @@
                 alert('ログはありません');
                 return;
             }
-            const dailyRecords = {};
-            csv.trim().split('\n').forEach(line => {
-                const parsed = parseLogLine(line);
-                if (!parsed) return;
-                const parts = parsed.split(',');
+            const lines = csv.trim().split('\n').filter(l => l);
+            recalcAll(lines);
+            localStorage.setItem('logs', lines.join('\n'));
+            let totalHours = 0;
+            let totalBreak = 0;
+            let workingDays = 0;
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('中断時刻')) continue;
+                const parts = lines[i].split(',');
                 const dateStr = parts[0];
-                if (dateStr === '中断時刻') return;
-                const hours = parseFloat(parts[3]) || 0;
-                dailyRecords[dateStr] = { date: new Date(dateStr), hours: hours };
-            });
-
-            const records = Object.values(dailyRecords).filter(r => {
-                return r.date.getFullYear() === year && r.date.getMonth() + 1 === month;
-            });
-
-            const totalHours = records.reduce((sum, rec) => sum + rec.hours, 0);
-
-            const workingDays = records.length;
+                const d = new Date(dateStr);
+                if (d.getFullYear() !== year || d.getMonth() + 1 !== month) continue;
+                const work = parseFloat(parts[3]) || 0;
+                totalHours += work;
+                totalBreak += getBreakHours(i, lines);
+                workingDays++;
+            }
             const base = workingDays * 7.75;
-            const overtime = totalHours - base;
+            const overtime = totalHours - totalBreak - base;
             const summary = `勤務日数 ${workingDays} 日, 合計 ${totalHours.toFixed(2)} 時間, 残業 ${overtime.toFixed(2)} 時間`;
             document.getElementById('monthly-summary').textContent = summary;
         }
