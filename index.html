@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.1.5</span></div>
+    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.4.3</span></div>
     <div class="container">
         <div id="refresh-indicator">更新中...</div>
 
@@ -41,21 +41,37 @@
         <div id="result" class="result"></div>
 
         <hr>
-        <div class="input-group">
+        <div class="input-group small-gap">
             <label for="email">宛先メールアドレス:</label>
             <input type="email" id="email" name="email" value="mail@address.com">
         </div>
-        <div class="input-group">
+        <div class="input-group small-gap">
             <label for="date">日付:</label>
             <input type="date" id="date" name="date" pattern="\d{4}-\d{2}-\d{2}">
         </div>
-        <div class="input-group">
+        <div class="input-group small-gap">
             <label for="start-time">始業時刻:</label>
             <input type="time" id="start-time" name="start-time">
         </div>
-        <div class="input-group">
+        <div class="input-group small-gap">
             <label for="end-time">終業時刻:</label>
             <input type="time" id="end-time" name="end-time">
+        </div>
+        <div class="input-group small-gap">
+            <label for="pause1-start">中断開始1:</label>
+            <input type="time" id="pause1-start" name="pause1-start">
+        </div>
+        <div class="input-group small-gap">
+            <label for="pause1-end">中断終了1:</label>
+            <input type="time" id="pause1-end" name="pause1-end">
+        </div>
+        <div class="input-group small-gap">
+            <label for="pause2-start">中断開始2:</label>
+            <input type="time" id="pause2-start" name="pause2-start">
+        </div>
+        <div class="input-group small-gap">
+            <label for="pause2-end">中断終了2:</label>
+            <input type="time" id="pause2-end" name="pause2-end">
         </div>
         <div class="input-group">
             <label><input type="checkbox" id="annual-leave"> 年休</label>
