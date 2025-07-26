@@ -1,9 +1,10 @@
 function parseCsv(csv) {
     return csv.trim().split('\n').map(line => {
         const parts = line.split(',');
+        if (parts[0].includes('#')) return null;
         const date = new Date(parts[0]);
         return { date: date, hours: parseFloat(parts[3]) || 0 };
-    });
+    }).filter(Boolean);
 }
 
 function computeMonthlySummary(csv, year, month) {

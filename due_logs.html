@@ -237,17 +237,18 @@
          */
         function parseLogLine(line) {
             const simple = line.split(',');
-            if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
-                const date = simple[0];
+            if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}(#\d)?$/.test(simple[0])) {
+                const dateField = simple[0];
+                const date = dateField.split('#')[0];
+                const breakIdx = dateField.includes('#') ? dateField.split('#')[1] : null;
                 const start = simple[1];
                 const end = simple[2];
                 if (start === '年休') {
-                    // 年休の場合は 8:30-17:15 勤務として扱う
-                    return `${date},年休,年休,7.75,0.00`;
+                    return { date, start: '年休', end: '年休', work: '7.75', overtime: '0.00', break: null };
                 }
                 const work = simple[3];
                 const overtime = simple[4];
-                return `${date},${start},${end},${work},${overtime}`;
+                return { date, start, end, work, overtime, break: breakIdx };
             }
             const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
             if (parts.length >= 4 && /^\d{4}-\d{2}-\d{2}T/.test(parts[0])) {
@@ -258,7 +259,7 @@
                 if (date && start && end) {
                     const work = calculateWorkingHours(start[1], end[1]);
                     const overtime = (parseFloat(work) - 7.75).toFixed(2);
-                    return `${date[1]},${start[1]},${end[1]},${work},${overtime}`;
+                    return { date: date[1], start: start[1], end: end[1], work, overtime, break: null };
                 }
             }
             return null;
@@ -424,13 +425,21 @@
         if (data) {
             const daily = {};
             const lines = [];
+            const breaks = {};
             data.split('\n').forEach(line => {
                 if (!line) return;
                 const parsed = parseLogLine(line);
                 if (!parsed) return;
-                const [date, start, end, work, overtime] = parsed.split(',');
+                if (parsed.break) {
+                    const list = breaks[parsed.date] || [];
+                    list.push(parsed);
+                    breaks[parsed.date] = list;
+                    lines.push(line);
+                    return;
+                }
+                const { date, start, end, work, overtime } = parsed;
                 daily[date] = { start, end, work, overtime };
-                lines.push(parsed);
+                lines.push(line);
             });
             if (lines.length > 0) {
                 localStorage.setItem('logs', lines.join('\n'));
@@ -441,6 +450,10 @@
                 const { start, end, work, overtime } = daily[date];
                 const tr = createRow(date, start, end, work, overtime);
                 logBody.appendChild(tr);
+                (breaks[date] || []).forEach(b => {
+                    const bTr = createRow(`中断時間(${b.break})`, b.start, b.end, b.work, '');
+                    logBody.appendChild(bTr);
+                });
             });
         } else {
             const tr = document.createElement('tr');
@@ -535,11 +548,22 @@
             }
 
             const daily = {};
+            const breaks = {};
             const start = new Date(startDate);
             const end = new Date(endDate);
             csv.split('\n').forEach(line => {
                 if (!line) return;
-                const [date, startT, endT, work, overtime] = line.split(',');
+                const parsed = parseLogLine(line);
+                if (!parsed) return;
+                if (parsed.break) {
+                    if (new Date(parsed.date) >= start && new Date(parsed.date) <= end) {
+                        const list = breaks[parsed.date] || [];
+                        list.push(parsed);
+                        breaks[parsed.date] = list;
+                    }
+                    return;
+                }
+                const { date, start: startT, end: endT, work, overtime } = parsed;
                 const d = new Date(date);
                 if (d >= start && d <= end) {
                     daily[date] = { start: startT, end: endT, work, overtime };
@@ -562,6 +586,10 @@
             rows.forEach(r => {
                 const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
                 logBody.appendChild(rowEl);
+                (breaks[r.date] || []).forEach(b => {
+                    const bTr = createRow(`中断時間(${b.break})`, b.start, b.end, b.work, '');
+                    logBody.appendChild(bTr);
+                });
             });
         }
 
@@ -574,10 +602,9 @@
             const dailyRecords = {};
             csv.trim().split('\n').forEach(line => {
                 const parsed = parseLogLine(line);
-                if (!parsed) return;
-                const parts = parsed.split(',');
-                const dateStr = parts[0];
-                const hours = parseFloat(parts[3]) || 0;
+                if (!parsed || parsed.break) return;
+                const dateStr = parsed.date;
+                const hours = parseFloat(parsed.work) || 0;
                 dailyRecords[dateStr] = { date: new Date(dateStr), hours: hours };
             });
 
