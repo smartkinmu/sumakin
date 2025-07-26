@@ -218,16 +218,7 @@
         function parseLogLine(line) {
             const simple = line.split(',');
             if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
-                const date = simple[0];
-                const start = simple[1];
-                const end = simple[2];
-                if (start === '年休') {
-                    // 年休の場合は 8:30-17:15 勤務として扱う
-                    return `${date},年休,年休,7.75,0.00`;
-                }
-                const work = simple[3];
-                const overtime = simple[4];
-                return `${date},${start},${end},${work},${overtime}`;
+                return line;
             }
             const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
             if (parts.length >= 4 && /^\d{4}-\d{2}-\d{2}T/.test(parts[0])) {
@@ -369,10 +360,11 @@
          * @param {string} end - end time
          * @param {string} work - working hours
          * @param {string} overtime - overtime hours
-         * @returns {HTMLTableRowElement} Created row
+         * @returns {DocumentFragment} Created rows
          */
 
-        function createRow(date, start, end, work, overtime) {
+        function createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e) {
+            const frag = document.createDocumentFragment();
             const tr = document.createElement('tr');
 
             function renderView() {
@@ -397,7 +389,30 @@
             }
 
             renderView();
-            return tr;
+            frag.appendChild(tr);
+            if (b1s && b1e) {
+                const sub = document.createElement('tr');
+                ["中断時間(1)", b1s, b1e, calculateWorkingHours(b1s, b1e), ""].forEach(t => {
+                    const td = document.createElement('td');
+                    td.textContent = t;
+                    sub.appendChild(td);
+                });
+                const blank = document.createElement('td');
+                sub.appendChild(blank);
+                frag.appendChild(sub);
+            }
+            if (b2s && b2e) {
+                const sub = document.createElement('tr');
+                ["中断時間(2)", b2s, b2e, calculateWorkingHours(b2s, b2e), ""].forEach(t => {
+                    const td = document.createElement('td');
+                    td.textContent = t;
+                    sub.appendChild(td);
+                });
+                const blank = document.createElement('td');
+                sub.appendChild(blank);
+                frag.appendChild(sub);
+            }
+            return frag;
         }
 
         const data = restoreLogsIfNeeded();
@@ -408,8 +423,17 @@
                 if (!line) return;
                 const parsed = parseLogLine(line);
                 if (!parsed) return;
-                const [date, start, end, work, overtime] = parsed.split(',');
-                daily[date] = { start, end, work, overtime };
+                const parts = parsed.split(',');
+                const date = parts[0];
+                const start = parts[1];
+                const end = parts[2];
+                const work = parts[3];
+                const overtime = parts[4];
+                const b1s = parts[5] || '';
+                const b1e = parts[6] || '';
+                const b2s = parts[7] || '';
+                const b2e = parts[8] || '';
+                daily[date] = { start, end, work, overtime, b1s, b1e, b2s, b2e };
                 lines.push(parsed);
             });
             if (lines.length > 0) {
@@ -418,8 +442,8 @@
                 localStorage.removeItem('logs');
             }
             Object.keys(daily).sort().forEach(date => {
-                const { start, end, work, overtime } = daily[date];
-                const tr = createRow(date, start, end, work, overtime);
+                const { start, end, work, overtime, b1s, b1e, b2s, b2e } = daily[date];
+                const tr = createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e);
                 logBody.appendChild(tr);
             });
         } else {
@@ -517,10 +541,19 @@
             const daily = {};
             csv.split('\n').forEach(line => {
                 if (!line) return;
-                const [date, start, end, work, overtime] = line.split(',');
+                const parts = line.split(',');
+                const date = parts[0];
+                const start = parts[1];
+                const end = parts[2];
+                const work = parts[3];
+                const overtime = parts[4];
+                const b1s = parts[5] || '';
+                const b1e = parts[6] || '';
+                const b2s = parts[7] || '';
+                const b2e = parts[8] || '';
                 const d = new Date(date);
                 if (d.getFullYear() === year && d.getMonth() + 1 === month) {
-                    daily[date] = { start, end, work, overtime };
+                    daily[date] = { start, end, work, overtime, b1s, b1e, b2s, b2e };
                 }
             });
 
@@ -538,7 +571,8 @@
             }
 
             rows.forEach(r => {
-                const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime);
+                const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime,
+                    r.b1s, r.b1e, r.b2s, r.b2e);
                 logBody.appendChild(rowEl);
             });
         }

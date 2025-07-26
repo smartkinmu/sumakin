@@ -28,6 +28,9 @@ body {
     align-items: center;
     margin-bottom: 20px;
 }
+.input-group.narrow {
+    margin-bottom: 10px;
+}
 
 .input-group label {
     flex: 1;
