@@ -19,7 +19,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.1.5</span></div>
+    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.2.0</span></div>
     <div class="container">
         <div id="refresh-indicator">更新中...</div>
 
@@ -45,19 +45,35 @@
             <label for="email">宛先メールアドレス:</label>
             <input type="email" id="email" name="email" value="mail@address.com">
         </div>
-        <div class="input-group">
+        <div class="input-group narrow">
             <label for="date">日付:</label>
             <input type="date" id="date" name="date" pattern="\d{4}-\d{2}-\d{2}">
         </div>
-        <div class="input-group">
+        <div class="input-group narrow">
             <label for="start-time">始業時刻:</label>
             <input type="time" id="start-time" name="start-time">
         </div>
-        <div class="input-group">
+        <div class="input-group narrow">
             <label for="end-time">終業時刻:</label>
             <input type="time" id="end-time" name="end-time">
         </div>
-        <div class="input-group">
+        <div class="input-group narrow">
+            <label for="break1-start">中断開始(1):</label>
+            <input type="time" id="break1-start" name="break1-start">
+        </div>
+        <div class="input-group narrow">
+            <label for="break1-end">中断終了(1):</label>
+            <input type="time" id="break1-end" name="break1-end">
+        </div>
+        <div class="input-group narrow">
+            <label for="break2-start">中断開始(2):</label>
+            <input type="time" id="break2-start" name="break2-start">
+        </div>
+        <div class="input-group narrow">
+            <label for="break2-end">中断終了(2):</label>
+            <input type="time" id="break2-end" name="break2-end">
+        </div>
+        <div class="input-group narrow">
             <label><input type="checkbox" id="annual-leave"> 年休</label>
             <label><input type="checkbox" id="am-leave"> AM休</label>
             <label><input type="checkbox" id="pm-leave"> PM休</label>
@@ -67,7 +83,7 @@
         <!-- グループの入力ボックスを動的に追加するコンテナ -->
         <div id="task-groups-container"></div>
         <!-- グループの入力ボックス数選択ピッカーを追加 -->
-        <div class="input-group">
+        <div class="input-group narrow">
             <label for="group-count">表示するグループの数:</label>
             <select id="group-count" name="group-count">
                 <option value="1">1</option>
