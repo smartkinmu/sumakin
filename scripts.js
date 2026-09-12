@@ -58,10 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
             break2StartInput.value = '';
             break2EndInput.value = '';
         }
-        submitButton.disabled = annualLeaveCheckbox.checked;
-        const register = annualLeaveCheckbox.checked ||
+        // 休暇登録はすべて「入力確認」ボタンから行うため、休暇選択時も有効のままにする
+        submitButton.disabled = false;
+        // 休暇の日はメールを送信しないため、メール作成ボタンを無効化する
+        emailButton.disabled = annualLeaveCheckbox.checked ||
             amLeaveCheckbox.checked || pmLeaveCheckbox.checked;
-        emailButton.textContent = register ? '登録' : 'メール作成';
     }
 
     annualLeaveCheckbox.addEventListener('change', updateLeaveControls);
@@ -94,11 +95,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ログ保存用関数
     // 日付,始業,終業,勤務時間,残業時間,中断開始1,中断終了1,中断開始2,中断終了2 の形式で保存する
+    // 同じ日付のログが既に存在する場合は上書きする
     function saveLog(date, start, end, work, overtime,
                      b1s, b1e, b2s, b2e) {
         const line = `${date},${start},${end},${work},${overtime},${b1s || ''},${b1e || ''},${b2s || ''},${b2e || ''}`;
         const existing = localStorage.getItem('logs');
-        const updated = existing ? `${existing}\n${line}` : line;
+        const lines = existing ? existing.split('\n') : [];
+        const index = lines.findIndex(l => l.split(',')[0] === date);
+        if (index !== -1) {
+            lines[index] = line;
+        } else {
+            lines.push(line);
+        }
+        const updated = lines.join('\n');
         localStorage.setItem('logs', updated);
         localStorage.setItem('logs_backup', updated);
     }
@@ -532,6 +541,15 @@ document.addEventListener('DOMContentLoaded', function() {
     submitButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
         const selectedDayOfWeek = getDayOfWeek(selectedDate);
+
+        // 年休は始業・終業時刻を使わず固定値でログに登録する（同じ日付があれば上書き）
+        if (annualLeaveCheckbox.checked) {
+            saveLog(selectedDate, '年休', '年休', '7.75', '0.00', '', '', '', '');
+            resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>年休として登録しました</p>`;
+            saveTaskDataToStorage();
+            return;
+        }
+
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
         if (!checkHalfDayInput() || !checkInterruptInput()) {
@@ -620,60 +638,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
         resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${actual}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>中断時間 ${interruptHours.toFixed(2)} 時間<br>残業時間 ${overtime} 時間</p>`;
+        // 入力確認の時点でログに保存する（同じ日付があれば上書き）
+        saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
+            break1StartInput.value, break1EndInput.value,
+            break2StartInput.value, break2EndInput.value);
         saveTaskDataToStorage();  // データを保存
     });
 
     // メール作成ボタンのクリックイベントリスナー
+    // 年休・AM休・PM休の登録は「入力確認」ボタンで行うため、ここではメールの作成・送信のみを行う
     emailButton.addEventListener('click', function() {
+        if (annualLeaveCheckbox.checked || amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
+            return;
+        }
         const email = emailInput.value;
         const selectedDate = dateInput.value;
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
-        if (!checkHalfDayInput() || !checkInterruptInput()) {
+        if (!checkInterruptInput()) {
             return;
         }
-        let workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
-        const lunch = getBreakTimes()[0];
-        const lunchStart = lunch.start;
-        const lunchEnd = lunch.end;
-        if (amLeaveCheckbox.checked) {
-            workingHours = (
-                parseFloat(calculateWorkingHours('08:30', lunchStart)) +
-                parseFloat(workingHours)
-            ).toFixed(2);
-        } else if (pmLeaveCheckbox.checked) {
-            workingHours = (
-                parseFloat(calculateWorkingHours(lunchEnd, '17:15')) +
-                parseFloat(workingHours)
-            ).toFixed(2);
-        }
-        const interruptHours = calculateInterruptHours();
+        const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
         const totalTaskHours = calculateTotalTaskHours();
-
-        if (annualLeaveCheckbox.checked) {
-            saveLog(selectedDate, '年休', '年休', '7.75', '0.00', '', '', '', '');
-            alert('年休を登録しました');
-            saveTaskDataToStorage();
-            return;
-        } else if (amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
-            const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
-            const overtime = (parseFloat(actual) - 7.75).toFixed(2);
-            saveLog(
-                selectedDate,
-                selectedStartTime,
-                selectedEndTime,
-                actual,
-                overtime,
-                break1StartInput.value,
-                break1EndInput.value,
-                break2StartInput.value,
-                break2EndInput.value
-            );
-            const type = amLeaveCheckbox.checked ? 'AM休' : 'PM休';
-            alert(`${type}を登録しました`);
-            saveTaskDataToStorage();
-            return;
-        }
 
         const subject = "スマ勤";
         const newline = '\r\n';
@@ -722,11 +708,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskDataToStorage();  // データを保存
-        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
-        const overtime = (parseFloat(actual) - 7.75).toFixed(2);
-        saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
-            break1StartInput.value, break1EndInput.value,
-            break2StartInput.value, break2EndInput.value);
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
