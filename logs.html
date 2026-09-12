@@ -155,7 +155,6 @@
         const editCancel = document.getElementById('edit-cancel');
         const editDelete = document.getElementById('edit-delete');
         let originalDate = '';
-        let lastLogsBackup = null;
 
         /**
          * Delete record of specified date.
@@ -186,7 +185,7 @@
             if (!confirm(`${date} のログを削除しますか？`)) {
                 return false;
             }
-            lastLogsBackup = logsStr;
+            localStorage.setItem('logs_undo', logsStr);
             if (remaining.length > 0) {
                 const updated = remaining.join("\n");
                 localStorage.setItem('logs', updated);
@@ -199,17 +198,25 @@
         }
 
         /**
-         * Undo the last delete action.
+         * Undo the last save/delete/edit action.
+         * logs_undo は index.html の入力確認によるログ上書き、
+         * および logs.html 上での削除・編集操作の直前の状態を保持する。
          * @returns {void}
          */
         function undoDelete() {
-            if (!lastLogsBackup) {
+            const backup = localStorage.getItem('logs_undo');
+            if (backup === null) {
                 alert("元に戻せる操作はありません");
                 return;
             }
-            localStorage.setItem('logs', lastLogsBackup);
-            localStorage.setItem('logs_backup', lastLogsBackup);
-            lastLogsBackup = null;
+            if (backup === '') {
+                localStorage.removeItem('logs');
+                localStorage.removeItem('logs_backup');
+            } else {
+                localStorage.setItem('logs', backup);
+                localStorage.setItem('logs_backup', backup);
+            }
+            localStorage.removeItem('logs_undo');
             updateSummary();
         }
 
@@ -243,7 +250,7 @@
                 alert('指定した日付のデータはありません');
                 return false;
             }
-            lastLogsBackup = logsStr;
+            localStorage.setItem('logs_undo', logsStr);
             const updated = lines.join('\n');
             localStorage.setItem('logs', updated);
             localStorage.setItem('logs_backup', updated);

@@ -95,11 +95,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ログ保存用関数
     // 日付,始業,終業,勤務時間,残業時間,中断開始1,中断終了1,中断開始2,中断終了2 の形式で保存する
-    // 同じ日付のログが既に存在する場合は上書きする
+    // 同じ日付のログが既に存在する場合は上書きする。上書き前の内容は
+    // logs_undo に保存し、ログ表示画面のUNDOボタンで復元できるようにする
     function saveLog(date, start, end, work, overtime,
                      b1s, b1e, b2s, b2e) {
         const line = `${date},${start},${end},${work},${overtime},${b1s || ''},${b1e || ''},${b2s || ''},${b2e || ''}`;
         const existing = localStorage.getItem('logs');
+        localStorage.setItem('logs_undo', existing || '');
         const lines = existing ? existing.split('\n') : [];
         const index = lines.findIndex(l => l.split(',')[0] === date);
         if (index !== -1) {
