@@ -114,21 +114,8 @@
     <input type="date" id="js-fix-input-2">
   </div>
 
-  <hr style="border-color:#555; margin: 30px 0;">
-  <h3 style="color:#f66;">ここから下は本物のstyles.css / common.jsをそのまま使用</h3>
-
-  <link rel="stylesheet" href="styles.css">
-  <div class="container" style="max-width:none; padding-left:0; padding-right:0;">
-    <div class="card" style="border: 3px solid red;">
-      <div class="input-group narrow">
-        <label for="real-date">10. 本物のcard/input-group/styles.cssをそのまま使用</label>
-        <input type="date" id="real-date" name="real-date">
-      </div>
-      <div class="input-group narrow">
-        <label for="real-time">11. 同じく本物の時刻入力</label>
-        <input type="time" id="real-time" name="real-time">
-      </div>
-    </div>
+  <div class="box" style="border-color:#0f0;">
+    <p style="color:#0f0;">※ 本物のstyles.cssを使った検証はこのページとは別ファイルです：<br>debug_real_structure.html を開いてください</p>
   </div>
 
   <script>
@@ -148,11 +135,6 @@
     fix1();
     fix2();
     window.addEventListener('resize', () => { fix1(); fix2(); });
-  </script>
-  <script src="common.js"></script>
-  <script>
-    fixNativeInputWidths();
-    window.addEventListener('resize', () => fixNativeInputWidths());
   </script>
 </body>
 </html>

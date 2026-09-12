@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>本物の構造での検証</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  body { padding: 20px; }
+  .card { border: 3px solid red !important; }
+  h3 { font-size: 14px; }
+</style>
+</head>
+<body>
+  <h3>このページの幅: <span id="w"></span>px</h3>
+
+  <div class="container" style="max-width:none; padding-left:0; padding-right:0;">
+    <div class="card">
+      <div class="input-group narrow">
+        <label for="real-date">日付（本物のcard/input-group/styles.css）</label>
+        <input type="date" id="real-date" name="real-date">
+      </div>
+      <div class="input-group narrow">
+        <label for="real-time">時刻（同上）</label>
+        <input type="time" id="real-time" name="real-time">
+      </div>
+    </div>
+  </div>
+
+  <script src="common.js"></script>
+  <script>
+    document.getElementById('w').textContent = document.documentElement.clientWidth;
+    fixNativeInputWidths();
+    window.addEventListener('resize', () => fixNativeInputWidths());
+  </script>
+</body>
+</html>
