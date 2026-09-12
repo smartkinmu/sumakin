@@ -331,42 +331,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // 時刻変更時にローカルストレージに保存
     // ピッカーの「クリア」操作で空欄になった場合は、現在時刻に自動で戻す
     // （ネイティブピッカーが空欄状態から現在時刻の位置を表示するのに合わせる）
-    // 'change'だけだとSafariでクリア操作を取りこぼすことがあるため'input'も併用する
-    function handleStartTimeChange() {
+    // 'input'はピッカー操作中（確定前）にも連続して発火し、ピッカー自体の
+    // 動きと競合して分かりにくくなるため使わず、確定時の'change'のみで判定する
+    startTimeInput.addEventListener('change', function() {
         if (!startTimeInput.value) {
             startTimeInput.value = getCurrentTimeHHMM();
         }
         localStorage.setItem('startTime', startTimeInput.value);
         saveTaskDataToStorage();  // データを保存
-    }
-    startTimeInput.addEventListener('change', handleStartTimeChange);
-    startTimeInput.addEventListener('input', function() {
-        if (!startTimeInput.value) {
-            handleStartTimeChange();
-        }
     });
 
-    function handleEndTimeChange() {
+    endTimeInput.addEventListener('change', function() {
         if (!endTimeInput.value) {
             endTimeInput.value = getCurrentTimeHHMM();
         }
         localStorage.setItem('endTime', endTimeInput.value);
         saveTaskDataToStorage();  // データを保存
-    }
-    endTimeInput.addEventListener('change', handleEndTimeChange);
-    endTimeInput.addEventListener('input', function() {
-        if (!endTimeInput.value) {
-            handleEndTimeChange();
-        }
     });
 
     // 日付欄がピッカーの「クリア」操作で空欄になった場合、今日の日付に自動で戻す
-    // 'change'だけだとSafariでクリア操作を取りこぼすことがあるため'input'も併用する
-    dateInput.addEventListener('input', function() {
-        if (!dateInput.value) {
-            setDefaultDate();
-        }
-    });
     dateInput.addEventListener('change', function() {
         if (!dateInput.value) {
             setDefaultDate();
