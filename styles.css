@@ -142,6 +142,21 @@ a {
 }
 
 /* ===== Form fields ===== */
+/* 2項目を横並びにする際、flexboxを使うとSafariでネイティブのdate/time
+   入力欄が崩れるため、flexを使わずinline-blockで横並びを実現する */
+.field-row {
+    font-size: 0;
+}
+.field-row .input-group {
+    display: inline-block;
+    width: calc(50% - 5px);
+    vertical-align: top;
+    font-size: 16px;
+}
+.field-row .input-group:first-child {
+    margin-right: 10px;
+}
+
 /* Safari(WebKit)はflexコンテナ内のネイティブ入力要素(特にdate/time)
    に対してwidth:100%(パーセンテージ)の解決計算が崩れることがあるため、
    flexboxを使わず通常のブロックレイアウトで幅を決定する */
