@@ -131,27 +131,28 @@ a {
 }
 
 /* ===== Form fields ===== */
+/* Safari(WebKit)はflexコンテナ内のネイティブ入力要素(特にdate/time)
+   に対してwidth:100%(パーセンテージ)の解決計算が崩れることがあるため、
+   flexboxを使わず通常のブロックレイアウトで幅を決定する */
 .input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+    display: block;
     margin-bottom: 0;
-    min-width: 0;
 }
 .input-group.narrow {
     margin-bottom: 0;
 }
 
 .input-group label {
+    display: block;
+    margin-bottom: 4px;
     font-size: 0.78em;
     font-weight: 600;
     color: var(--text-muted);
-    flex: none;
 }
 
 .input-group input,
 .input-group select {
-    flex: none;
+    display: block;
     font-size: 1em;
     padding: 10px 14px;
     margin-left: 0;
@@ -162,16 +163,10 @@ a {
     outline: none;
     box-sizing: border-box;
     width: 100%;
-    max-width: 100%;
-    min-width: 0;
 }
 .input-group input:focus,
 .input-group select:focus {
     box-shadow: 0 0 0 2px var(--accent);
-}
-
-input[type="number"] {
-    flex: 1;
 }
 
 /* Safari(WebKit)はinput要素に対し、通常のmin-widthとは別に
