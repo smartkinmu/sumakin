@@ -127,7 +127,9 @@ function fixNativeInputWidths(root) {
     inputs.forEach(input => {
         const container = input.parentElement;
         if (!container) return;
-        const width = container.clientWidth;
+        const style = getComputedStyle(container);
+        const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+        const width = container.clientWidth - paddingX;
         if (width > 0) {
             input.style.width = width + 'px';
         }

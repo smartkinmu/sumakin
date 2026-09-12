@@ -42,6 +42,28 @@
     outline: none;
     font-size: 16px;
   }
+  /* 7: 角丸+overflow:hiddenのコンテナだが、inputは無地のまま */
+  .radius-only input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    font-size: 16px;
+    /* 背景色・角丸は当てない（ブラウザ既定のまま） */
+  }
+  /* 8: コンテナは無地の四角だが、inputにだけ背景色・角丸を当てる */
+  .styled-input-only input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    border: none;
+    background: #30323c;
+    border-radius: 12px;
+    color: #f2f3f5;
+    outline: none;
+    font-size: 16px;
+  }
 </style>
 </head>
 <body>
@@ -73,8 +95,18 @@
   </div>
 
   <div class="box" id="js-fix-box">
-    <p>6. JSで実測pxを直接指定したinput type=date（新しい対策方式）</p>
+    <p>6. JSで実測pxを直接指定したinput type=date（修正版：paddingを正しく差し引く）</p>
     <input type="date" id="js-fix-input">
+  </div>
+
+  <div class="app-card radius-only">
+    <p>7. コンテナは角丸+overflow:hiddenだが、inputは無地のまま（背景色・角丸なし）</p>
+    <input type="date">
+  </div>
+
+  <div class="box styled-input-only">
+    <p>8. コンテナは無地の四角だが、inputにだけ背景色・角丸を当てる</p>
+    <input type="date">
   </div>
 
   <script>
@@ -83,7 +115,9 @@
     const jsFixInput = document.getElementById('js-fix-input');
     function fixWidth() {
       const container = jsFixInput.parentElement;
-      jsFixInput.style.width = container.clientWidth + 'px';
+      const cs = getComputedStyle(container);
+      const paddingX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+      jsFixInput.style.width = (container.clientWidth - paddingX) + 'px';
     }
     fixWidth();
     window.addEventListener('resize', fixWidth);
