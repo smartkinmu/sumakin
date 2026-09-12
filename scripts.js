@@ -727,14 +727,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // 勤務工数と作業工数に違いがある場合のチェック
-        if (Math.abs(parseFloat(workingHours) - totalTaskHours) > 0.01) {
-            const confirmSend = confirm("勤務時間と入力工数に差分があります。続行しますか？");
-        if (!confirmSend) {
-                return;
-            }
-        }
-
         // 現在の日付を取得
         const now = getJSTNow();
         const today = formatDate(now);
@@ -745,9 +737,16 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // 今日以外の日付が指定された場合の確認
+        // 確認が必要な項目はここに集約し、最後にまとめて1回のconfirmで表示する
+        const confirmMessages = [];
+        if (Math.abs(parseFloat(workingHours) - totalTaskHours) > 0.01) {
+            confirmMessages.push("勤務時間と入力工数に差分があります。");
+        }
         if (selectedDate !== today) {
-            const confirmSend = confirm("今日以外の日付が指定されています。続行しますか？");
+            confirmMessages.push("今日以外の日付が指定されています。");
+        }
+        if (confirmMessages.length > 0) {
+            const confirmSend = confirm(confirmMessages.join('\n') + "\n続行しますか？");
             if (!confirmSend) {
                 return;
             }
