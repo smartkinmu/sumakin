@@ -318,14 +318,28 @@ document.addEventListener('DOMContentLoaded', function() {
     emailInput.value = localStorage.getItem('email') || 'mail@address.com';
     
     // 時刻変更時にローカルストレージに保存
+    // ピッカーの「クリア」操作で空欄になった場合は、デフォルト値に自動で戻す
     startTimeInput.addEventListener('change', function() {
+        if (!startTimeInput.value) {
+            startTimeInput.value = localStorage.getItem('startTime') || "08:30";
+        }
         localStorage.setItem('startTime', startTimeInput.value);
         saveTaskDataToStorage();  // データを保存
     });
 
     endTimeInput.addEventListener('change', function() {
+        if (!endTimeInput.value) {
+            endTimeInput.value = localStorage.getItem('endTime') || "17:15";
+        }
         localStorage.setItem('endTime', endTimeInput.value);
         saveTaskDataToStorage();  // データを保存
+    });
+
+    // 日付欄がピッカーの「クリア」操作で空欄になった場合、今日の日付に自動で戻す
+    dateInput.addEventListener('change', function() {
+        if (!dateInput.value) {
+            setDefaultDate();
+        }
     });
 
     // フォーカスが外れたときにデータを保存する
