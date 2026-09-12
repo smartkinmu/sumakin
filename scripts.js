@@ -361,15 +361,22 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // 日付欄も同様に、クリアして空欄のまま確定した場合は今日の日付を入れる
-    dateInput.addEventListener('change', function() {
+    // 日付の「クリア」操作は端末によって'change'が発火しないことがあるため、
+    // 'input'と確定後のblurでも保険として同じ判定を行う
+    function fillDefaultDateIfEmpty() {
         if (!dateInput.value) {
             setDefaultDate();
         }
-    });
+    }
+    dateInput.addEventListener('change', fillDefaultDateIfEmpty);
+    dateInput.addEventListener('input', fillDefaultDateIfEmpty);
 
     // フォーカスが外れたときにデータを保存する
     emailInput.addEventListener('blur', saveTaskDataToStorage);
-    dateInput.addEventListener('blur', saveTaskDataToStorage);
+    dateInput.addEventListener('blur', function() {
+        fillDefaultDateIfEmpty();
+        saveTaskDataToStorage();
+    });
     startTimeInput.addEventListener('blur', saveTaskDataToStorage);
     endTimeInput.addEventListener('blur', saveTaskDataToStorage);
 
