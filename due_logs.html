@@ -2,145 +2,301 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>納期ログ表示</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px 8px 20px;
+        }
+        .topbar .icon-btn {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            flex: none;
+            padding: 0;
+            background: var(--surface-muted);
+            color: var(--text);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+        }
+        .topbar .icon-btn.danger { color: var(--danger); }
+        .topbar h1 {
+            font-size: 19px;
+            font-weight: 700;
             margin: 0;
-            padding: 20px;
-            background-color: #f7f7f7;
-            color: #333;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        ul {
-            padding-left: 1em;
-        }
-        li {
-            word-wrap: break-word;
-            margin-bottom: 6px;
-        }
-        button {
-            padding: 6px 14px;
-            font-size: 15px;
-            margin-top: 10px;
-            box-sizing: border-box;
-            background-color: #333;
-            color: white;
-            border: 1px solid #aaa;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.2s;
-            white-space: nowrap;
-        }
-        .actions a {
-            display: block;
-            padding: 10px 16px;
-            font-size: 20px;
-            background-color: #333;
-            color: white;
-            border: 1px solid #aaa;
-            border-radius: 5px;
-            text-decoration: none;
-            text-align: center;
             flex-grow: 1;
         }
-        .actions button.small {
-            padding: 4px 8px;
-            font-size: 12px;
-            flex-grow: 0;
+        .due-range-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .actions input.tiny,
-        .actions button.tiny {
-            padding: 2px 6px;
-            font-size: 10px;
-            flex-grow: 0;
+        .due-range-row .input-group {
+            flex: 1;
         }
-        .tiny {
-            padding: 2px 6px;
-            font-size: 10px;
+        .due-range-row input[type="date"] {
+            border: none;
+            background: var(--surface-muted);
+            border-radius: var(--radius-sm);
+            padding: 10px 10px;
+            font-size: 14px;
+            color: var(--text);
+            width: 100%;
         }
-        button:hover {
-            background-color: #3a4d57;
+        #due-display {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
         }
-        button:active {
-            background: #e0e0e0;
-        }
-        .actions {
-            margin-top: 20px;
+        .stat-row {
             display: flex;
             gap: 8px;
         }
-        td:nth-child(4),
-        td:nth-child(5),
-        td:nth-child(6) {
-            text-align: right;
-            vertical-align: middle;
+        .stat-tile {
+            flex: 1;
+            background: var(--accent-soft);
+            border-radius: var(--radius-md);
+            padding: 14px 12px;
         }
-        .edit-btn {
-            margin-top: 0;
-            background-color: #fff;
-            color: #333;
+        .stat-tile .stat-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+        .stat-tile .stat-value {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--text);
+        }
+        .stat-tile .stat-unit {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        #log-body {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .log-card {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 14px 16px;
+        }
+        .log-card .log-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .log-card .log-date {
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .log-card .log-dow {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-left: 6px;
+        }
+        .log-card .edit-btn {
+            width: 30px;
+            height: 30px;
+            min-width: 30px;
+            padding: 0;
+            background: var(--surface-muted);
+            border-radius: 10px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: none;
+        }
+        .log-card .log-mid {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .log-card .log-times {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .log-card .chip {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            background: var(--surface-muted);
+            border-radius: 8px;
+            padding: 4px 9px;
+            margin-left: auto;
+        }
+        .log-card .chip.overtime {
+            color: var(--warn-text);
+            background: var(--warn-bg);
+        }
+        .log-card .log-sub {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            padding: 30px 0;
+        }
+        .undo-fab {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+        .undo-fab button {
+            pointer-events: auto;
+            width: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--fab-bg);
+            color: var(--fab-text);
+            border-radius: 999px;
+            padding: 11px 22px;
+            font-size: 13px;
+            box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.35);
+        }
+        dialog#edit-dialog {
+            border: none;
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            background: var(--surface);
+            color: var(--text);
+            width: min(320px, 90vw);
+        }
+        dialog#edit-dialog::backdrop {
+            background: rgba(0, 0, 0, 0.4);
+        }
+        #edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        #edit-form .input-group label {
+            display: block;
+            margin-bottom: 6px;
+        }
+        #edit-form .input-group input {
+            width: 100%;
+        }
+        .edit-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .edit-actions button {
+            flex: 1;
+            padding: 10px 0;
+        }
+        #edit-delete {
+            background: transparent;
+            color: var(--danger);
+            border: 1.5px solid var(--danger);
+        }
+        #edit-cancel {
+            background: var(--surface-muted);
+            color: var(--text);
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="topbar">
+        <a href="index.html" class="icon-btn" aria-label="戻る">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
         <h1>納期ログ表示</h1>
-        <div class="actions">
-            <a href="index.html">戻る</a>
-            <button id="clear-logs" class="small">ログをクリア</button>
-            <button id="download-logs" class="small">CSVダウンロード</button>
-        </div>
-        <h2>納期集計</h2>
-        <div id="monthly-summary-section">
-            <label for="due-start">納期:</label>
-            <input type="date" id="due-start"> ～
-            <input type="date" id="due-end">
-        </div>
-        <div id="due-display"></div>
-        <p id="monthly-summary"></p>
-        <div class="actions">
-            <button id="undo-delete-btn" class="tiny">UNDO</button>
-        </div>
-        <table id="log-table" style="width:100%; border-collapse: collapse;">
-            <thead>
-                <tr>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">日付</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">始業</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">終業</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:right;">勤務時間</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:right;">残業時間</th>
-                    <th style="border-bottom:1px solid #ccc; text-align:left;">操作</th>
-                </tr>
-            </thead>
-            <tbody id="log-body"></tbody>
-        </table>
-        <dialog id="edit-dialog" tabindex="-1">
-            <form method="dialog" id="edit-form">
-                <div>
-                    <label for="edit-date">日付:</label>
-                    <input type="date" id="edit-date">
-                </div>
-                <div>
-                    <label for="edit-start">始業:</label>
-                    <input type="time" id="edit-start">
-                </div>
-                <div>
-                    <label for="edit-end">終業:</label>
-                    <input type="time" id="edit-end">
-                </div>
-                <div style="text-align:right;margin-top:8px;">
-                    <button id="edit-save" type="submit">保存</button>
-                    <button id="edit-delete" type="button">削除</button>
-                    <button id="edit-cancel" type="button">キャンセル</button>
-                </div>
-            </form>
-        </dialog>
+        <button id="download-logs" class="icon-btn" aria-label="CSVダウンロード">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 19h14"/></svg>
+        </button>
+        <button id="clear-logs" class="icon-btn danger" aria-label="ログをクリア">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0-1 14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 6"/></svg>
+        </button>
     </div>
+
+    <div class="container" style="padding-bottom: 90px;">
+        <div class="card">
+            <div class="due-range-row">
+                <div class="input-group narrow">
+                    <label for="due-start">開始日</label>
+                    <input type="date" id="due-start">
+                </div>
+                <div class="input-group narrow">
+                    <label for="due-end">終了日</label>
+                    <input type="date" id="due-end">
+                </div>
+            </div>
+            <div id="due-display"></div>
+        </div>
+
+        <div class="stat-row">
+            <div class="stat-tile">
+                <div class="stat-label">勤務日数</div>
+                <div class="stat-value" id="stat-days">-<span class="stat-unit"> 日</span></div>
+            </div>
+            <div class="stat-tile">
+                <div class="stat-label">合計時間</div>
+                <div class="stat-value" id="stat-hours">-<span class="stat-unit">h</span></div>
+            </div>
+            <div class="stat-tile">
+                <div class="stat-label">残業</div>
+                <div class="stat-value" id="stat-overtime">-<span class="stat-unit">h</span></div>
+            </div>
+        </div>
+        <p id="monthly-summary" style="display:none;"></p>
+
+        <div id="log-body"></div>
+    </div>
+
+    <div class="undo-fab">
+        <button id="undo-delete-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+            UNDO
+        </button>
+    </div>
+
+    <dialog id="edit-dialog" tabindex="-1">
+        <form method="dialog" id="edit-form">
+            <div class="input-group">
+                <label for="edit-date">日付</label>
+                <input type="date" id="edit-date">
+            </div>
+            <div class="input-group">
+                <label for="edit-start">始業</label>
+                <input type="time" id="edit-start">
+            </div>
+            <div class="input-group">
+                <label for="edit-end">終業</label>
+                <input type="time" id="edit-end">
+            </div>
+            <div class="edit-actions">
+                <button id="edit-save" type="submit">保存</button>
+                <button id="edit-delete" type="button">削除</button>
+                <button id="edit-cancel" type="button">キャンセル</button>
+            </div>
+        </form>
+    </dialog>
     <script src="common.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -315,55 +471,81 @@
          */
 
         function createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e) {
-            const frag = document.createDocumentFragment();
-            const tr = document.createElement('tr');
+            const card = document.createElement('div');
+            card.className = 'log-card';
 
-            function renderView() {
-                tr.innerHTML = '';
-                [formatDateWithDay(date), start, end, work, overtime].forEach(t => {
-                    const td = document.createElement('td');
-                    td.textContent = t;
-                    tr.appendChild(td);
-                });
-                const opTd = document.createElement('td');
-                const editBtn = document.createElement('button');
-                editBtn.textContent = '✎';
-                editBtn.title = '編集';
-                editBtn.className = 'tiny edit-btn';
-                editBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    openEditDialog(date, start, end);
-                });
-                opTd.appendChild(editBtn);
-                tr.appendChild(opTd);
+            const top = document.createElement('div');
+            top.className = 'log-top';
+
+            const dateWrap = document.createElement('div');
+            const dateWithDay = formatDateWithDay(date);
+            const dowMatch = dateWithDay.match(/^(.*)(\(.\))$/);
+            const dateSpan = document.createElement('span');
+            dateSpan.className = 'log-date';
+            dateSpan.textContent = dowMatch ? dowMatch[1] : dateWithDay;
+            dateWrap.appendChild(dateSpan);
+            if (dowMatch) {
+                const dowSpan = document.createElement('span');
+                dowSpan.className = 'log-dow';
+                dowSpan.textContent = dowMatch[2];
+                dateWrap.appendChild(dowSpan);
             }
+            top.appendChild(dateWrap);
 
-            renderView();
-            frag.appendChild(tr);
+            const editBtn = document.createElement('button');
+            editBtn.textContent = '✎';
+            editBtn.title = '編集';
+            editBtn.className = 'edit-btn';
+            editBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                openEditDialog(date, start, end);
+            });
+            top.appendChild(editBtn);
+            card.appendChild(top);
+
+            const mid = document.createElement('div');
+            mid.className = 'log-mid';
+            const times = document.createElement('span');
+            times.className = 'log-times';
+            times.textContent = `${start} → ${end}`;
+            mid.appendChild(times);
+
+            const workChip = document.createElement('span');
+            workChip.className = 'chip';
+            workChip.textContent = `${work}h`;
+            mid.appendChild(workChip);
+
+            const overtimeNum = parseFloat(overtime) || 0;
+            if (overtimeNum > 0) {
+                const overtimeChip = document.createElement('span');
+                overtimeChip.className = 'chip overtime';
+                overtimeChip.textContent = `+${overtime}h`;
+                mid.appendChild(overtimeChip);
+            }
+            card.appendChild(mid);
+
             if (b1s && b1e) {
-                const sub = document.createElement('tr');
-                ["中断時間(1)", b1s, b1e, durationHours(b1s, b1e), ""].forEach(t => {
-                    const td = document.createElement('td');
-                    td.textContent = t;
-                    sub.appendChild(td);
-                });
-                const blank = document.createElement('td');
-                sub.appendChild(blank);
-                frag.appendChild(sub);
+                const sub = document.createElement('div');
+                sub.className = 'log-sub';
+                sub.textContent = `中断(1) ${b1s}–${b1e}（${durationHours(b1s, b1e)}h）`;
+                card.appendChild(sub);
             }
             if (b2s && b2e) {
-                const sub = document.createElement('tr');
-                ["中断時間(2)", b2s, b2e, durationHours(b2s, b2e), ""].forEach(t => {
-                    const td = document.createElement('td');
-                    td.textContent = t;
-                    sub.appendChild(td);
-                });
-                const blank = document.createElement('td');
-                sub.appendChild(blank);
-                frag.appendChild(sub);
+                const sub = document.createElement('div');
+                sub.className = 'log-sub';
+                sub.textContent = `中断(2) ${b2s}–${b2e}（${durationHours(b2s, b2e)}h）`;
+                card.appendChild(sub);
             }
-            return frag;
+            return card;
+        }
+
+        function renderEmptyState() {
+            logBody.innerHTML = '';
+            const div = document.createElement('div');
+            div.className = 'empty-state';
+            div.textContent = 'ログはありません';
+            logBody.appendChild(div);
         }
 
         const data = restoreLogsIfNeeded();
@@ -394,22 +576,17 @@
             }
             Object.keys(daily).sort().forEach(date => {
                 const { start, end, work, overtime, b1s, b1e, b2s, b2e } = daily[date];
-                const tr = createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e);
-                logBody.appendChild(tr);
+                const card = createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e);
+                logBody.appendChild(card);
             });
         } else {
-            const tr = document.createElement('tr');
-            const td = document.createElement('td');
-            td.colSpan = 6;
-            td.textContent = 'ログはありません';
-            tr.appendChild(td);
-            logBody.appendChild(tr);
+            renderEmptyState();
         }
 
         document.getElementById('clear-logs').addEventListener('click', function () {
             if (confirm('ログをクリアしますか？')) {
                 localStorage.removeItem('logs');
-                logBody.innerHTML = '<tr><td colspan="6">ログはありません</td></tr>';
+                renderEmptyState();
                 updateSummary();
             }
         });
@@ -480,12 +657,7 @@
             logBody.innerHTML = '';
             const csv = restoreLogsIfNeeded();
             if (!csv) {
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = 6;
-                td.textContent = 'ログはありません';
-                tr.appendChild(td);
-                logBody.appendChild(tr);
+                renderEmptyState();
                 return;
             }
 
@@ -514,12 +686,7 @@
                 .sort((a, b) => new Date(a.date) - new Date(b.date));
 
             if (rows.length === 0) {
-                const tr = document.createElement('tr');
-                const td = document.createElement('td');
-                td.colSpan = 6;
-                td.textContent = 'ログはありません';
-                tr.appendChild(td);
-                logBody.appendChild(tr);
+                renderEmptyState();
                 return;
             }
 
@@ -557,8 +724,9 @@
             const workingDays = records.length;
             const base = workingDays * 7.75;
             const overtime = totalHours - base;
-            const summary = `勤務日数 ${workingDays} 日, 合計 ${totalHours.toFixed(2)} 時間, 残業 ${overtime.toFixed(2)} 時間`;
-            document.getElementById('monthly-summary').textContent = summary;
+            document.getElementById('stat-days').innerHTML = `${workingDays}<span class="stat-unit"> 日</span>`;
+            document.getElementById('stat-hours').innerHTML = `${totalHours.toFixed(2)}<span class="stat-unit">h</span>`;
+            document.getElementById('stat-overtime').innerHTML = `${overtime.toFixed(2)}<span class="stat-unit">h</span>`;
         }
 
 

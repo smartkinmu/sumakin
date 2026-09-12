@@ -7,27 +7,29 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="app-header">休憩時間設定</div>
     <div class="container">
-        <h1>休憩時間設定</h1>
-        <div class="input-group">
-            <label for="lunch-start">昼休み開始:</label>
-            <input type="time" id="lunch-start">
-        </div>
-        <div class="input-group">
-            <label for="lunch-end">昼休み終了:</label>
-            <input type="time" id="lunch-end">
-        </div>
-        <div class="input-group">
-            <label for="evening-start">夕休み開始:</label>
-            <input type="time" id="evening-start">
-        </div>
-        <div class="input-group">
-            <label for="evening-end">夕休み終了:</label>
-            <input type="time" id="evening-end">
+        <div class="card">
+            <div class="input-group">
+                <label for="lunch-start">昼休み開始</label>
+                <input type="time" id="lunch-start">
+            </div>
+            <div class="input-group">
+                <label for="lunch-end">昼休み終了</label>
+                <input type="time" id="lunch-end">
+            </div>
+            <div class="input-group">
+                <label for="evening-start">夕休み開始</label>
+                <input type="time" id="evening-start">
+            </div>
+            <div class="input-group">
+                <label for="evening-end">夕休み終了</label>
+                <input type="time" id="evening-end">
+            </div>
         </div>
         <button id="save-settings">保存</button>
-        <div class="actions" style="margin-top:20px;">
-            <a href="index.html">戻る</a>
+        <div style="text-align:center; margin-top:4px;">
+            <a href="index.html" style="font-size:0.9em; color:var(--text-muted);">戻る</a>
         </div>
     </div>
     <script>
