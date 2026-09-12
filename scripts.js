@@ -310,18 +310,30 @@ document.addEventListener('DOMContentLoaded', function() {
         dateInput.value = formatDate(getDefaultDate());
     }
 
+    /**
+     * 現在時刻をHH:MM形式で取得する。
+     * @returns {string} 現在時刻（例: "14:05"）
+     */
+    function getCurrentTimeHHMM() {
+        const now = getJSTNow();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+    }
+
     // 時刻の初期値を設定（ローカルストレージから取得）
     startTimeInput.value = localStorage.getItem('startTime') || "08:30";
     endTimeInput.value = localStorage.getItem('endTime') || "17:15";
 
     // メールアドレスのデフォルト値を設定（ローカルストレージから取得）
     emailInput.value = localStorage.getItem('email') || 'mail@address.com';
-    
+
     // 時刻変更時にローカルストレージに保存
-    // ピッカーの「クリア」操作で空欄になった場合は、デフォルト値に自動で戻す
+    // ピッカーの「クリア」操作で空欄になった場合は、現在時刻に自動で戻す
+    // （ネイティブピッカーが空欄状態から現在時刻の位置を表示するのに合わせる）
     startTimeInput.addEventListener('change', function() {
         if (!startTimeInput.value) {
-            startTimeInput.value = localStorage.getItem('startTime') || "08:30";
+            startTimeInput.value = getCurrentTimeHHMM();
         }
         localStorage.setItem('startTime', startTimeInput.value);
         saveTaskDataToStorage();  // データを保存
@@ -329,7 +341,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     endTimeInput.addEventListener('change', function() {
         if (!endTimeInput.value) {
-            endTimeInput.value = localStorage.getItem('endTime') || "17:15";
+            endTimeInput.value = getCurrentTimeHHMM();
         }
         localStorage.setItem('endTime', endTimeInput.value);
         saveTaskDataToStorage();  // データを保存
