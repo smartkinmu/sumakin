@@ -3,212 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>スマ勤サポートアプリ 操作手順書</title>
+    <title>スマ勤サポートアプリ 使い方</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        body {
-            padding: 20px;
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px 8px 20px;
         }
-        h1, h2, h3 {
+        .topbar .icon-btn {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            flex: none;
+            padding: 0;
+            background: var(--surface-muted);
             color: var(--text);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+        }
+        .topbar h1 {
+            font-size: 19px;
+            font-weight: 700;
+            margin: 0;
+            flex-grow: 1;
         }
         .container {
-            max-width: 800px;
+            padding: 4px 16px 32px 16px;
+            display: block;
+            max-width: 480px;
             margin: 0 auto;
-            background-color: var(--surface);
-            padding: 20px;
-            border-radius: var(--radius-lg);
-            box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.18);
         }
-        .example {
-            background-color: var(--surface-muted);
-            border-left: 4px solid var(--accent);
-            border-radius: var(--radius-sm);
-            padding: 10px 14px;
-            margin: 10px 0;
+        .container > * {
+            margin-top: 10px;
+        }
+        .container > *:first-child {
+            margin-top: 0;
+        }
+        h2 {
+            font-size: 15px;
+            font-weight: 700;
             color: var(--text);
-        }
-        .actions {
-            margin-top: 20px;
+            margin: 0 0 10px 0;
             display: flex;
+            align-items: center;
             gap: 8px;
         }
-        .actions a {
-            display: block;
-            padding: 12px 16px;
-            font-size: 16px;
+        h2 .step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 800;
+            flex: none;
+        }
+        .card p {
+            margin: 0 0 6px 0;
+            font-size: 13.5px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+        .card ul {
+            margin: 0;
+            padding-left: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .card li {
+            font-size: 13.5px;
+            line-height: 1.55;
+            color: var(--text);
+        }
+        .card li b {
             font-weight: 700;
-            background-color: var(--accent);
-            color: var(--accent-text);
-            border: none;
-            border-radius: var(--radius-md);
-            text-decoration: none;
+        }
+        .tip {
+            background: var(--surface-muted);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            margin-top: 8px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+        .faq-item + .faq-item {
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+        }
+        .faq-q {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0 0 4px 0;
+        }
+        .faq-a {
+            font-size: 13px;
+            line-height: 1.55;
+            color: var(--text-muted);
+            margin: 0;
+        }
+        .back-link {
+            display: block;
             text-align: center;
-            flex-grow: 1;
+            padding: 12px 0 4px 0;
+            font-size: 13px;
+            color: var(--text-muted);
         }
     </style>
 </head>
 <body>
+    <div class="topbar">
+        <a href="index.html" class="icon-btn" aria-label="戻る">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <h1>使い方</h1>
+    </div>
+
     <div class="container">
-        <h1>スマ勤サポートアプリの設定と使用方法</h1>
-        <p>この手順書では、スマートフォンでスマ勤サポートアプリを設定および使用する方法を説明します。</p>
 
-        <h2>前提条件</h2>
-        <ul>
-            <li>スマートフォン（例：iPhone、Android）</li>
-            <li>インターネット接続</li>
-        </ul>
-
-        <h2>1. スマ勤サポートアプリのインストール</h2>
-        <ol>
-            <li>スマートフォンのウェブブラウザ（例：Safari、Chrome）を開き、スマ勤サポートアプリのURLにアクセスします。</li>
-            <li>「スマ勤サポートアプリ」ページが表示されます。</li>
-            <li>サービスワーカーがサポートされているブラウザでは、ページにアクセスすると自動的にサービスワーカーが登録されます。</li>
-            <li>ブラウザの右上または下部に「インストール」や「ホーム画面に追加」のオプションが表示される場合、それをタップします。</li>
-        </ol>
-        <div class="example">
-            例：Safariでは「共有メニュー」→「ホーム画面に追加」をタップします。
+        <div class="card">
+            <h2><span class="step-badge">1</span>インストール</h2>
+            <ul>
+                <li>ブラウザでアプリのURLを開く</li>
+                <li>共有メニュー（またはブラウザメニュー）から「ホーム画面に追加」を選ぶ</li>
+            </ul>
+            <div class="tip">オフラインでも使えるよう自動でキャッシュされます。</div>
         </div>
 
-        <h2>2. アプリの初期設定</h2>
-        <ol>
-            <li>アプリを開くと、入力フィールドとボタンがある画面が表示されます。</li>
-            <li>初回アクセス時には、以下のようにデフォルト値が設定されています：
-                <ul>
-                    <li>メールアドレス：「mail@address.com」</li>
-                    <li>日付：今日の日付（例：2024-06-08）</li>
-                    <li>始業時刻：「08:30」</li>
-                    <li>終業時刻：「17:15」</li>
-                </ul>
-            </li>
-        </ol>
-
-        <h2>3. 勤務データの入力</h2>
-        <ol>
-            <li><strong>メールアドレスの入力</strong>
-                <ul>
-                    <li>「宛先メールアドレス」フィールドに会社の受付メールアドレスを入力します。</li>
-                </ul>
-                <div class="example">
-                    例：「example@company.com」と入力します。
-                </div>
-            </li>
-            <li><strong>日付の選択</strong>
-                <ul>
-                    <li>「日付」フィールドをタップし、カレンダーから勤務日の日付を選択します。</li>
-                </ul>
-                <div class="example">
-                    例：勤務日が2024年6月9日の場合、「2024-06-09」を選択します。
-                </div>
-            </li>
-            <li><strong>年休の登録</strong>
-                <ul>
-                    <li>年休を取得した日は「年休」チェックボックスをオンにします。</li>
-                    <li>始業・終業時刻が入力できなくなり、「メール作成」ボタンが「登録」ボタンに変わります。</li>
-                    <li>登録ボタンを押すと年休としてログに保存されます。</li>
-                </ul>
-            </li>
-            <li><strong>AM/PM休の利用</strong>
-                <ul>
-                    <li>「AM休」または「PM休」をチェックすると時刻入力はそのまま有効です。</li>
-                    <li>AM休は8:30から昼休み開始時刻まで、PM休は昼休み終了時刻から17:15まで働いたものとして入力時刻を加算して計算されます。</li>
-                    <li>AM休で昼休みより前の時刻、PM休で昼休みより後の時刻を入力すると警告が表示されます。</li>
-                    <li>この場合も「メール作成」ボタンが「登録」ボタンとなり、押すとログに保存されます。</li>
-                </ul>
-            </li>
-            <li><strong>始業時刻と終業時刻の入力</strong>
-                <ul>
-                    <li>「始業時刻」フィールドをタップし、勤務開始時刻を選択します。</li>
-                    <li>「終業時刻」フィールドをタップし、勤務終了時刻を選択します。</li>
-                </ul>
-                <div class="example">
-                    例：始業時刻に「08:30」、終業時刻に「17:15」を選択します。
-                </div>
-            </li>
-            <li><strong>中断時間の入力</strong>
-                <ul>
-                    <li>「中断時間・休暇の入力」をタップすると入力欄が開きます。初期状態では折りたたまれています。</li>
-                    <li>必要に応じて「中断開始(1)/(2)」「中断終了(1)/(2)」を入力します。</li>
-                    <li>始業から終業までの範囲内で、最大2件まで設定できます。</li>
-                    <li>年休・AM休・PM休のチェックボックスも同じ折りたたみセクション内にあります。</li>
-                </ul>
-            </li>
-            <li><strong>業務内容の入力</strong>
-                <ul>
-                    <li>業務内容、分類、工数を入力します。</li>
-                    <li>業務コードが英字で始まる場合は10桁で入力してください。</li>
-                </ul>
-                <div class="example">
-                    例：
-                    <ul>
-                        <li>「業務1」フィールドに「AB01234567」と入力します。</li>
-                        <li>「分類1」フィールドに「00001」と入力します。</li>
-                        <li>「工数1」フィールドに「3.50」と入力します。</li>
-                    </ul>
-                </div>
-                <p>メニューから「業務1コピー」を選択すると、コピーの前に確認ダイアログが表示され、
-                    承認すると業務番号1の値を他の業務番号欄にコピーできます。</p>
-            </li>
-            <li><strong>グループ数の選択</strong>
-                <ul>
-                    <li>画面下部の「表示するグループの数」で1〜10から選択すると、入力欄の表示数が変わります。</li>
-                </ul>
-                <div class="example">例：3を選ぶと業務入力欄が3セット表示されます。</div>
-            </li>
-        </ol>
-
-        <h2>4. 入力内容の確認</h2>
-        <ol>
-            <li>すべての入力が完了したら、「入力確認」ボタンをタップします。</li>
-            <li>入力内容が自動的にチェックされ、問題がある場合は警告メッセージが表示されます。</li>
+        <div class="card">
+            <h2><span class="step-badge">2</span>基本の入力</h2>
             <ul>
-                <li><strong>過去の日付警告</strong>: 過去の日付が指定されている場合、「過去の日付が指定されています。」と警告が表示されます。
-                    <div class="example">例：今日が2024年6月8日で、2024年6月7日を選択している場合。</div>
-                </li>
-                <li><strong>工数の不一致警告</strong>: 勤務時間が作業工数より少ない場合、「勤務時間が作業工数より少ないです。」と警告が表示されます。
-                    <div class="example">例：勤務時間が8時間で、入力工数が9時間の場合。</div>
-                </li>
+                <li><b>宛先メールアドレス</b>：勤怠報告の送信先</li>
+                <li><b>日付</b>：初期状態は今日の日付</li>
+                <li><b>始業時刻・終業時刻</b>：初期値は08:30〜17:15</li>
             </ul>
-            <li>問題がない場合、「問題は見つかりませんでした」と表示されます。</li>
-        </ol>
+        </div>
 
-        <h2>5. メールの送信</h2>
-        <ol>
-            <li>入力内容に問題がない場合、「メール作成」ボタンをタップします。</li>
-            <li>未来の日時が入力されているときは「未来の日時が入力されています」と表示され、送信は中止されます。</li>
-            <li>生成されたメール内容が表示され、スマートフォンのメールアプリが自動的に開きます。</li>
-            <li>メールクライアントで送信先を確認し、メールを送信します。</li>
-        </ol>
+        <div class="card">
+            <h2><span class="step-badge">3</span>休暇の登録</h2>
+            <p>「中断時間・休暇の入力」を開くとチェックボックスがあります。</p>
+            <ul>
+                <li><b>年休</b>：始業・終業時刻の入力が不要になり、「入力確認」を押すと年休として登録されます</li>
+                <li><b>AM休 / PM休</b>：半日分を自動計算。始業・終業時刻はそのまま入力します</li>
+            </ul>
+            <div class="tip">休暇を選ぶと「メール作成」ボタンは無効になります（送信するメールがないため）。</div>
+        </div>
 
-        <h2>6. 設定画面の利用</h2>
-        <ol>
-            <li>メニューから「設定」を選ぶと休憩時間の設定画面が開きます。</li>
-            <li>昼休み開始・終了、夕休み開始・終了を入力して「保存」を押します。</li>
-            <li>設定内容はローカルストレージに保存され、次回起動時に反映されます。</li>
-        </ol>
+        <div class="card">
+            <h2><span class="step-badge">4</span>中断時間の入力</h2>
+            <p>離席などで勤務が中断した時間を最大2件まで登録できます（任意）。</p>
+        </div>
 
-        <h2>7. ログ画面の利用</h2>
-        <ol>
-            <li>トップページ右上のメニューから「ログ表示」を選ぶとログ画面が開きます。</li>
-            <li>「納期ログ表示」では開始日と終了日を指定して期間内の勤務時間を集計できます。</li>
-            <li>「ログをクリア」ボタンを押すと保存済みのログを削除できます。</li>
-            <li>「CSVダウンロード」ボタンで現在のログをCSVファイルとして保存できます。</li>
-            <li>各行の「編集」ボタンを押すとポップアップが開き、日付・始業時刻・終業時刻の編集や削除ができます。削除後は直前の操作を「UNDO」ボタンで取り消せます。</li>
-            <li>ログが消失した場合、バックアップから自動的に復元されます。</li>
-            <li>画面上部の年月選択欄で対象月を選ぶと、その月の勤務時間が集計表示されます。</li>
-        </ol>
+        <div class="card">
+            <h2><span class="step-badge">5</span>業務内容の入力</h2>
+            <ul>
+                <li>業務番号・分類・工数・備考を入力（最大10業務）</li>
+                <li>業務番号が英字始まりの場合は10桁で入力</li>
+                <li>画面下部「表示するグループの数」で入力欄の数を変更できます</li>
+                <li>メニューの「業務1コピー」で業務1の内容を他の欄へ一括コピーできます</li>
+            </ul>
+        </div>
 
-        <h2>備考</h2>
-        <ul>
-            <li><strong>サービスワーカー</strong>: アプリはオフラインでも動作するように、サービスワーカーを利用しています。サービスワーカーは、<code>/index.html</code> や <code>manifest.json</code> などのリソースをキャッシュに保存します。これにより、インターネット接続がなくてもアプリを使用できます。初回アクセス時に自動的に登録され、後のアクセス時にキャッシュからデータを読み込みます。</li>
-            <li><strong>ローカルストレージ</strong>: アプリは入力データをローカルストレージに保存します。これにより、次回アクセス時にも前回の入力データが保持されます。例えば、メールアドレスや業務内容などが自動的に入力されます。これにより、毎回同じ情報を入力する手間が省けます。</li>
-            <li><strong>更新</strong>: メニューの「更新」を選ぶと最新コードを取得して再読み込みします。ページには「更新中...」と表示されます。</li>
-            <li><strong>日付のバリデーション</strong>: 過去の日付が選択されると警告が表示されます。これにより、誤って過去の日付を入力するミスを防ぐことができます。</li>
-            <li><strong>入力漏れ警告</strong>: アプリ起動時に過去2回の平日ログを確認し、入力がない場合は日付を示して警告します。</li>
-        </ul>
+        <div class="card">
+            <h2><span class="step-badge">6</span>入力確認 と メール作成</h2>
+            <ul>
+                <li><b>入力確認</b>：入力内容をチェックし、その内容をログに登録します（同じ日付は上書き）</li>
+                <li><b>メール作成</b>：メール本文を作成してメールアプリを起動します（ログは登録しません）</li>
+            </ul>
+            <div class="tip">まず「入力確認」で内容を確認・登録してから、「メール作成」で送信するのが基本の流れです。</div>
+        </div>
+
+        <div class="card">
+            <h2>メニューの機能</h2>
+            <ul>
+                <li><b>ログ表示</b>：月ごとの勤務ログを一覧・編集・CSV出力</li>
+                <li><b>納期ログ表示</b>：任意の期間で勤務時間を集計</li>
+                <li><b>更新</b>：最新版を再読み込み</li>
+                <li><b>設定</b>：昼休み・夕休みの時間を変更</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>よくある質問</h2>
+            <div class="faq-item">
+                <p class="faq-q">入力を間違えて上書きしてしまった</p>
+                <p class="faq-a">ログ表示画面のUNDOボタンで直前の状態に戻せます。</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-q">入力した情報は消える？</p>
+                <p class="faq-a">メールアドレスや業務内容はこの端末に保存され、次回起動時も残ります。</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-q">アプリの表示が古いまま変わらない</p>
+                <p class="faq-a">メニューの「更新」を押してください。それでも変わらない場合はブラウザのキャッシュ削除をお試しください。</p>
+            </div>
+            <div class="faq-item">
+                <p class="faq-q">起動時に警告が出た</p>
+                <p class="faq-a">直近2営業日分の記録がない場合に表示される、入力漏れの確認メッセージです。</p>
+            </div>
+        </div>
+
     </div>
-    <div class="actions">
-        <a href="index.html">戻る</a>
-    </div>
+    <a href="index.html" class="back-link">← メイン画面に戻る</a>
 </body>
 </html>

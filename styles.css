@@ -299,10 +299,8 @@ button:disabled {
 }
 
 #submit-button {
-    background: transparent;
-    color: var(--accent);
-    border: 1.5px solid var(--accent);
     flex: 1;
+    box-shadow: 0 8px 20px -8px var(--accent-shadow);
 }
 
 #email-button {
