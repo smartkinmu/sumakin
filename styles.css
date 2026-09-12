@@ -131,14 +131,17 @@ a {
 }
 
 /* ===== Form fields ===== */
+/* 横幅が足りない端末(大きい文字設定・ネイティブの時刻ピッカー幅など)では
+   自動的に縦積みへ戻し、右にはみ出さないようにする */
 .field-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
     min-width: 0;
 }
 .field-row .input-group {
-    flex: 1;
-    min-width: 0;
+    flex: 1 1 132px;
+    min-width: 132px;
 }
 
 .input-group {
