@@ -92,20 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // ログが存在しない、または0バイトのときにバックアップから復元する
-    function restoreLogsIfNeeded() {
-        let logs = localStorage.getItem('logs');
-        if (!logs) {
-            const backup = localStorage.getItem('logs_backup');
-            if (backup) {
-                localStorage.setItem('logs', backup);
-                logs = backup;
-                alert('ログファイルを復元しました。');
-            }
-        }
-        return logs;
-    }
-
     // ログ保存用関数
     // 日付,始業,終業,勤務時間,残業時間,中断開始1,中断終了1,中断開始2,中断終了2 の形式で保存する
     function saveLog(date, start, end, work, overtime,
@@ -186,10 +172,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 動的に生成された入力ボックスにイベントリスナーを追加
         for (let i = 1; i <= selectedCount; i++) {
-            document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskData);
-            document.getElementById(`category${i}`).addEventListener('blur', saveTaskData);
-            document.getElementById(`title${i}`).addEventListener('blur', saveTaskData);
-     //       document.getElementById(`task-hours${i}`).addEventListener('blur', saveTaskData);
+            document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskDataToStorage);
+            document.getElementById(`category${i}`).addEventListener('blur', saveTaskDataToStorage);
+            document.getElementById(`title${i}`).addEventListener('blur', saveTaskDataToStorage);
+     //       document.getElementById(`task-hours${i}`).addEventListener('blur', saveTaskDataToStorage);
         }
     }
 
@@ -257,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-        saveTaskData();
+        saveTaskDataToStorage();
     });
 
     // 曜日を取得する関数
@@ -315,68 +301,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // 時刻変更時にローカルストレージに保存
     startTimeInput.addEventListener('change', function() {
         localStorage.setItem('startTime', startTimeInput.value);
-        saveTaskData();  // データを保存
+        saveTaskDataToStorage();  // データを保存
     });
 
     endTimeInput.addEventListener('change', function() {
         localStorage.setItem('endTime', endTimeInput.value);
-        saveTaskData();  // データを保存
+        saveTaskDataToStorage();  // データを保存
     });
 
     // フォーカスが外れたときにデータを保存する
-    emailInput.addEventListener('blur', saveTaskData);
-    dateInput.addEventListener('blur', saveTaskData);
-    startTimeInput.addEventListener('blur', saveTaskData);
-    endTimeInput.addEventListener('blur', saveTaskData);
+    emailInput.addEventListener('blur', saveTaskDataToStorage);
+    dateInput.addEventListener('blur', saveTaskDataToStorage);
+    startTimeInput.addEventListener('blur', saveTaskDataToStorage);
+    endTimeInput.addEventListener('blur', saveTaskDataToStorage);
 
-    // 時刻文字列("HH:MM")を分単位の数値へ変換する
-    function toMinutes(timeStr) {
-        const [h, m] = timeStr.split(':').map(Number);
-        return h * 60 + m;
-    }
-
-    /**
-     * 保存された休憩時間を取得する。
-     * @returns {{start:string,end:string}[]} 休憩時間リスト
-     */
-    function getBreakTimes() {
-        return [
-            {
-                start: localStorage.getItem('break1Start') || '12:00',
-                end: localStorage.getItem('break1End') || '13:00'
-            },
-            {
-                start: localStorage.getItem('break2Start') || '19:15',
-                end: localStorage.getItem('break2End') || '19:45'
-            }
-        ];
-    }
-
-    // 勤務時間を計算する関数
-    function calculateWorkingHours(startTime, endTime) {
-        let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
-
-        const breaks = getBreakTimes();
-
-        const workStart = toMinutes(startTime);
-        const workEnd = toMinutes(endTime);
-
-        // 休憩時間を差し引く処理
-        breaks.forEach(b => {
-            const breakStart = toMinutes(b.start);
-            const breakEnd = toMinutes(b.end);
-            if (workStart < breakEnd && workEnd > breakStart) {
-                const overlapStart = Math.max(workStart, breakStart);
-                const overlapEnd = Math.min(workEnd, breakEnd);
-                totalMinutes -= overlapEnd - overlapStart;
-            }
-        });
-    
-        let workingHours = totalMinutes / 60;
-        // 小数点第3位を四捨五入する処理
-        return (Math.round(workingHours * 100) / 100).toFixed(2);
-    }
-    
     // 入力工数を計算する関数
     function calculateTotalTaskHours() {
         let totalTaskHours = 0;
@@ -590,16 +528,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 業務データを保存する関数
-    function saveTaskData() {
-        saveTaskDataToStorage();
-    }
-
-    // 業務データをロードする関数
-    function loadTaskData() {
-        loadTaskDataFromStorage();
-    }
-
     // 入力チェックボタンのクリックイベントリスナー
     submitButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
@@ -663,15 +591,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 勤務工数が作業工数より少ない場合のチェック
-        if (workingHours < totalTaskHours) {
+        if (parseFloat(workingHours) < totalTaskHours) {
             alert("勤務時間が作業工数より少ないです。");
             issuesFound = true;
         }
 
         // 業務情報が一つ以上含まれている場合のみ補完処理を実行
-        if (Math.abs(workingHours - totalTaskHours) > 0.01) {
+        if (Math.abs(parseFloat(workingHours) - totalTaskHours) > 0.01) {
             if (allTaskCategoriesFilled > 0 && firstEmptyTaskHoursIndex !== -1) {
-                let taskHours = workingHours - totalTaskHours;
+                let taskHours = parseFloat(workingHours) - totalTaskHours;
                 if (taskHours < 0) {
                     taskHours = 0;
                 }
@@ -692,7 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
         resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${actual}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>中断時間 ${interruptHours.toFixed(2)} 時間<br>残業時間 ${overtime} 時間</p>`;
-        saveTaskData();  // データを保存
+        saveTaskDataToStorage();  // データを保存
     });
 
     // メール作成ボタンのクリックイベントリスナー
@@ -725,7 +653,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (annualLeaveCheckbox.checked) {
             saveLog(selectedDate, '年休', '年休', '7.75', '0.00', '', '', '', '');
             alert('年休を登録しました');
-            saveTaskData();
+            saveTaskDataToStorage();
             return;
         } else if (amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
             const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
@@ -743,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function() {
             );
             const type = amLeaveCheckbox.checked ? 'AM休' : 'PM休';
             alert(`${type}を登録しました`);
-            saveTaskData();
+            saveTaskDataToStorage();
             return;
         }
 
@@ -769,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 勤務工数と作業工数に違いがある場合のチェック
-        if (Math.abs(workingHours - totalTaskHours) > 0.01) {
+        if (Math.abs(parseFloat(workingHours) - totalTaskHours) > 0.01) {
             const confirmSend = confirm("勤務時間と入力工数に差分があります。続行しますか？");
         if (!confirmSend) {
                 return;
@@ -793,7 +721,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
-        saveTaskData();  // データを保存
+        saveTaskDataToStorage();  // データを保存
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
         saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
@@ -842,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return sw.sync.register('sync');
             });
         }
-        loadTaskData();
+        loadTaskDataFromStorage();
         const savedNewline = localStorage.getItem('newline') || 'CRLF';
         const newlineInput = document.querySelector(
             `input[name="newline"][value="${savedNewline}"]`

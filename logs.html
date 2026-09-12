@@ -139,6 +139,7 @@
             </form>
         </dialog>
     </div>
+    <script src="common.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const logBody = document.getElementById('log-body');
@@ -154,86 +155,6 @@
         const editCancel = document.getElementById('edit-cancel');
         const editDelete = document.getElementById('edit-delete');
         let originalDate = '';
-
-        function formatDateWithDay(dateStr) {
-            const d = new Date(dateStr);
-            const days = ['日', '月', '火', '水', '木', '金', '土'];
-            return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}(${days[d.getDay()]})`;
-        }
-
-        function toMinutes(timeStr) {
-            const [h, m] = timeStr.split(':').map(Number);
-            return h * 60 + m;
-        }
-
-        function restoreLogsIfNeeded() {
-            let data = localStorage.getItem('logs');
-            if (!data) {
-                const backup = localStorage.getItem('logs_backup');
-                if (backup) {
-                    localStorage.setItem('logs', backup);
-                    data = backup;
-                    alert('ログファイルを復元しました。');
-                }
-            }
-            return data;
-        }
-
-        function getBreakTimes() {
-            return [
-                {
-                    start: localStorage.getItem('break1Start') || '12:00',
-                    end: localStorage.getItem('break1End') || '13:00'
-                },
-                {
-                    start: localStorage.getItem('break2Start') || '19:15',
-                    end: localStorage.getItem('break2End') || '19:45'
-                }
-            ];
-        }
-
-        function calculateWorkingHours(startTime, endTime) {
-            let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
-            const breaks = getBreakTimes();
-            const workStart = toMinutes(startTime);
-            const workEnd = toMinutes(endTime);
-            breaks.forEach(b => {
-                const breakStart = toMinutes(b.start);
-                const breakEnd = toMinutes(b.end);
-                if (workStart < breakEnd && workEnd > breakStart) {
-                    const overlapStart = Math.max(workStart, breakStart);
-                    const overlapEnd = Math.min(workEnd, breakEnd);
-                    totalMinutes -= overlapEnd - overlapStart;
-                }
-            });
-            const workingHours = totalMinutes / 60;
-            return (Math.round(workingHours * 100) / 100).toFixed(2);
-        }
-
-        /**
-         * CSVまたはメール本文の行を解析し標準化する。
-         * @param {string} line - ログの1行
-         * @returns {string|null} 解析結果
-         */
-        function parseLogLine(line) {
-            const simple = line.split(',');
-            if (simple.length >= 5 && /^\d{4}-\d{2}-\d{2}$/.test(simple[0])) {
-                return line;
-            }
-            const parts = line.split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
-            if (parts.length >= 4 && /^\d{4}-\d{2}-\d{2}T/.test(parts[0])) {
-                const body = parts[3].replace(/^"|"$/g, '').replace(/""/g, '"');
-                const date = body.match(/日付\s*(\d{4}-\d{2}-\d{2})/);
-                const start = body.match(/始業\s*(\d{2}:\d{2})/);
-                const end = body.match(/終業\s*(\d{2}:\d{2})/);
-                if (date && start && end) {
-                    const work = calculateWorkingHours(start[1], end[1]);
-                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
-                    return `${date[1]},${start[1]},${end[1]},${work},${overtime}`;
-                }
-            }
-            return null;
-        }
         let lastLogsBackup = null;
 
         /**
@@ -392,7 +313,7 @@
             frag.appendChild(tr);
             if (b1s && b1e) {
                 const sub = document.createElement('tr');
-                ["中断時間(1)", b1s, b1e, calculateWorkingHours(b1s, b1e), ""].forEach(t => {
+                ["中断時間(1)", b1s, b1e, durationHours(b1s, b1e), ""].forEach(t => {
                     const td = document.createElement('td');
                     td.textContent = t;
                     sub.appendChild(td);
@@ -403,7 +324,7 @@
             }
             if (b2s && b2e) {
                 const sub = document.createElement('tr');
-                ["中断時間(2)", b2s, b2e, calculateWorkingHours(b2s, b2e), ""].forEach(t => {
+                ["中断時間(2)", b2s, b2e, durationHours(b2s, b2e), ""].forEach(t => {
                     const td = document.createElement('td');
                     td.textContent = t;
                     sub.appendChild(td);
