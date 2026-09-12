@@ -109,25 +109,36 @@ a {
 }
 
 /* ===== Layout ===== */
+/* flexコンテナ内だとSafariでネイティブのdate/time入力欄が崩れることが
+   実機検証で確認されたため、.containerもflexをやめてブロックレイアウトにする */
 .container {
     padding: 4px 16px 24px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: block;
     max-width: 480px;
     margin: 0 auto;
 }
+.container > * {
+    margin-top: 10px;
+}
+.container > *:first-child {
+    margin-top: 0;
+}
 
 /* ===== Cards ===== */
+/* flexコンテナ内だとSafariでネイティブのdate/time入力欄が崩れることが
+   実機検証で確認されたため、.cardもflexをやめてブロックレイアウトにする */
 .card {
     background: var(--surface);
     border-radius: var(--radius-lg);
     padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
+    display: block;
     overflow: hidden;
-    min-width: 0;
+}
+.card > * {
+    margin-top: 9px;
+}
+.card > *:first-child {
+    margin-top: 0;
 }
 
 /* ===== Form fields ===== */
@@ -167,21 +178,6 @@ a {
 .input-group input:focus,
 .input-group select:focus {
     box-shadow: 0 0 0 2px var(--accent);
-}
-
-/* Safari(WebKit)はinput要素に対し、通常のmin-widthとは別に
-   独自の-webkit-min-logical-widthを内部的に適用しており、
-   min-width:0だけでは上書きできず、親要素の幅を無視して
-   コンテンツに応じた幅で描画されてしまうことがある。
-   date/time/month系の入力欄はこの影響を受けやすいため、明示的に
-   -webkit-min-logical-widthを0にリセットする */
-input[type="date"],
-input[type="time"],
-input[type="month"] {
-    -webkit-min-logical-width: 0px;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
 }
 
 /* iOS Safariはinput[type="date"/"time"]にappearance:noneを適用すると
@@ -393,9 +389,13 @@ details.fold-section[open] summary::after {
     margin-top: 10px;
     padding-left: 0;
     border-left: none;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
+    display: block;
+}
+.collapsible-body > * {
+    margin-top: 9px;
+}
+.collapsible-body > *:first-child {
+    margin-top: 0;
 }
 
 /* ===== Leave toggle chips ===== */
@@ -431,16 +431,24 @@ details.fold-section[open] summary::after {
 
 /* ===== Task group card ===== */
 #task-groups-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: block;
+}
+#task-groups-container > * {
+    margin-top: 10px;
+}
+#task-groups-container > *:first-child {
+    margin-top: 0;
 }
 
 .task-group {
     background: var(--surface);
     border-radius: var(--radius-lg);
     padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
+    display: block;
+}
+.task-group > * {
+    margin-top: 9px;
+}
+.task-group > *:first-child {
+    margin-top: 0;
 }

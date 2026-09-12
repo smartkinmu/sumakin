@@ -33,15 +33,19 @@
             margin: 0;
             flex-grow: 1;
         }
+        /* flexコンテナ内だとSafariでネイティブのdate入力欄が崩れるため
+           ブロックレイアウト(縦積み)にする */
         .due-range-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: block;
         }
         .due-range-row .input-group {
-            flex: 1;
+            margin-top: 10px;
+        }
+        .due-range-row .input-group:first-child {
+            margin-top: 0;
         }
         .due-range-row input[type="date"] {
+            display: block;
             border: none;
             background: var(--surface-muted);
             border-radius: var(--radius-sm);
@@ -49,6 +53,7 @@
             font-size: 14px;
             color: var(--text);
             width: 100%;
+            box-sizing: border-box;
         }
         #due-display {
             font-size: 13px;
@@ -196,10 +201,16 @@
         dialog#edit-dialog::backdrop {
             background: rgba(0, 0, 0, 0.4);
         }
+        /* flexコンテナ内だとSafariでネイティブのdate/time入力欄が崩れるため
+           ブロックレイアウト(縦積み)にする */
         #edit-form {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: block;
+        }
+        #edit-form > * {
+            margin-top: 12px;
+        }
+        #edit-form > *:first-child {
+            margin-top: 0;
         }
         #edit-form .input-group label {
             display: block;
