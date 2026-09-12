@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-sample-cache-v2';
+const CACHE_NAME = 'pwa-sample-cache-v4';
 
 self.addEventListener('install', event => {
     self.skipWaiting();
@@ -10,8 +10,10 @@ self.addEventListener('install', event => {
                 './logs.html',
                 './due_logs.html',
                 './settings.html',
+                './manual.html',
                 './manifest.json',
                 './scripts.js',
+                './common.js',
                 './styles.css',
                 './service-worker.js',
                 './icon-192x192.png',
@@ -51,6 +53,13 @@ self.addEventListener('fetch', function(event) {
                         cache.put(event.request, responseToCache);
                     });
                     return response;
+                }).catch(function(error) {
+                    if (event.request.mode === 'navigate') {
+                        // ページ遷移の失敗は通常のネットワークエラーとして伝える
+                        throw error;
+                    }
+                    // サブリソースのみ、キャッシュにない場合は空レスポンスで返す
+                    return new Response('', { status: 408, statusText: 'Network Error' });
                 });
             }
         })

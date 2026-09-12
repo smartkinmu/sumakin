@@ -58,10 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
             break2StartInput.value = '';
             break2EndInput.value = '';
         }
-        submitButton.disabled = annualLeaveCheckbox.checked;
-        const register = annualLeaveCheckbox.checked ||
+        // 休暇登録はすべて「入力確認」ボタンから行うため、休暇選択時も有効のままにする
+        submitButton.disabled = false;
+        // 休暇の日はメールを送信しないため、メール作成ボタンを無効化する
+        emailButton.disabled = annualLeaveCheckbox.checked ||
             amLeaveCheckbox.checked || pmLeaveCheckbox.checked;
-        emailButton.textContent = register ? '登録' : 'メール作成';
     }
 
     annualLeaveCheckbox.addEventListener('change', updateLeaveControls);
@@ -92,27 +93,23 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // ログが存在しない、または0バイトのときにバックアップから復元する
-    function restoreLogsIfNeeded() {
-        let logs = localStorage.getItem('logs');
-        if (!logs) {
-            const backup = localStorage.getItem('logs_backup');
-            if (backup) {
-                localStorage.setItem('logs', backup);
-                logs = backup;
-                alert('ログファイルを復元しました。');
-            }
-        }
-        return logs;
-    }
-
     // ログ保存用関数
     // 日付,始業,終業,勤務時間,残業時間,中断開始1,中断終了1,中断開始2,中断終了2 の形式で保存する
+    // 同じ日付のログが既に存在する場合は上書きする。上書き前の内容は
+    // logs_undo に保存し、ログ表示画面のUNDOボタンで復元できるようにする
     function saveLog(date, start, end, work, overtime,
                      b1s, b1e, b2s, b2e) {
         const line = `${date},${start},${end},${work},${overtime},${b1s || ''},${b1e || ''},${b2s || ''},${b2e || ''}`;
         const existing = localStorage.getItem('logs');
-        const updated = existing ? `${existing}\n${line}` : line;
+        localStorage.setItem('logs_undo', existing || '');
+        const lines = existing ? existing.split('\n') : [];
+        const index = lines.findIndex(l => l.split(',')[0] === date);
+        if (index !== -1) {
+            lines[index] = line;
+        } else {
+            lines.push(line);
+        }
+        const updated = lines.join('\n');
         localStorage.setItem('logs', updated);
         localStorage.setItem('logs_backup', updated);
     }
@@ -186,10 +183,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 動的に生成された入力ボックスにイベントリスナーを追加
         for (let i = 1; i <= selectedCount; i++) {
-            document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskData);
-            document.getElementById(`category${i}`).addEventListener('blur', saveTaskData);
-            document.getElementById(`title${i}`).addEventListener('blur', saveTaskData);
-     //       document.getElementById(`task-hours${i}`).addEventListener('blur', saveTaskData);
+            document.getElementById(`task-number${i}`).addEventListener('blur', saveTaskDataToStorage);
+            document.getElementById(`category${i}`).addEventListener('blur', saveTaskDataToStorage);
+            document.getElementById(`title${i}`).addEventListener('blur', saveTaskDataToStorage);
+     //       document.getElementById(`task-hours${i}`).addEventListener('blur', saveTaskDataToStorage);
         }
     }
 
@@ -257,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-        saveTaskData();
+        saveTaskDataToStorage();
     });
 
     // 曜日を取得する関数
@@ -315,68 +312,20 @@ document.addEventListener('DOMContentLoaded', function() {
     // 時刻変更時にローカルストレージに保存
     startTimeInput.addEventListener('change', function() {
         localStorage.setItem('startTime', startTimeInput.value);
-        saveTaskData();  // データを保存
+        saveTaskDataToStorage();  // データを保存
     });
 
     endTimeInput.addEventListener('change', function() {
         localStorage.setItem('endTime', endTimeInput.value);
-        saveTaskData();  // データを保存
+        saveTaskDataToStorage();  // データを保存
     });
 
     // フォーカスが外れたときにデータを保存する
-    emailInput.addEventListener('blur', saveTaskData);
-    dateInput.addEventListener('blur', saveTaskData);
-    startTimeInput.addEventListener('blur', saveTaskData);
-    endTimeInput.addEventListener('blur', saveTaskData);
+    emailInput.addEventListener('blur', saveTaskDataToStorage);
+    dateInput.addEventListener('blur', saveTaskDataToStorage);
+    startTimeInput.addEventListener('blur', saveTaskDataToStorage);
+    endTimeInput.addEventListener('blur', saveTaskDataToStorage);
 
-    // 時刻文字列("HH:MM")を分単位の数値へ変換する
-    function toMinutes(timeStr) {
-        const [h, m] = timeStr.split(':').map(Number);
-        return h * 60 + m;
-    }
-
-    /**
-     * 保存された休憩時間を取得する。
-     * @returns {{start:string,end:string}[]} 休憩時間リスト
-     */
-    function getBreakTimes() {
-        return [
-            {
-                start: localStorage.getItem('break1Start') || '12:00',
-                end: localStorage.getItem('break1End') || '13:00'
-            },
-            {
-                start: localStorage.getItem('break2Start') || '19:15',
-                end: localStorage.getItem('break2End') || '19:45'
-            }
-        ];
-    }
-
-    // 勤務時間を計算する関数
-    function calculateWorkingHours(startTime, endTime) {
-        let totalMinutes = toMinutes(endTime) - toMinutes(startTime);
-
-        const breaks = getBreakTimes();
-
-        const workStart = toMinutes(startTime);
-        const workEnd = toMinutes(endTime);
-
-        // 休憩時間を差し引く処理
-        breaks.forEach(b => {
-            const breakStart = toMinutes(b.start);
-            const breakEnd = toMinutes(b.end);
-            if (workStart < breakEnd && workEnd > breakStart) {
-                const overlapStart = Math.max(workStart, breakStart);
-                const overlapEnd = Math.min(workEnd, breakEnd);
-                totalMinutes -= overlapEnd - overlapStart;
-            }
-        });
-    
-        let workingHours = totalMinutes / 60;
-        // 小数点第3位を四捨五入する処理
-        return (Math.round(workingHours * 100) / 100).toFixed(2);
-    }
-    
     // 入力工数を計算する関数
     function calculateTotalTaskHours() {
         let totalTaskHours = 0;
@@ -590,20 +539,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 業務データを保存する関数
-    function saveTaskData() {
-        saveTaskDataToStorage();
-    }
-
-    // 業務データをロードする関数
-    function loadTaskData() {
-        loadTaskDataFromStorage();
-    }
-
     // 入力チェックボタンのクリックイベントリスナー
     submitButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
         const selectedDayOfWeek = getDayOfWeek(selectedDate);
+
+        // 年休は始業・終業時刻を使わず固定値でログに登録する（同じ日付があれば上書き）
+        if (annualLeaveCheckbox.checked) {
+            saveLog(selectedDate, '年休', '年休', '7.75', '0.00', '', '', '', '');
+            resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>年休として登録しました</p>`;
+            saveTaskDataToStorage();
+            return;
+        }
+
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
         if (!checkHalfDayInput() || !checkInterruptInput()) {
@@ -625,12 +573,12 @@ document.addEventListener('DOMContentLoaded', function() {
             ).toFixed(2);
         }
         const interruptHours = calculateInterruptHours();
-        let issuesFound = false;
+        // 見つかった問題点はここに集約し、最後にまとめて1回のalertで表示する
+        const issueMessages = [];
         let firstEmptyTaskHoursIndex = -1;
         let allTaskCategoriesFilled = 0;
         if (!isStartTimeBeforeEndTime(selectedStartTime, selectedEndTime)) {
-            alert("始業時刻が終業時刻より遅くなっています。");
-            issuesFound = true;
+            issueMessages.push("始業時刻が終業時刻より遅くなっています。");
         }
         let totalTaskHours = calculateTotalTaskHours();
 
@@ -640,8 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 今日以外の日付が指定された場合の警告表示
         if (selectedDate !== today) {
-            alert("今日以外の日付が指定されています。");
-            issuesFound = true;
+            issueMessages.push("今日以外の日付が指定されています。");
         }
 
         const selectedCount = parseInt(groupCountPicker.value, 10);
@@ -651,8 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const taskHours = document.getElementById(`task-hours${i}`).value;
             const category = document.getElementById(`category${i}`).value;
             if (/^[A-Za-z]/.test(taskNumber) && taskNumber.length !== 10) {
-                alert(`業務${i}の業務コードは10桁で入力してください。`);
-                issuesFound = true;
+                issueMessages.push(`業務${i}の業務コードは10桁で入力してください。`);
             }
             if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                 firstEmptyTaskHoursIndex = i;
@@ -663,89 +609,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 勤務工数が作業工数より少ない場合のチェック
-        if (workingHours < totalTaskHours) {
-            alert("勤務時間が作業工数より少ないです。");
-            issuesFound = true;
+        if (parseFloat(workingHours) < totalTaskHours) {
+            issueMessages.push("勤務時間が作業工数より少ないです。");
         }
 
         // 業務情報が一つ以上含まれている場合のみ補完処理を実行
-        if (Math.abs(workingHours - totalTaskHours) > 0.01) {
+        if (Math.abs(parseFloat(workingHours) - totalTaskHours) > 0.01) {
             if (allTaskCategoriesFilled > 0 && firstEmptyTaskHoursIndex !== -1) {
-                let taskHours = workingHours - totalTaskHours;
+                let taskHours = parseFloat(workingHours) - totalTaskHours;
                 if (taskHours < 0) {
                     taskHours = 0;
                 }
                 document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
                 totalTaskHours = calculateTotalTaskHours();
-                alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
-                issuesFound = true;
+                issueMessages.push(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
             } else {
-                alert("勤務時間と入力工数に差分があります。");
-                issuesFound = true;
+                issueMessages.push("勤務時間と入力工数に差分があります。");
             }
         }
 
-        if (!issuesFound) {
+        if (issueMessages.length > 0) {
+            alert(issueMessages.join('\n'));
+        } else {
             alert("問題は見つかりませんでした。");
         }
 
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
         resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${actual}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>中断時間 ${interruptHours.toFixed(2)} 時間<br>残業時間 ${overtime} 時間</p>`;
-        saveTaskData();  // データを保存
+        // 入力確認の時点でログに保存する（同じ日付があれば上書き）
+        saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
+            break1StartInput.value, break1EndInput.value,
+            break2StartInput.value, break2EndInput.value);
+        saveTaskDataToStorage();  // データを保存
     });
 
     // メール作成ボタンのクリックイベントリスナー
+    // 年休・AM休・PM休の登録は「入力確認」ボタンで行うため、ここではメールの作成・送信のみを行う
     emailButton.addEventListener('click', function() {
+        if (annualLeaveCheckbox.checked || amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
+            return;
+        }
         const email = emailInput.value;
         const selectedDate = dateInput.value;
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
-        if (!checkHalfDayInput() || !checkInterruptInput()) {
+        if (!checkInterruptInput()) {
             return;
         }
-        let workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
-        const lunch = getBreakTimes()[0];
-        const lunchStart = lunch.start;
-        const lunchEnd = lunch.end;
-        if (amLeaveCheckbox.checked) {
-            workingHours = (
-                parseFloat(calculateWorkingHours('08:30', lunchStart)) +
-                parseFloat(workingHours)
-            ).toFixed(2);
-        } else if (pmLeaveCheckbox.checked) {
-            workingHours = (
-                parseFloat(calculateWorkingHours(lunchEnd, '17:15')) +
-                parseFloat(workingHours)
-            ).toFixed(2);
-        }
-        const interruptHours = calculateInterruptHours();
+        const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
         const totalTaskHours = calculateTotalTaskHours();
-
-        if (annualLeaveCheckbox.checked) {
-            saveLog(selectedDate, '年休', '年休', '7.75', '0.00', '', '', '', '');
-            alert('年休を登録しました');
-            saveTaskData();
-            return;
-        } else if (amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
-            const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
-            const overtime = (parseFloat(actual) - 7.75).toFixed(2);
-            saveLog(
-                selectedDate,
-                selectedStartTime,
-                selectedEndTime,
-                actual,
-                overtime,
-                break1StartInput.value,
-                break1EndInput.value,
-                break2StartInput.value,
-                break2EndInput.value
-            );
-            const type = amLeaveCheckbox.checked ? 'AM休' : 'PM休';
-            alert(`${type}を登録しました`);
-            saveTaskData();
-            return;
-        }
 
         const subject = "スマ勤";
         const newline = '\r\n';
@@ -769,7 +682,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 勤務工数と作業工数に違いがある場合のチェック
-        if (Math.abs(workingHours - totalTaskHours) > 0.01) {
+        if (Math.abs(parseFloat(workingHours) - totalTaskHours) > 0.01) {
             const confirmSend = confirm("勤務時間と入力工数に差分があります。続行しますか？");
         if (!confirmSend) {
                 return;
@@ -793,12 +706,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
-        saveTaskData();  // データを保存
-        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
-        const overtime = (parseFloat(actual) - 7.75).toFixed(2);
-        saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
-            break1StartInput.value, break1EndInput.value,
-            break2StartInput.value, break2EndInput.value);
+        saveTaskDataToStorage();  // データを保存
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
@@ -842,7 +750,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return sw.sync.register('sync');
             });
         }
-        loadTaskData();
+        loadTaskDataFromStorage();
         const savedNewline = localStorage.getItem('newline') || 'CRLF';
         const newlineInput = document.querySelector(
             `input[name="newline"][value="${savedNewline}"]`
