@@ -53,8 +53,12 @@ self.addEventListener('fetch', function(event) {
                         cache.put(event.request, responseToCache);
                     });
                     return response;
-                }).catch(function() {
-                    // ネットワーク障害時はキャッシュにないリソースを空レスポンスで返す
+                }).catch(function(error) {
+                    if (event.request.mode === 'navigate') {
+                        // ページ遷移の失敗は通常のネットワークエラーとして伝える
+                        throw error;
+                    }
+                    // サブリソースのみ、キャッシュにない場合は空レスポンスで返す
                     return new Response('', { status: 408, statusText: 'Network Error' });
                 });
             }
