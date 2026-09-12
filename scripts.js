@@ -310,17 +310,6 @@ document.addEventListener('DOMContentLoaded', function() {
         dateInput.value = formatDate(getDefaultDate());
     }
 
-    /**
-     * 現在時刻をHH:MM形式で取得する。
-     * @returns {string} 現在時刻（例: "14:05"）
-     */
-    function getCurrentTimeHHMM() {
-        const now = getJSTNow();
-        const h = String(now.getHours()).padStart(2, '0');
-        const m = String(now.getMinutes()).padStart(2, '0');
-        return `${h}:${m}`;
-    }
-
     // 時刻の初期値を設定（ローカルストレージから取得）
     startTimeInput.value = localStorage.getItem('startTime') || "08:30";
     endTimeInput.value = localStorage.getItem('endTime') || "17:15";
@@ -329,31 +318,16 @@ document.addEventListener('DOMContentLoaded', function() {
     emailInput.value = localStorage.getItem('email') || 'mail@address.com';
 
     // 時刻変更時にローカルストレージに保存
-    // ピッカーの「クリア」操作で空欄になった場合は、現在時刻に自動で戻す
-    // （ネイティブピッカーが空欄状態から現在時刻の位置を表示するのに合わせる）
-    // 'input'はピッカー操作中（確定前）にも連続して発火し、ピッカー自体の
-    // 動きと競合して分かりにくくなるため使わず、確定時の'change'のみで判定する
+    // ピッカーの「クリア」操作は本来「値を空にする」ためのものなので、
+    // 自動で現在時刻等に補完せず、空欄のまま保持する（入力確認時のバリデーションで検知する）
     startTimeInput.addEventListener('change', function() {
-        if (!startTimeInput.value) {
-            startTimeInput.value = getCurrentTimeHHMM();
-        }
         localStorage.setItem('startTime', startTimeInput.value);
         saveTaskDataToStorage();  // データを保存
     });
 
     endTimeInput.addEventListener('change', function() {
-        if (!endTimeInput.value) {
-            endTimeInput.value = getCurrentTimeHHMM();
-        }
         localStorage.setItem('endTime', endTimeInput.value);
         saveTaskDataToStorage();  // データを保存
-    });
-
-    // 日付欄がピッカーの「クリア」操作で空欄になった場合、今日の日付に自動で戻す
-    dateInput.addEventListener('change', function() {
-        if (!dateInput.value) {
-            setDefaultDate();
-        }
     });
 
     // フォーカスが外れたときにデータを保存する
@@ -578,6 +552,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // 入力チェックボタンのクリックイベントリスナー
     submitButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
+        if (!selectedDate) {
+            alert("日付が入力されていません。");
+            return;
+        }
         const selectedDayOfWeek = getDayOfWeek(selectedDate);
 
         // 年休は始業・終業時刻を使わず固定値でログに登録する（同じ日付があれば上書き）
@@ -590,6 +568,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
+        if (!selectedStartTime || !selectedEndTime) {
+            alert("始業時刻または終業時刻が入力されていません。");
+            return;
+        }
         if (!checkHalfDayInput() || !checkInterruptInput()) {
             return;
         }
@@ -690,6 +672,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const selectedDate = dateInput.value;
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
+        if (!selectedDate || !selectedStartTime || !selectedEndTime) {
+            alert("日付・始業時刻・終業時刻が入力されていません。");
+            return;
+        }
         if (!checkInterruptInput()) {
             return;
         }
