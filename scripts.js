@@ -25,6 +25,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");
+    const interruptLeaveSection = document.getElementById("interrupt-leave-section");
+
+    // date/time入力欄の実際のpx幅を測定して明示指定する（Safari対策）
+    fixNativeInputWidths();
+    window.addEventListener('resize', () => fixNativeInputWidths());
+    if (interruptLeaveSection) {
+        // 折りたたみが開いた際、中の中断時間欄は幅0で測定されているため開いた直後に再測定する
+        interruptLeaveSection.addEventListener('toggle', () => fixNativeInputWidths());
+    }
 
     /**
      * 休暇チェック状態に応じて入力欄の有効／無効を切り替える。

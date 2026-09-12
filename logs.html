@@ -300,6 +300,9 @@
         const now = new Date();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         summaryMonth.value = `${now.getFullYear()}-${month}`;
+        // date/time入力欄の実際のpx幅を測定して明示指定する（Safari対策）
+        fixNativeInputWidths();
+        window.addEventListener('resize', () => fixNativeInputWidths());
         const editDialog = document.getElementById('edit-dialog');
         const editDate = document.getElementById('edit-date');
         const editStart = document.getElementById('edit-start');
@@ -443,6 +446,7 @@
             editDate.type = 'text';
             editDialog.showModal();
             editDate.type = originalType;
+            fixNativeInputWidths(editDialog);
         }
         /**
          * Create table row for a log record with edit option.

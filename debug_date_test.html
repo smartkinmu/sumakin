@@ -20,6 +20,28 @@
     padding: 10px;
     font-size: 16px;
   }
+  /* アプリのカードと全く同じ再現 */
+  .app-card {
+    border: 3px solid red;
+    border-radius: 20px;
+    overflow: hidden;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    background: #202226;
+  }
+  .app-card p { margin: 0 0 8px 0; font-size: 12px; color: #aaa; }
+  .app-card input {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 14px;
+    border: none;
+    background: #30323c;
+    border-radius: 12px;
+    color: #f2f3f5;
+    outline: none;
+    font-size: 16px;
+  }
 </style>
 </head>
 <body>
@@ -40,8 +62,31 @@
     <input type="text" value="テスト">
   </div>
 
+  <div class="app-card">
+    <p>4. アプリと同じ背景色・角丸・overflow:hiddenを付けたinput type=date</p>
+    <input type="date">
+  </div>
+
+  <div class="app-card">
+    <p>5. アプリと同じ背景色・角丸・overflow:hiddenを付けたinput type=time</p>
+    <input type="time">
+  </div>
+
+  <div class="box" id="js-fix-box">
+    <p>6. JSで実測pxを直接指定したinput type=date（新しい対策方式）</p>
+    <input type="date" id="js-fix-input">
+  </div>
+
   <script>
     document.getElementById('w').textContent = document.documentElement.clientWidth;
+
+    const jsFixInput = document.getElementById('js-fix-input');
+    function fixWidth() {
+      const container = jsFixInput.parentElement;
+      jsFixInput.style.width = container.clientWidth + 'px';
+    }
+    fixWidth();
+    window.addEventListener('resize', fixWidth);
   </script>
 </body>
 </html>

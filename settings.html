@@ -32,6 +32,7 @@
             <a href="index.html" style="font-size:0.9em; color:var(--text-muted);">戻る</a>
         </div>
     </div>
+    <script src="common.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const lunchStart = document.getElementById('lunch-start');
@@ -39,6 +40,10 @@
             const eveningStart = document.getElementById('evening-start');
             const eveningEnd = document.getElementById('evening-end');
             const saveBtn = document.getElementById('save-settings');
+
+            // date/time入力欄の実際のpx幅を測定して明示指定する（Safari対策）
+            fixNativeInputWidths();
+            window.addEventListener('resize', () => fixNativeInputWidths());
 
             /**
              * ローカルストレージから休憩時間設定を読み込む。

@@ -112,3 +112,24 @@ function formatDateWithDay(dateStr) {
     const days = ['日', '月', '火', '水', '木', '金', '土'];
     return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}(${days[d.getDay()]})`;
 }
+
+/**
+ * date/time/month入力欄の実際のpx幅を親要素から測定し、明示的に指定する。
+ * SafariはこれらのネイティブUIに対してwidth:100%(パーセンテージ)の
+ * 解決計算が崩れ、親要素の幅を無視して描画されることがあるため、
+ * CSSのパーセンテージ指定に頼らずJSで測定したpx値を直接指定して回避する。
+ * @param {ParentNode} [root=document] - 対象範囲のルート要素
+ * @returns {void}
+ */
+function fixNativeInputWidths(root) {
+    const scope = root || document;
+    const inputs = scope.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
+    inputs.forEach(input => {
+        const container = input.parentElement;
+        if (!container) return;
+        const width = container.clientWidth;
+        if (width > 0) {
+            input.style.width = width + 'px';
+        }
+    });
+}
