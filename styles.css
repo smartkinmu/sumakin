@@ -94,6 +94,12 @@ html[data-font-size="medium"] body {
 html[data-font-size="large"] body {
     zoom: 1.24;
 }
+/* ネイティブのdate/time/month入力はzoom併用でSafari実機上のはみ出しの
+   原因になるため、該当カード・ダイアログは文字サイズ変更の対象外とする */
+html[data-font-size="medium"] .no-font-scale,
+html[data-font-size="large"] .no-font-scale {
+    zoom: 1;
+}
 
 a {
     color: var(--accent);

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-sample-cache-v31';
+const CACHE_NAME = 'pwa-sample-cache-v32';
 
 self.addEventListener('install', event => {
     self.skipWaiting();
