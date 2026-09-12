@@ -573,12 +573,12 @@ document.addEventListener('DOMContentLoaded', function() {
             ).toFixed(2);
         }
         const interruptHours = calculateInterruptHours();
-        let issuesFound = false;
+        // 見つかった問題点はここに集約し、最後にまとめて1回のalertで表示する
+        const issueMessages = [];
         let firstEmptyTaskHoursIndex = -1;
         let allTaskCategoriesFilled = 0;
         if (!isStartTimeBeforeEndTime(selectedStartTime, selectedEndTime)) {
-            alert("始業時刻が終業時刻より遅くなっています。");
-            issuesFound = true;
+            issueMessages.push("始業時刻が終業時刻より遅くなっています。");
         }
         let totalTaskHours = calculateTotalTaskHours();
 
@@ -588,8 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 今日以外の日付が指定された場合の警告表示
         if (selectedDate !== today) {
-            alert("今日以外の日付が指定されています。");
-            issuesFound = true;
+            issueMessages.push("今日以外の日付が指定されています。");
         }
 
         const selectedCount = parseInt(groupCountPicker.value, 10);
@@ -599,8 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const taskHours = document.getElementById(`task-hours${i}`).value;
             const category = document.getElementById(`category${i}`).value;
             if (/^[A-Za-z]/.test(taskNumber) && taskNumber.length !== 10) {
-                alert(`業務${i}の業務コードは10桁で入力してください。`);
-                issuesFound = true;
+                issueMessages.push(`業務${i}の業務コードは10桁で入力してください。`);
             }
             if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                 firstEmptyTaskHoursIndex = i;
@@ -612,8 +610,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 勤務工数が作業工数より少ない場合のチェック
         if (parseFloat(workingHours) < totalTaskHours) {
-            alert("勤務時間が作業工数より少ないです。");
-            issuesFound = true;
+            issueMessages.push("勤務時間が作業工数より少ないです。");
         }
 
         // 業務情報が一つ以上含まれている場合のみ補完処理を実行
@@ -625,15 +622,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 document.getElementById(`task-hours${firstEmptyTaskHoursIndex}`).value = taskHours.toFixed(2);
                 totalTaskHours = calculateTotalTaskHours();
-                alert(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
-                issuesFound = true;
+                issueMessages.push(`勤務時間と入力工数の差分は、業務${firstEmptyTaskHoursIndex}に反映します。`);
             } else {
-                alert("勤務時間と入力工数に差分があります。");
-                issuesFound = true;
+                issueMessages.push("勤務時間と入力工数に差分があります。");
             }
         }
 
-        if (!issuesFound) {
+        if (issueMessages.length > 0) {
+            alert(issueMessages.join('\n'));
+        } else {
             alert("問題は見つかりませんでした。");
         }
 
