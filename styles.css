@@ -140,8 +140,8 @@ a {
     min-width: 0;
 }
 .field-row .input-group {
-    flex: 1 1 132px;
-    min-width: 132px;
+    flex: 1 1 168px;
+    min-width: 168px;
 }
 
 .input-group {
@@ -187,15 +187,23 @@ input[type="number"] {
     flex: 1;
 }
 
-/* date/time/monthはブラウザ既定のappearanceのままだと、実装によっては
-   width:100%を無視してネイティブの最小幅で描画されることがあるため、
-   appearanceをリセットしてCSSで幅を確実に制御できるようにする */
-input[type="date"],
-input[type="time"],
-input[type="month"] {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
+/* iOS Safariはinput[type="date"/"time"]にappearance:noneを適用すると
+   値が空のときに何も描画されなくなる既知の問題があるため、
+   appearanceはブラウザ標準のまま維持する。
+   代わりにダークモードでの文字色を確実に継承させる */
+input[type="date"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="time"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field,
+input[type="time"]::-webkit-datetime-edit-ampm-field {
+    color: inherit;
 }
 
 /* ===== Buttons ===== */
