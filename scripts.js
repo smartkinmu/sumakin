@@ -331,23 +331,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // 時刻変更時にローカルストレージに保存
     // ピッカーの「クリア」操作で空欄になった場合は、現在時刻に自動で戻す
     // （ネイティブピッカーが空欄状態から現在時刻の位置を表示するのに合わせる）
-    startTimeInput.addEventListener('change', function() {
+    // 'change'だけだとSafariでクリア操作を取りこぼすことがあるため'input'も併用する
+    function handleStartTimeChange() {
         if (!startTimeInput.value) {
             startTimeInput.value = getCurrentTimeHHMM();
         }
         localStorage.setItem('startTime', startTimeInput.value);
         saveTaskDataToStorage();  // データを保存
+    }
+    startTimeInput.addEventListener('change', handleStartTimeChange);
+    startTimeInput.addEventListener('input', function() {
+        if (!startTimeInput.value) {
+            handleStartTimeChange();
+        }
     });
 
-    endTimeInput.addEventListener('change', function() {
+    function handleEndTimeChange() {
         if (!endTimeInput.value) {
             endTimeInput.value = getCurrentTimeHHMM();
         }
         localStorage.setItem('endTime', endTimeInput.value);
         saveTaskDataToStorage();  // データを保存
+    }
+    endTimeInput.addEventListener('change', handleEndTimeChange);
+    endTimeInput.addEventListener('input', function() {
+        if (!endTimeInput.value) {
+            handleEndTimeChange();
+        }
     });
 
     // 日付欄がピッカーの「クリア」操作で空欄になった場合、今日の日付に自動で戻す
+    // 'change'だけだとSafariでクリア操作を取りこぼすことがあるため'input'も併用する
+    dateInput.addEventListener('input', function() {
+        if (!dateInput.value) {
+            setDefaultDate();
+        }
+    });
     dateInput.addEventListener('change', function() {
         if (!dateInput.value) {
             setDefaultDate();
