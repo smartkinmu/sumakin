@@ -311,6 +311,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * 「今日」を業務日基準（翌日午前5時までは前日扱い）で取得する。
+     * @param {Date} now - 現在時刻
+     * @returns {string} 業務日基準の今日の日付("YYYY-MM-DD")
+     */
+    function getBusinessToday(now) {
+        const d = new Date(now);
+        if (d.getHours() < 5) {
+            d.setDate(d.getDate() - 1);
+        }
+        return formatDate(d);
+    }
+
+    /**
      * 現在時刻をHH:MM形式で取得する。
      * @returns {string} 現在時刻（例: "14:05"）
      */
@@ -624,9 +637,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         let totalTaskHours = calculateTotalTaskHours();
 
-        // 現在の日付を取得
+        // 現在の日付を取得（翌日午前5時までは前日を「今日」とみなす）
         const now = getJSTNow();
-        const today = formatDate(now);
+        const today = getBusinessToday(now);
 
         // 今日以外の日付が指定された場合の警告表示
         if (selectedDate !== today) {
@@ -727,9 +740,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // 現在の日付を取得
+        // 現在の日付を取得（翌日午前5時までは前日を「今日」とみなす）
         const now = getJSTNow();
-        const today = formatDate(now);
+        const today = getBusinessToday(now);
 
         const selectedDateTime = new Date(`${selectedDate}T${selectedEndTime}`);
         if (selectedDateTime > now) {
