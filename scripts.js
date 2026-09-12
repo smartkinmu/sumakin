@@ -310,6 +310,17 @@ document.addEventListener('DOMContentLoaded', function() {
         dateInput.value = formatDate(getDefaultDate());
     }
 
+    /**
+     * 現在時刻をHH:MM形式で取得する。
+     * @returns {string} 現在時刻（例: "14:05"）
+     */
+    function getCurrentTimeHHMM() {
+        const now = getJSTNow();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        return `${h}:${m}`;
+    }
+
     // 時刻の初期値を設定（ローカルストレージから取得）
     startTimeInput.value = localStorage.getItem('startTime') || "08:30";
     endTimeInput.value = localStorage.getItem('endTime') || "17:15";
@@ -318,16 +329,29 @@ document.addEventListener('DOMContentLoaded', function() {
     emailInput.value = localStorage.getItem('email') || 'mail@address.com';
 
     // 時刻変更時にローカルストレージに保存
-    // ピッカーの「クリア」操作は本来「値を空にする」ためのものなので、
-    // 自動で現在時刻等に補完せず、空欄のまま保持する（入力確認時のバリデーションで検知する）
+    // 'change'はピッカーのチェック（確定）ボタンを押した時にだけ発火する。
+    // クリアして空欄のまま確定した場合は、その時点の現在時刻を入れる。
     startTimeInput.addEventListener('change', function() {
+        if (!startTimeInput.value) {
+            startTimeInput.value = getCurrentTimeHHMM();
+        }
         localStorage.setItem('startTime', startTimeInput.value);
         saveTaskDataToStorage();  // データを保存
     });
 
     endTimeInput.addEventListener('change', function() {
+        if (!endTimeInput.value) {
+            endTimeInput.value = getCurrentTimeHHMM();
+        }
         localStorage.setItem('endTime', endTimeInput.value);
         saveTaskDataToStorage();  // データを保存
+    });
+
+    // 日付欄も同様に、クリアして空欄のまま確定した場合は今日の日付を入れる
+    dateInput.addEventListener('change', function() {
+        if (!dateInput.value) {
+            setDefaultDate();
+        }
     });
 
     // フォーカスが外れたときにデータを保存する
