@@ -109,18 +109,28 @@
     <input type="date">
   </div>
 
+  <div class="app-card" id="js-fix-app-card">
+    <p>9. アプリと全く同じ構造(角丸+overflow:hidden+背景色input)+JS方式を併用</p>
+    <input type="date" id="js-fix-input-2">
+  </div>
+
   <script>
     document.getElementById('w').textContent = document.documentElement.clientWidth;
 
-    const jsFixInput = document.getElementById('js-fix-input');
-    function fixWidth() {
-      const container = jsFixInput.parentElement;
-      const cs = getComputedStyle(container);
-      const paddingX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-      jsFixInput.style.width = (container.clientWidth - paddingX) + 'px';
+    function makeFixer(inputId) {
+      const input = document.getElementById(inputId);
+      return function fixWidth() {
+        const container = input.parentElement;
+        const cs = getComputedStyle(container);
+        const paddingX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+        input.style.width = (container.clientWidth - paddingX) + 'px';
+      };
     }
-    fixWidth();
-    window.addEventListener('resize', fixWidth);
+    const fix1 = makeFixer('js-fix-input');
+    const fix2 = makeFixer('js-fix-input-2');
+    fix1();
+    fix2();
+    window.addEventListener('resize', () => { fix1(); fix2(); });
   </script>
 </body>
 </html>
