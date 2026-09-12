@@ -221,7 +221,24 @@ document.addEventListener('DOMContentLoaded', function() {
             hamburgerMenu.style.display = 'none';
         }
     });
-    
+
+    // 文字サイズ切り替え（メニュー内）
+    const fontSizeButtons = document.querySelectorAll('.font-size-option');
+    function updateFontSizeButtons() {
+        const current = localStorage.getItem('fontSize') || 'small';
+        fontSizeButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.size === current);
+        });
+    }
+    fontSizeButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            localStorage.setItem('fontSize', btn.dataset.size);
+            document.documentElement.setAttribute('data-font-size', btn.dataset.size);
+            updateFontSizeButtons();
+        });
+    });
+    updateFontSizeButtons();
+
     // 更新ボタンのクリックイベントリスナー
     refreshButton.addEventListener('click', async () => {
         if (navigator.serviceWorker?.controller) {

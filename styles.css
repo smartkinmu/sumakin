@@ -86,6 +86,15 @@ body {
     font-size: 17px;
 }
 
+/* 文字サイズ設定（メニューの「文字サイズ」から選択）。
+   px指定が中心のため、rem化せずzoomで全体を一律拡大する簡易方式。 */
+html[data-font-size="medium"] body {
+    zoom: 1.12;
+}
+html[data-font-size="large"] body {
+    zoom: 1.24;
+}
+
 a {
     color: var(--accent);
 }
@@ -360,6 +369,39 @@ button:disabled {
 .hamburger-menu a:hover {
     background-color: var(--surface-muted);
     opacity: 1;
+}
+.menu-font-size {
+    margin: 6px 0 2px 0;
+    padding: 8px 12px 4px 12px;
+    border-top: 1px solid var(--border);
+}
+.menu-font-size-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+.font-size-toggle {
+    display: flex;
+    gap: 6px;
+}
+.hamburger-menu .font-size-toggle button.font-size-option {
+    display: block;
+    width: auto;
+    flex: 1;
+    margin: 0;
+    padding: 7px 0;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    background-color: var(--surface-muted);
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+}
+.hamburger-menu .font-size-toggle button.font-size-option.active {
+    background-color: var(--accent);
+    color: var(--accent-text);
 }
 
 /* ===== Collapsible section ===== */
