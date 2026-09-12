@@ -10,7 +10,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 14px 20px 8px 20px;
+            padding: 10px 20px 6px 20px;
         }
         .topbar .icon-btn {
             width: 36px;
@@ -63,7 +63,7 @@
             flex: 1;
             background: var(--accent-soft);
             border-radius: var(--radius-md);
-            padding: 14px 12px;
+            padding: 11px 12px;
         }
         .stat-tile .stat-label {
             font-size: 11px;
@@ -89,7 +89,7 @@
         .log-card {
             background: var(--surface);
             border-radius: var(--radius-lg);
-            padding: 14px 16px;
+            padding: 12px 14px;
         }
         .log-card .log-top {
             display: flex;
@@ -124,7 +124,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-top: 10px;
+            margin-top: 8px;
         }
         .log-card .log-times {
             font-size: 13px;
@@ -144,8 +144,8 @@
             background: var(--warn-bg);
         }
         .log-card .log-sub {
-            margin-top: 8px;
-            padding-top: 8px;
+            margin-top: 6px;
+            padding-top: 6px;
             border-top: 1px dashed var(--border);
             font-size: 12px;
             color: var(--text-muted);
@@ -177,6 +177,13 @@
             padding: 11px 22px;
             font-size: 13px;
             box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.35);
+        }
+        .undo-fab button:disabled {
+            background: var(--surface-muted);
+            color: var(--text-muted);
+            box-shadow: none;
+            opacity: 1;
+            cursor: not-allowed;
         }
         dialog#edit-dialog {
             border: none;
@@ -235,7 +242,7 @@
         </button>
     </div>
 
-    <div class="container" style="padding-bottom: 90px;">
+    <div class="container" style="padding-bottom: 78px;">
         <div class="card">
             <div class="due-range-row">
                 <div class="input-group narrow">
@@ -333,7 +340,17 @@
         const editSave = document.getElementById('edit-save');
         const editCancel = document.getElementById('edit-cancel');
         const editDelete = document.getElementById('edit-delete');
+        const undoBtn = document.getElementById('undo-delete-btn');
         let originalDate = '';
+
+        /**
+         * UNDOボタンの有効/無効を、復元可能なデータの有無に応じて切り替える。
+         * @returns {void}
+         */
+        function updateUndoState() {
+            undoBtn.disabled = localStorage.getItem('logs_undo') === null;
+        }
+        updateUndoState();
 
         /**
          * Delete record of specified date.
@@ -731,6 +748,7 @@
 
 
         function updateSummary() {
+            updateUndoState();
             const s = dueStart.value;
             const e = dueEnd.value;
             if (!s || !e) return;
