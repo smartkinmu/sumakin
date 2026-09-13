@@ -151,9 +151,10 @@
             color: var(--overtime-text);
             background: var(--overtime-bg);
         }
-        /* 残業がマイナス（勤務時間が不足）の場合は数字を赤くして気づけるようにする */
+        /* 残業がマイナス（勤務時間が不足）の場合は赤で示す。プラスと同じ重みにする */
         .log-card .chip.short {
-            color: var(--danger);
+            color: var(--short-text);
+            background: var(--short-bg);
         }
         .log-card .log-sub {
             margin-top: 6px;

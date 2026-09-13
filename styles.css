@@ -29,6 +29,10 @@
     --overtime-text: oklch(0.45 0.10 210);
     --overtime-bg: #c3e9f4;
     --overtime-bg: oklch(0.90 0.075 210);
+    --short-text: #a32f18;
+    --short-text: oklch(0.47 0.14 25);
+    --short-bg: #fbdcd7;
+    --short-bg: oklch(0.90 0.055 25);
     --fab-bg: #23262b;
     --fab-bg: oklch(0.22 0.02 255);
     --fab-text: #fafafa;
@@ -72,6 +76,10 @@
         --overtime-text: oklch(0.82 0.10 210);
         --overtime-bg: #123c49;
         --overtime-bg: oklch(0.33 0.07 210);
+        --short-text: #f0a08c;
+        --short-text: oklch(0.80 0.12 25);
+        --short-bg: #4a2119;
+        --short-bg: oklch(0.33 0.06 25);
         --fab-bg: #f2f3f5;
         --fab-bg: oklch(0.96 0.006 255);
         --fab-text: #17181c;
@@ -365,9 +373,15 @@ button:disabled {
 .result-tile.overtime .result-tile-value {
     color: var(--overtime-text);
 }
-/* 残業がマイナス（勤務時間が不足）の場合は数字を赤くして気づけるようにする */
+/* 残業がマイナス（勤務時間が不足）の場合は赤で示す。
+   基準からのズレという点はプラスと同じなので、水色と同じ濃さにして
+   同じ重みで並ぶようにする */
+.result-tile.short {
+    background: var(--short-bg);
+}
+.result-tile.short .result-tile-label,
 .result-tile.short .result-tile-value {
-    color: var(--danger);
+    color: var(--short-text);
 }
 .result-note {
     margin-top: 9px;
