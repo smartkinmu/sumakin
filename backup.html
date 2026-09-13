@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <script>document.documentElement.setAttribute('data-font-size', localStorage.getItem('fontSize') || 'small');</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>バックアップ</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .topbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px 8px 20px;
+        }
+        .topbar .icon-btn {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            flex: none;
+            padding: 0;
+            background: var(--surface-muted);
+            color: var(--text);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: none;
+        }
+        .topbar h1 {
+            font-size: 1.176rem;
+            font-weight: 700;
+            margin: 0;
+            flex-grow: 1;
+        }
+        .card h2 {
+            font-size: 0.941rem;
+            font-weight: 700;
+            margin: 0;
+            color: var(--text);
+        }
+        .card p {
+            margin: 0;
+            font-size: 0.824rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+        .status {
+            background: var(--surface-muted);
+            border-radius: var(--radius-sm);
+            padding: 8px 12px;
+            font-size: 0.794rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+        #restore-button {
+            background: transparent;
+            color: var(--accent);
+            border: 1.5px solid var(--accent);
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="refresh-indicator">更新中...</div>
+    <div class="topbar">
+        <a href="index.html" class="icon-btn" aria-label="戻る">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <h1>バックアップ</h1>
+        <button id="refresh-button" class="icon-btn" aria-label="更新">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+        </button>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>書き出し</h2>
+            <p>ログ・設定・業務内容をまとめて1つのファイルに保存します。ホーム画面からアプリを削除するとデータも消えるため、定期的な保存をおすすめします。</p>
+            <div class="status" id="backup-status">まだバックアップしていません</div>
+            <button id="export-button">バックアップを書き出す</button>
+        </div>
+
+        <div class="card">
+            <h2>読み込み</h2>
+            <p>書き出したファイルを選ぶと、その時点の内容に戻します。現在のデータは上書きされます。</p>
+            <input type="file" id="restore-file" accept="application/json,.json" hidden>
+            <button id="restore-button">バックアップから復元</button>
+        </div>
+    </div>
+
+    <script src="common.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const exportButton = document.getElementById('export-button');
+            const restoreButton = document.getElementById('restore-button');
+            const restoreFile = document.getElementById('restore-file');
+            const backupStatus = document.getElementById('backup-status');
+
+            // 「更新」ボタンと画面を下に引く操作で、キャッシュを消して最新版を取得する
+            document.getElementById('refresh-button').addEventListener('click', refreshApp);
+            setupPullToRefresh();
+
+            /**
+             * 最終バックアップ日時の表示を更新する。
+             * @returns {void}
+             */
+            function updateStatus() {
+                const saved = localStorage.getItem('lastBackupAt');
+                const logs = parseLogsToMap(localStorage.getItem('logs'));
+                if (!saved) {
+                    backupStatus.textContent = `まだバックアップしていません（現在のログ: ${logs.size}件）`;
+                    return;
+                }
+                const d = new Date(saved);
+                backupStatus.textContent =
+                    `最終バックアップ: ${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} `
+                    + `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+                    + `（現在のログ: ${logs.size}件）`;
+            }
+
+            /**
+             * バックアップファイルを書き出す。
+             * 共有シート(navigator.share)が使える場合はそちらを優先し、
+             * 使えない場合はダウンロードで保存する。
+             * @returns {Promise<void>}
+             */
+            async function exportBackup() {
+                const backup = createBackup();
+                const text = JSON.stringify(backup, null, 2);
+                const now = new Date();
+                const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const filename = `sumakin-backup-${stamp}.json`;
+                const file = new File([text], filename, { type: 'application/json' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({ files: [file], title: 'スマ勤バックアップ' });
+                    } catch (error) {
+                        // ユーザーが共有をキャンセルした場合は何もしない
+                        if (error.name === 'AbortError') return;
+                        throw error;
+                    }
+                } else {
+                    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = filename;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                }
+                localStorage.setItem('lastBackupAt', new Date().toISOString());
+                updateStatus();
+            }
+
+            /**
+             * 選択されたバックアップファイルを読み込んで復元する。
+             * @param {File} file - 選択されたファイル
+             * @returns {Promise<void>}
+             */
+            async function restoreFromFile(file) {
+                let backup;
+                try {
+                    backup = JSON.parse(await file.text());
+                } catch (error) {
+                    alert('ファイルを読み込めませんでした。バックアップファイルを選んでください。');
+                    return;
+                }
+                if (!isValidBackup(backup)) {
+                    alert('スマ勤のバックアップファイルではありません。');
+                    return;
+                }
+                const currentLogs = parseLogsToMap(localStorage.getItem('logs'));
+                const message = `以下の内容に復元します。\n\n${summarizeBackup(backup).join('\n')}\n\n`
+                    + `現在のデータ（ログ${currentLogs.size}件と設定）は上書きされます。\n\n復元しますか？`;
+                if (!confirm(message)) {
+                    return;
+                }
+                restoreBackup(backup);
+                alert('復元しました。');
+                location.href = 'index.html';
+            }
+
+            exportButton.addEventListener('click', () => {
+                exportBackup().catch(() => alert('書き出しに失敗しました。'));
+            });
+            restoreButton.addEventListener('click', () => restoreFile.click());
+            restoreFile.addEventListener('change', () => {
+                const file = restoreFile.files[0];
+                if (file) {
+                    restoreFromFile(file);
+                }
+                restoreFile.value = '';
+            });
+
+            updateStatus();
+        });
+    </script>
+</body>
+</html>

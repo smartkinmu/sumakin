@@ -205,6 +205,75 @@ function setupPullToRefresh() {
     });
 }
 
+/** バックアップに含めない一時的なキー（他タブへの通知用など） */
+const BACKUP_EXCLUDED_KEYS = ['refreshLogs'];
+
+/**
+ * localStorageの内容をバックアップ用のオブジェクトにまとめる。
+ * @returns {{app: string, format: number, exportedAt: string, appVersion: string, data: Object}}
+ */
+function createBackup() {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (BACKUP_EXCLUDED_KEYS.includes(key)) continue;
+        data[key] = localStorage.getItem(key);
+    }
+    const versionEl = document.querySelector('.version');
+    return {
+        app: 'sumakin',
+        format: 1,
+        exportedAt: new Date().toISOString(),
+        appVersion: versionEl ? versionEl.textContent.trim() : '',
+        data,
+    };
+}
+
+/**
+ * バックアップの内容を要約する（復元前の確認表示に使用）。
+ * @param {Object} backup - createBackup()が作る形式のオブジェクト
+ * @returns {string[]} 表示用の行
+ */
+function summarizeBackup(backup) {
+    const lines = [];
+    if (backup.exportedAt) {
+        const d = new Date(backup.exportedAt);
+        if (!isNaN(d)) {
+            lines.push(`書き出し日時: ${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
+        }
+    }
+    const logs = parseLogsToMap(backup.data ? backup.data.logs : '');
+    if (logs.size > 0) {
+        const dates = [...logs.keys()].sort();
+        lines.push(`ログ: ${logs.size}件（${formatDateWithDay(dates[0])} 〜 ${formatDateWithDay(dates[dates.length - 1])}）`);
+    } else {
+        lines.push('ログ: 0件');
+    }
+    return lines;
+}
+
+/**
+ * バックアップの形式を検証する。
+ * @param {*} backup - 読み込んだJSON
+ * @returns {boolean} スマ勤のバックアップとして扱えるか
+ */
+function isValidBackup(backup) {
+    return !!backup && backup.app === 'sumakin'
+        && !!backup.data && typeof backup.data === 'object' && !Array.isArray(backup.data);
+}
+
+/**
+ * バックアップの内容をlocalStorageへ書き戻す。
+ * @param {Object} backup - createBackup()が作る形式のオブジェクト
+ * @returns {void}
+ */
+function restoreBackup(backup) {
+    Object.keys(backup.data).forEach(key => {
+        if (BACKUP_EXCLUDED_KEYS.includes(key)) return;
+        localStorage.setItem(key, backup.data[key]);
+    });
+}
+
 /**
  * 2項目を横並びにしている.field-rowについて、入力欄が本来必要とする幅を実測し、
  * 横並びでは収まらない場合だけ縦積み(.stacked)に切り替える。
