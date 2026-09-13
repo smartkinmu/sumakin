@@ -307,14 +307,14 @@ button:disabled {
 
 .main-buttons {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
     width: 100%;
 }
 
 .main-buttons button {
-    font-size: 0.941rem;
-    padding: 14px 0;
+    font-size: 0.824rem;
+    padding: 12px 0;
     min-width: 0;
     max-width: none;
     min-height: 0;
@@ -323,23 +323,36 @@ button:disabled {
     margin: 0;
 }
 
-#submit-button {
+#submit-button,
+#email-button,
+#calc-button {
     flex: 1;
     box-shadow: 0 8px 20px -8px var(--accent-shadow);
 }
 
-#email-button {
-    flex: 1;
-    box-shadow: 0 8px 20px -8px var(--accent-shadow);
+/* 計算は確認・送信を伴わない補助的な操作のため控えめな見た目にする */
+#calc-button {
+    background: var(--surface-muted);
+    color: var(--text);
+    box-shadow: none;
+}
+
+/* 狭い画面で文字サイズを大きくするとボタン名が収まらないため、
+   文字を小さくせず2行に折り返す */
+@media (max-width: 360px) {
+    .main-buttons button {
+        white-space: normal;
+        line-height: 1.25;
+    }
 }
 
 #menu-button {
     font-size: 1.1em;
     padding: 0;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
     margin: 0;
     flex: none;
     background: var(--surface-muted);

@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultDiv = document.getElementById('result');
     const submitButton = document.getElementById('submit-button');
     const emailButton = document.getElementById('email-button');
+    const calcButton = document.getElementById('calc-button');
     const refreshButton = document.getElementById('refresh-button');
     const copyTask1Button = document.getElementById('copy-task1-button');
     const menuButton = document.getElementById('menu-button');
@@ -68,6 +69,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // 休暇登録はすべて「入力確認」ボタンから行うため、休暇選択時も有効のままにする
         submitButton.disabled = false;
+        // 年休は始業・終業時刻を使わないため計算もできない
+        calcButton.disabled = annualLeaveCheckbox.checked;
         // 休暇の日はメールを送信しないため、メール作成ボタンを無効化する
         emailButton.disabled = annualLeaveCheckbox.checked ||
             amLeaveCheckbox.checked || pmLeaveCheckbox.checked;
@@ -461,6 +464,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * 休暇の選択状態を加味した勤務時間(100進数)を求める。中断時間は差し引かない。
+     * @param {string} start - 始業時刻 HH:MM
+     * @param {string} end - 終業時刻 HH:MM
+     * @returns {string} 勤務時間（小数2桁）
+     */
+    function calculateWorkingHoursWithLeave(start, end) {
+        let workingHours = calculateWorkingHours(start, end);
+        const lunch = getBreakTimes()[0];
+        if (amLeaveCheckbox.checked) {
+            workingHours = (
+                parseFloat(calculateWorkingHours('08:30', lunch.start)) +
+                parseFloat(workingHours)
+            ).toFixed(2);
+        } else if (pmLeaveCheckbox.checked) {
+            workingHours = (
+                parseFloat(calculateWorkingHours(lunch.end, '17:15')) +
+                parseFloat(workingHours)
+            ).toFixed(2);
+        }
+        return workingHours;
+    }
+
+    /**
      * 半休時に入力された時刻が適切か確認する。
      * @returns {boolean} 入力が適切なら true
      */
@@ -629,21 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!checkHalfDayInput() || !checkInterruptInput()) {
             return;
         }
-        let workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
-        const lunch = getBreakTimes()[0];
-        const lunchStart = lunch.start;
-        const lunchEnd = lunch.end;
-        if (amLeaveCheckbox.checked) {
-            workingHours = (
-                parseFloat(calculateWorkingHours('08:30', lunchStart)) +
-                parseFloat(workingHours)
-            ).toFixed(2);
-        } else if (pmLeaveCheckbox.checked) {
-            workingHours = (
-                parseFloat(calculateWorkingHours(lunchEnd, '17:15')) +
-                parseFloat(workingHours)
-            ).toFixed(2);
-        }
+        const workingHours = calculateWorkingHoursWithLeave(selectedStartTime, selectedEndTime);
         const interruptHours = calculateInterruptHours();
         // 見つかった問題点はここに集約し、最後にまとめて1回のalertで表示する
         const issueMessages = [];
@@ -714,6 +726,30 @@ document.addEventListener('DOMContentLoaded', function() {
             break1StartInput.value, break1EndInput.value,
             break2StartInput.value, break2EndInput.value);
         saveTaskDataToStorage();  // データを保存
+    });
+
+    // 計算ボタンのクリックイベントリスナー
+    // 始業・終業・中断時間(60進数)から勤務・中断・残業時間(100進数)を求めて表示するだけで、
+    // ログの登録もメールの作成も行わない
+    calcButton.addEventListener('click', function() {
+        const start = startTimeInput.value;
+        const end = endTimeInput.value;
+        if (!start || !end) {
+            alert("始業時刻または終業時刻が入力されていません。");
+            return;
+        }
+        if (!isStartTimeBeforeEndTime(start, end)) {
+            alert("始業時刻が終業時刻より遅くなっています。");
+            return;
+        }
+        if (!checkInterruptInput()) {
+            return;
+        }
+        const workingHours = calculateWorkingHoursWithLeave(start, end);
+        const interruptHours = calculateInterruptHours();
+        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
+        const overtime = (parseFloat(actual) - 7.75).toFixed(2);
+        resultDiv.innerHTML = `<p>始業 ${start} / 終業 ${end}<br>勤務時間 ${actual} 時間<br>中断時間 ${interruptHours.toFixed(2)} 時間<br>残業時間 ${overtime} 時間</p>`;
     });
 
     // メール作成ボタンのクリックイベントリスナー
