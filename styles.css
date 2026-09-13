@@ -171,15 +171,13 @@ a {
 .field-row .input-group:first-child {
     margin-right: 10px;
 }
-/* 文字サイズを大きくすると横並び2列では幅が足りずネイティブの
-   date/time入力がはみ出すため、中・大では縦積みにして全幅を確保する */
-html[data-font-size="medium"] .field-row .input-group,
-html[data-font-size="large"] .field-row .input-group {
+/* 横並びでは幅が足りない場合のみ、JS(layoutFieldRows)が.stackedを付けて
+   縦積みに切り替える。端末幅・文字サイズ・時刻表記に応じて自動で決まる */
+.field-row.stacked .input-group {
     display: block;
     width: 100%;
 }
-html[data-font-size="medium"] .field-row .input-group:first-child,
-html[data-font-size="large"] .field-row .input-group:first-child {
+.field-row.stacked .input-group:first-child {
     margin-right: 0;
     margin-bottom: 9px;
 }

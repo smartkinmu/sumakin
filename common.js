@@ -114,14 +114,6 @@ function formatDateWithDay(dateStr) {
 }
 
 /**
- * date/time/month入力欄の実際のpx幅を親要素から測定し、明示的に指定する。
- * SafariはこれらのネイティブUIに対してwidth:100%(パーセンテージ)の
- * 解決計算が崩れ、親要素の幅を無視して描画されることがあるため、
- * CSSのパーセンテージ指定に頼らずJSで測定したpx値を直接指定して回避する。
- * @param {ParentNode} [root=document] - 対象範囲のルート要素
- * @returns {void}
- */
-/**
  * ログ1行(CSV形式)を確認ダイアログ表示用の短い文字列に変換する。
  * @param {string} line - "date,start,end,..."形式のログ1行
  * @returns {string} 例: "2024-1-15(月) 08:30〜17:15"
@@ -213,8 +205,50 @@ function setupPullToRefresh() {
     });
 }
 
+/**
+ * 2項目を横並びにしている.field-rowについて、入力欄が本来必要とする幅を実測し、
+ * 横並びでは収まらない場合だけ縦積み(.stacked)に切り替える。
+ * ネイティブのdate/time入力の必要幅は端末・文字サイズ・時刻表記(12/24時間)で
+ * 変わるため、固定のルールではなく実測で判断する。
+ * @param {ParentNode} [root=document] - 対象範囲のルート要素
+ * @returns {void}
+ */
+function layoutFieldRows(root) {
+    const scope = root || document;
+    const rows = scope.querySelectorAll('.field-row');
+    rows.forEach(row => {
+        if (row.clientWidth === 0) return;  // 折りたたみ中などで測れない場合は据え置く
+        const groups = row.querySelectorAll('.input-group');
+        if (groups.length < 2) return;
+        const gap = 10;
+        row.classList.remove('stacked');
+        let needed = 0;
+        groups.forEach(group => {
+            const input = group.querySelector('input');
+            if (!input) return;
+            const saved = input.style.width;
+            input.style.width = 'max-content';
+            needed = Math.max(needed, input.getBoundingClientRect().width);
+            input.style.width = saved;
+        });
+        if (needed > (row.clientWidth - gap) / 2) {
+            row.classList.add('stacked');
+        }
+    });
+}
+
+/**
+ * date/time/month入力欄の実際のpx幅を親要素から測定し、明示的に指定する。
+ * SafariはこれらのネイティブUIに対してwidth:100%(パーセンテージ)の
+ * 解決計算が崩れ、親要素の幅を無視して描画されることがあるため、
+ * CSSのパーセンテージ指定に頼らずJSで測定したpx値を直接指定して回避する。
+ * 測定前に layoutFieldRows() で横並び/縦積みを確定させる。
+ * @param {ParentNode} [root=document] - 対象範囲のルート要素
+ * @returns {void}
+ */
 function fixNativeInputWidths(root) {
     const scope = root || document;
+    layoutFieldRows(scope);
     const inputs = scope.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
     inputs.forEach(input => {
         // 文字サイズ変更でレイアウト幅が変わるため、一度解除してから測り直す
