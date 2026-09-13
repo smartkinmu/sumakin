@@ -205,6 +205,39 @@ function setupPullToRefresh() {
     });
 }
 
+/**
+ * ログ1行(CSV)の項目位置。
+ * 日付,始業,終業,勤務時間,残業時間,中断開始1,中断終了1,中断開始2,中断終了2,メール作成済み
+ * 最後のメール作成済み項目は後から追加したため、古いログでは存在しない（未作成として扱う）。
+ */
+const MAILED_INDEX = 9;
+
+/**
+ * 指定日のログに「メール作成済み」の記録を付ける。
+ * 対象日のログが無い場合は何もしない（メール作成はログを登録しないため）。
+ * UNDO用の logs_undo は書き換えない。表示上の目印であり、
+ * 直前の登録・削除を元に戻すための記録を潰さないようにするため。
+ * @param {string} date - YYYY-MM-DD形式の日付
+ * @returns {void}
+ */
+function markLogAsMailed(date) {
+    const existing = localStorage.getItem('logs');
+    if (!existing) return;
+    const lines = existing.split('\n');
+    const index = lines.findIndex(line => line.split(',')[0] === date);
+    if (index === -1) return;
+    const parts = lines[index].split(',');
+    while (parts.length <= MAILED_INDEX) {
+        parts.push('');
+    }
+    if (parts[MAILED_INDEX] === '1') return;
+    parts[MAILED_INDEX] = '1';
+    lines[index] = parts.join(',');
+    const updated = lines.join('\n');
+    localStorage.setItem('logs', updated);
+    localStorage.setItem('logs_backup', updated);
+}
+
 /** バックアップに含めない一時的なキー（他タブへの通知用など） */
 const BACKUP_EXCLUDED_KEYS = ['refreshLogs'];
 

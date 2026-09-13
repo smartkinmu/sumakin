@@ -112,6 +112,12 @@
             color: var(--text-muted);
             margin-left: 6px;
         }
+        .log-card .mail-mark {
+            display: inline-flex;
+            vertical-align: middle;
+            margin-left: 7px;
+            color: var(--accent);
+        }
         .log-card .edit-btn {
             width: 30px;
             height: 30px;
@@ -467,7 +473,11 @@
                 if (d === oldDate) {
                     const work = calculateWorkingHours(start, end);
                     const overtime = (parseFloat(work) - 7.75).toFixed(2);
-                    lines[i] = `${newDate},${start},${end},${work},${overtime}`;
+                    // 中断時間とメール作成済みの記録は編集で失わないよう引き継ぐ
+                    const kept = lines[i].split(',');
+                    lines[i] = [newDate, start, end, work, overtime,
+                        kept[5] || '', kept[6] || '', kept[7] || '', kept[8] || '',
+                        kept[MAILED_INDEX] || ''].join(',');
                     found = true;
                     break;
                 }
@@ -518,7 +528,7 @@
          * @returns {DocumentFragment} Created rows
          */
 
-        function createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e) {
+        function createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e, mailed) {
             const card = document.createElement('div');
             card.className = 'log-card';
 
@@ -532,6 +542,14 @@
             dateSpan.className = 'log-date';
             dateSpan.textContent = dowMatch ? dowMatch[1] : dateWithDay;
             dateWrap.appendChild(dateSpan);
+            if (mailed) {
+                // メール作成済みの目印（入力確認だけの日と区別するため）
+                const mailMark = document.createElement('span');
+                mailMark.className = 'mail-mark';
+                mailMark.title = 'メール作成済み';
+                mailMark.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><polyline points="3 7 12 13 21 7"/></svg>';
+                dateSpan.appendChild(mailMark);
+            }
             if (dowMatch) {
                 const dowSpan = document.createElement('span');
                 dowSpan.className = 'log-dow';
@@ -614,7 +632,8 @@
                 const b1e = parts[6] || '';
                 const b2s = parts[7] || '';
                 const b2e = parts[8] || '';
-                daily[date] = { start, end, work, overtime, b1s, b1e, b2s, b2e };
+                const mailed = parts[MAILED_INDEX] || '';
+                daily[date] = { start, end, work, overtime, b1s, b1e, b2s, b2e, mailed };
                 lines.push(parsed);
             });
             if (lines.length > 0) {
@@ -623,8 +642,8 @@
                 localStorage.removeItem('logs');
             }
             Object.keys(daily).sort().forEach(date => {
-                const { start, end, work, overtime, b1s, b1e, b2s, b2e } = daily[date];
-                const card = createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e);
+                const { start, end, work, overtime, b1s, b1e, b2s, b2e, mailed } = daily[date];
+                const card = createRow(date, start, end, work, overtime, b1s, b1e, b2s, b2e, mailed);
                 logBody.appendChild(card);
             });
         } else {
@@ -730,9 +749,10 @@
                 const b1e = parts[6] || '';
                 const b2s = parts[7] || '';
                 const b2e = parts[8] || '';
+                const mailed = parts[MAILED_INDEX] || '';
                 const d = new Date(date);
                 if (d >= start && d <= end) {
-                    daily[date] = { start: s, end: e, work, overtime, b1s, b1e, b2s, b2e };
+                    daily[date] = { start: s, end: e, work, overtime, b1s, b1e, b2s, b2e, mailed };
                 }
             });
 
@@ -746,7 +766,7 @@
 
             rows.forEach(r => {
                 const rowEl = createRow(r.date, r.start, r.end, r.work, r.overtime,
-                    r.b1s, r.b1e, r.b2s, r.b2e);
+                    r.b1s, r.b1e, r.b2s, r.b2e, r.mailed);
                 logBody.appendChild(rowEl);
             });
         }

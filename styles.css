@@ -270,17 +270,69 @@ button:disabled {
     cursor: not-allowed;
 }
 
+/* ===== 入力確認・計算の結果表示 ===== */
+/* 数値の見せ方はログ表示画面の集計タイルに合わせている */
 .result {
-    background: var(--accent-soft);
+    background: var(--surface);
     border-radius: var(--radius-lg);
     padding: 14px 16px;
     margin-top: 0;
-    font-size: 0.95em;
-    line-height: 1.5;
     color: var(--text);
 }
 .result:empty {
     display: none;
+}
+.result-head {
+    font-size: 0.824rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+.result-message {
+    font-size: 0.882rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.result-tiles {
+    display: flex;
+    gap: 8px;
+}
+.result-tile {
+    flex: 1;
+    background: var(--accent-soft);
+    border-radius: var(--radius-md);
+    padding: 9px 10px;
+}
+.result-tile-label {
+    font-size: 0.706rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 4px;
+}
+.result-tile-value {
+    font-size: 1.176rem;
+    font-weight: 800;
+    color: var(--text);
+}
+.result-tile-value .unit {
+    font-size: 0.765rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 1px;
+}
+/* 残業が発生している場合のみ、ログ画面と同じ配色で強調する */
+.result-tile.warn {
+    background: var(--warn-bg);
+}
+.result-tile.warn .result-tile-label {
+    color: var(--warn-text);
+}
+.result-note {
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+    font-size: 0.765rem;
+    color: var(--text-muted);
 }
 
 #refresh-indicator {

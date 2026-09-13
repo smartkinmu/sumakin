@@ -109,11 +109,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // logs_undo に保存し、ログ表示画面のUNDOボタンで復元できるようにする
     function saveLog(date, start, end, work, overtime,
                      b1s, b1e, b2s, b2e) {
-        const line = `${date},${start},${end},${work},${overtime},${b1s || ''},${b1e || ''},${b2s || ''},${b2e || ''}`;
         const existing = localStorage.getItem('logs');
         localStorage.setItem('logs_undo', existing || '');
         const lines = existing ? existing.split('\n') : [];
         const index = lines.findIndex(l => l.split(',')[0] === date);
+        // メール作成済みの記録は、内容を登録し直しても引き継ぐ
+        const mailed = index !== -1 ? (lines[index].split(',')[MAILED_INDEX] || '') : '';
+        const line = `${date},${start},${end},${work},${overtime},${b1s || ''},${b1e || ''},${b2s || ''},${b2e || ''},${mailed}`;
         if (index !== -1) {
             lines[index] = line;
         } else {
@@ -275,13 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         saveTaskDataToStorage();
     });
-
-    // 曜日を取得する関数
-    function getDayOfWeek(dateString) {
-        const days = ['日', '月', '火', '水', '木', '金', '土'];
-        const date = new Date(dateString);
-        return days[date.getDay()];
-    }
 
     // 日付入力の初期値を設定
     function getNearestWeekday(date) {
@@ -464,6 +459,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * 計算結果を結果表示エリアに描画する。入力確認と計算で共通に使用する。
+     * @param {string} head - 見出し（日付や始業→終業）
+     * @param {string} actual - 勤務時間(100進数)
+     * @param {string} interrupt - 中断時間(100進数)
+     * @param {string} overtime - 残業時間(100進数)
+     * @param {string} [note] - 補足行（入力工数など）
+     * @returns {void}
+     */
+    function renderResult(head, actual, interrupt, overtime, note) {
+        // 残業が発生している場合のみ強調する（ログ表示画面と同じ基準）
+        const warnClass = parseFloat(overtime) > 0 ? ' warn' : '';
+        resultDiv.innerHTML = `
+            <div class="result-head">${head}</div>
+            <div class="result-tiles">
+                <div class="result-tile">
+                    <div class="result-tile-label">勤務時間</div>
+                    <div class="result-tile-value">${actual}<span class="unit">h</span></div>
+                </div>
+                <div class="result-tile">
+                    <div class="result-tile-label">中断</div>
+                    <div class="result-tile-value">${interrupt}<span class="unit">h</span></div>
+                </div>
+                <div class="result-tile${warnClass}">
+                    <div class="result-tile-label">残業</div>
+                    <div class="result-tile-value">${overtime}<span class="unit">h</span></div>
+                </div>
+            </div>
+            ${note ? `<div class="result-note">${note}</div>` : ''}`;
+    }
+
+    /**
      * 休暇の選択状態を加味した勤務時間(100進数)を求める。中断時間は差し引かない。
      * @param {string} start - 始業時刻 HH:MM
      * @param {string} end - 終業時刻 HH:MM
@@ -636,12 +662,12 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("日付が入力されていません。");
             return;
         }
-        const selectedDayOfWeek = getDayOfWeek(selectedDate);
 
         // 年休は始業・終業時刻を使わず固定値でログに登録する（同じ日付があれば上書き）
         if (annualLeaveCheckbox.checked) {
             saveLog(selectedDate, '年休', '年休', '7.75', '0.00', '', '', '', '');
-            resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>年休として登録しました</p>`;
+            resultDiv.innerHTML = `<div class="result-head">${formatDateWithDay(selectedDate)}</div>`
+                + '<div class="result-message">年休として登録しました</div>';
             saveTaskDataToStorage();
             return;
         }
@@ -720,7 +746,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
-        resultDiv.innerHTML = `<p>日付 ${selectedDate} (${selectedDayOfWeek})<br>始業 ${selectedStartTime}<br>終業 ${selectedEndTime}<br>勤務時間 ${actual}（入力時間 ${totalTaskHours.toFixed(2)} 時間）<br>中断時間 ${interruptHours.toFixed(2)} 時間<br>残業時間 ${overtime} 時間</p>`;
+        renderResult(
+            `${formatDateWithDay(selectedDate)}　${selectedStartTime} → ${selectedEndTime}`,
+            actual, interruptHours.toFixed(2), overtime,
+            `入力工数 ${totalTaskHours.toFixed(2)} 時間`
+        );
         // 入力確認の時点でログに保存する（同じ日付があれば上書き）
         saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
             break1StartInput.value, break1EndInput.value,
@@ -749,7 +779,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const interruptHours = calculateInterruptHours();
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
-        resultDiv.innerHTML = `<p>始業 ${start} / 終業 ${end}<br>勤務時間 ${actual} 時間<br>中断時間 ${interruptHours.toFixed(2)} 時間<br>残業時間 ${overtime} 時間</p>`;
+        renderResult(`${start} → ${end}`, actual, interruptHours.toFixed(2), overtime);
     });
 
     // メール作成ボタンのクリックイベントリスナー
@@ -818,6 +848,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskDataToStorage();  // データを保存
+        // 入力確認だけなのかメールまで作成したのかを後から見分けられるよう、
+        // ログ表示画面用に「メール作成済み」を記録する
+        markLogAsMailed(selectedDate);
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
