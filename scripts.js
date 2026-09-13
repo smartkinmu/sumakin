@@ -423,38 +423,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * 中断時間の入力の問題を集めて返す。アラートは出さないため、
+     * 入力中の表示でも同じ判定を使える。
+     * @param {number} start - 始業時刻(分)
+     * @param {number} end - 終業時刻(分)
+     * @returns {string[]} 問題の説明（問題が無ければ空配列）
+     */
+    function collectInterruptProblems(start, end) {
+        const problems = [];
+        const ranges = [];
+        const pairs = [
+            [break1StartInput, break1EndInput, '(1)'],
+            [break2StartInput, break2EndInput, '(2)']
+        ];
+        pairs.forEach(([startInput, endInput, label]) => {
+            if (!startInput.value || !endInput.value) return;
+            const s = toMinutes(startInput.value);
+            const e = toMinutes(endInput.value);
+            if (s >= e) {
+                problems.push(`中断時間${label}の開始が終了より後になっています`);
+            } else if (s < start || e > end) {
+                problems.push(`中断時間${label}が勤務時間外です`);
+            } else {
+                ranges.push({ s, e });
+            }
+        });
+        if (ranges.length === 2
+            && Math.max(ranges[0].s, ranges[1].s) < Math.min(ranges[0].e, ranges[1].e)) {
+            problems.push('中断時間が重複しています');
+        }
+        return problems;
+    }
+
+    /**
      * 中断時間の入力が勤務時間内かつ重複していないか確認する。
      * @returns {boolean} 妥当なら true
      */
     function checkInterruptInput() {
-        const start = toMinutes(startTimeInput.value);
-        const end = toMinutes(endTimeInput.value);
-        const ranges = [];
-        if (break1StartInput.value && break1EndInput.value) {
-            const s = toMinutes(break1StartInput.value);
-            const e = toMinutes(break1EndInput.value);
-            if (s < start || e > end || s >= e) {
-                alert('中断時間(1)が勤務時間外です');
-                return false;
-            }
-            ranges.push({ s, e });
-        }
-        if (break2StartInput.value && break2EndInput.value) {
-            const s = toMinutes(break2StartInput.value);
-            const e = toMinutes(break2EndInput.value);
-            if (s < start || e > end || s >= e) {
-                alert('中断時間(2)が勤務時間外です');
-                return false;
-            }
-            ranges.push({ s, e });
-        }
-        if (ranges.length === 2) {
-            const r1 = ranges[0];
-            const r2 = ranges[1];
-            if (Math.max(r1.s, r2.s) < Math.min(r1.e, r2.e)) {
-                alert('中断時間が重複しています');
-                return false;
-            }
+        const problems = collectInterruptProblems(
+            toMinutes(startTimeInput.value), toMinutes(endTimeInput.value));
+        if (problems.length > 0) {
+            alert(problems.join('\n'));
+            return false;
         }
         return true;
     }
@@ -514,6 +524,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * 計算できない理由を結果表示エリアに示す。数値は「--.--」とし、
+     * 見出しを警告色にして気づけるようにする。
+     * @param {string} message - 理由
+     * @returns {void}
+     */
+    function renderResultProblem(message) {
+        renderResult(message, '--.--', '--.--', '--.--');
+        const head = resultDiv.querySelector('.result-head');
+        if (head) {
+            head.classList.add('problem');
+        }
+    }
+
+    /**
      * 現在の入力内容から計算結果を常時表示する。
      * 入力途中でも状況が分かるよう、不備がある場合もアラートは出さず
      * 見出しで理由を示して数値は「--.--」とする。
@@ -528,11 +552,17 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         if (!start || !end) {
-            renderResult('始業・終業時刻を入力してください', '--.--', '--.--', '--.--');
+            renderResultProblem('始業・終業時刻を入力してください');
             return;
         }
         if (!isStartTimeBeforeEndTime(start, end)) {
-            renderResult('始業時刻が終業時刻より遅くなっています', '--.--', '--.--', '--.--');
+            renderResultProblem('始業時刻が終業時刻より遅くなっています');
+            return;
+        }
+        // 中断時間が不正なまま計算すると誤った数値を見せてしまうため、理由を示す
+        const problems = collectInterruptProblems(toMinutes(start), toMinutes(end));
+        if (problems.length > 0) {
+            renderResultProblem(problems[0]);
             return;
         }
         const workingHours = calculateWorkingHoursWithLeave(start, end);

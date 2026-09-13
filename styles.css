@@ -288,6 +288,10 @@ button:disabled {
     color: var(--text-muted);
     margin-bottom: 10px;
 }
+/* 計算できない理由を示している場合は見落とさないよう警告色にする */
+.result-head.problem {
+    color: var(--warn-text);
+}
 .result-message {
     font-size: 0.882rem;
     font-weight: 700;
@@ -364,9 +368,12 @@ button:disabled {
     width: 100%;
 }
 
+/* ボタン名が折り返さない上限は画面幅で決まる（全角5文字＝5em必要）。
+   320px幅では約1.11remが限界のため狭い画面は控えめにし、
+   余裕のある375px以上で大きくする */
 .main-buttons button {
-    font-size: 0.824rem;
-    padding: 12px 0;
+    font-size: 1.05rem;
+    padding: 14px 0;
     min-width: 0;
     max-width: none;
     min-height: 0;
@@ -381,8 +388,13 @@ button:disabled {
     box-shadow: 0 8px 20px -8px var(--accent-shadow);
 }
 
-/* 狭い画面で文字サイズを大きくするとボタン名が収まらないため、
-   文字を小さくせず2行に折り返す */
+@media (min-width: 375px) {
+    .main-buttons button {
+        font-size: 1.2rem;
+    }
+}
+
+/* 想定外に狭い場合の保険として、文字を切らずに折り返す */
 @media (max-width: 360px) {
     .main-buttons button {
         white-space: normal;
