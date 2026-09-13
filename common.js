@@ -330,14 +330,15 @@ function layoutFieldRows(root) {
     const rows = scope.querySelectorAll('.field-row');
     rows.forEach(row => {
         if (row.clientWidth === 0) return;  // 折りたたみ中などで測れない場合は据え置く
-        const groups = row.querySelectorAll('.input-group');
-        if (groups.length < 2) return;
+        if (row.querySelectorAll('.input-group').length < 2) return;
+        // 幅が足りないと崩れるのはネイティブUIを持つdate/time/month入力だけ。
+        // 通常のテキスト入力は自由に縮むので、常に横並びのままでよい
+        const natives = row.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
+        if (natives.length === 0) return;
         const gap = 10;
         row.classList.remove('stacked');
         let needed = 0;
-        groups.forEach(group => {
-            const input = group.querySelector('input');
-            if (!input) return;
+        natives.forEach(input => {
             const saved = input.style.width;
             input.style.width = 'max-content';
             needed = Math.max(needed, input.getBoundingClientRect().width);

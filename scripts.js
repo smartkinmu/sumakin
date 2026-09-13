@@ -82,13 +82,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function createTaskGroup(index) {
         return `
             <div class="task-group">
-                <div class="input-group">
-                    <label for="task-number${index}">業務${index}</label>
-                    <input type="text" id="task-number${index}" name="task-number${index}">
-                </div>
-                <div class="input-group">
-                    <label for="category${index}">分類${index}</label>
-                    <input type="text" id="category${index}" name="category${index}" maxlength="5" pattern="\\d{5}">
+                <div class="field-row">
+                    <div class="input-group narrow">
+                        <label for="task-number${index}">業務${index}</label>
+                        <input type="text" id="task-number${index}" name="task-number${index}">
+                    </div>
+                    <div class="input-group narrow">
+                        <label for="category${index}">分類${index}</label>
+                        <input type="text" id="category${index}" name="category${index}" maxlength="5" pattern="\\d{5}">
+                    </div>
                 </div>
                 <div class="input-group">
                     <label for="task-hours${index}">工数${index}</label>
