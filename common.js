@@ -366,6 +366,8 @@ function fixNativeInputWidths(root) {
     inputs.forEach(input => {
         // 文字サイズ変更でレイアウト幅が変わるため、一度解除してから測り直す
         input.style.width = '';
+        // 右に曜日を並べる日付欄は、中身どおりの自然な幅のままにする
+        if (input.closest('.date-row')) return;
         const container = input.parentElement;
         if (!container) return;
         const style = getComputedStyle(container);

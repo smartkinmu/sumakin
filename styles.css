@@ -202,9 +202,21 @@ a {
 }
 
 /* 日付欄の曜日・祝日名。ネイティブの日付入力の表示文字は変更できないため、
-   ラベルの隣に出す。週休2日のため土日と祝日は休みとして赤で示す */
+   入力欄の右隣に出す。週休2日のため土日と祝日は休みとして赤で示す。
+   入力欄の幅を割合で削るとSafariでネイティブUIがはみ出すため、
+   幅は指定せず中身どおりの自然な幅にして、余った右側にテキストを置く。
+   収まらない場合は次の行へ折り返す */
+.date-row input[type="date"] {
+    display: inline-block;
+    width: auto;
+    vertical-align: middle;
+}
+.date-row .date-dow {
+    display: inline-block;
+    vertical-align: middle;
+}
 .date-dow {
-    margin-left: 6px;
+    margin-left: 10px;
     font-weight: 700;
     color: var(--text);
 }

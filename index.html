@@ -21,7 +21,7 @@
 </head>
 <body>
     <div id="refresh-indicator">更新中...</div>
-    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.15.0</span></div>
+    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.15.1</span></div>
 
     <div class="button-group">
         <div class="main-buttons">
@@ -52,9 +52,10 @@
         <div id="result" class="result"></div>
 
         <div class="card">
-            <div class="input-group narrow">
-                <label for="date">日付<span id="date-dow" class="date-dow"></span></label>
+            <div class="input-group narrow date-row">
+                <label for="date">日付</label>
                 <input type="date" id="date" name="date" pattern="\d{4}-\d{2}-\d{2}">
+                <span id="date-dow" class="date-dow"></span>
             </div>
             <div class="field-row">
                 <div class="input-group narrow">
