@@ -172,20 +172,11 @@ function buildUndoPreview(currentLogsStr, backupLogsStr) {
 }
 
 function fixNativeInputWidths(root) {
-    // 文字サイズ「中」「大」はzoomで拡大しているが、date/time/month入力を含む
-    // カード・ダイアログは.no-font-scaleでzoomの対象外(常にzoom:1)にしている。
-    // そのため.no-font-scale内の入力は常にpx幅補正が必要。それ以外の入力が
-    // zoom適用中の場合のみ、px指定を行わずCSSのwidth:100%に委ねる。
-    const fontSize = document.documentElement.getAttribute('data-font-size');
-    const isZoomed = fontSize === 'medium' || fontSize === 'large';
     const scope = root || document;
     const inputs = scope.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
     inputs.forEach(input => {
-        const excludedFromZoom = !!input.closest('.no-font-scale');
-        if (isZoomed && !excludedFromZoom) {
-            input.style.width = '';
-            return;
-        }
+        // 文字サイズ変更でレイアウト幅が変わるため、一度解除してから測り直す
+        input.style.width = '';
         const container = input.parentElement;
         if (!container) return;
         const style = getComputedStyle(container);

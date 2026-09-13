@@ -76,6 +76,19 @@
     -webkit-tap-highlight-color: transparent;
 }
 
+/* 文字サイズ設定（メニューの「文字サイズ」から選択）。
+   各所の文字サイズはremで指定しているため、ここを変えるだけで全体が連動する。
+   zoomはSafari実機でネイティブのdate/time入力が崩れるため使用しない。 */
+html {
+    font-size: 17px;
+}
+html[data-font-size="medium"] {
+    font-size: 19px;
+}
+html[data-font-size="large"] {
+    font-size: 21px;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
@@ -83,23 +96,7 @@ body {
     background-color: var(--bg);
     color: var(--text);
     overscroll-behavior: contain;
-    font-size: 17px;
-}
-
-/* 文字サイズ設定（メニューの「文字サイズ」から選択）。
-   px指定が中心のため、rem化せずzoomで全体を一律拡大する簡易方式。 */
-html[data-font-size="medium"] body {
-    zoom: 1.12;
-}
-html[data-font-size="large"] body {
-    zoom: 1.24;
-}
-/* ネイティブのdate/time/month入力はzoom併用でSafari実機上のはみ出しの
-   原因になるため、該当カード・ダイアログは文字サイズ変更の対象外とする
-   （px/%どちらの幅指定でも実機で再現するため、拡大自体を諦める） */
-html[data-font-size="medium"] .no-font-scale,
-html[data-font-size="large"] .no-font-scale {
-    zoom: 1;
+    font-size: 1rem;
 }
 
 a {
@@ -169,10 +166,22 @@ a {
     display: inline-block;
     width: calc(50% - 5px);
     vertical-align: top;
-    font-size: 17px;
+    font-size: 1rem;
 }
 .field-row .input-group:first-child {
     margin-right: 10px;
+}
+/* 文字サイズを大きくすると横並び2列では幅が足りずネイティブの
+   date/time入力がはみ出すため、中・大では縦積みにして全幅を確保する */
+html[data-font-size="medium"] .field-row .input-group,
+html[data-font-size="large"] .field-row .input-group {
+    display: block;
+    width: 100%;
+}
+html[data-font-size="medium"] .field-row .input-group:first-child,
+html[data-font-size="large"] .field-row .input-group:first-child {
+    margin-right: 0;
+    margin-bottom: 9px;
 }
 
 /* Safari(WebKit)はflexコンテナ内のネイティブ入力要素(特にdate/time)
@@ -235,7 +244,7 @@ input[type="time"]::-webkit-datetime-edit-ampm-field {
 /* ===== Buttons ===== */
 button {
     padding: 12px 16px;
-    font-size: 16px;
+    font-size: 0.941rem;
     font-weight: 700;
     margin-top: 0;
     width: 100%;
@@ -306,7 +315,7 @@ button:disabled {
 }
 
 .main-buttons button {
-    font-size: 16px;
+    font-size: 0.941rem;
     padding: 14px 0;
     min-width: 0;
     max-width: none;
@@ -365,7 +374,7 @@ button:disabled {
     text-align: left;
     margin: 2px 0;
     padding: 10px 12px;
-    font-size: 15px;
+    font-size: 0.882rem;
     font-weight: 600;
     background-color: transparent;
     color: var(--text);
@@ -385,7 +394,7 @@ button:disabled {
 }
 .menu-font-size-label {
     display: block;
-    font-size: 12px;
+    font-size: 0.706rem;
     font-weight: 600;
     color: var(--text-muted);
     margin-bottom: 6px;
@@ -401,7 +410,7 @@ button:disabled {
     margin: 0;
     padding: 7px 0;
     text-align: center;
-    font-size: 14px;
+    font-size: 0.824rem;
     font-weight: 700;
     background-color: var(--surface-muted);
     color: var(--text-muted);
@@ -475,7 +484,7 @@ details.fold-section[open] summary::after {
     border-radius: var(--radius-sm);
     background: var(--surface-muted);
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 0.824rem;
     font-weight: 700;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
