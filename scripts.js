@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultDiv = document.getElementById('result');
     const submitButton = document.getElementById('submit-button');
     const emailButton = document.getElementById('email-button');
-    const calcButton = document.getElementById('calc-button');
     const refreshButton = document.getElementById('refresh-button');
     const copyTask1Button = document.getElementById('copy-task1-button');
     const menuButton = document.getElementById('menu-button');
@@ -66,18 +65,17 @@ document.addEventListener('DOMContentLoaded', function() {
             break2StartInput.value = '';
             break2EndInput.value = '';
         }
-        // 休暇登録はすべて「入力確認」ボタンから行うため、休暇選択時も有効のままにする
+        // 休暇登録はすべて「登録」ボタンから行うため、休暇選択時も有効のままにする
         submitButton.disabled = false;
-        // 年休は始業・終業時刻を使わないため計算もできない
-        calcButton.disabled = annualLeaveCheckbox.checked;
         // 休暇の日はメールを送信しないため、メール作成ボタンを無効化する
         emailButton.disabled = annualLeaveCheckbox.checked ||
             amLeaveCheckbox.checked || pmLeaveCheckbox.checked;
     }
 
-    annualLeaveCheckbox.addEventListener('change', updateLeaveControls);
-    amLeaveCheckbox.addEventListener('change', updateLeaveControls);
-    pmLeaveCheckbox.addEventListener('change', updateLeaveControls);
+    [annualLeaveCheckbox, amLeaveCheckbox, pmLeaveCheckbox].forEach(checkbox => {
+        checkbox.addEventListener('change', updateLeaveControls);
+        checkbox.addEventListener('change', updateLiveResult);
+    });
 
     function createTaskGroup(index) {
         return `
@@ -212,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     updateTaskGroups();
     loadTaskDataFromStorage();
+    updateLiveResult();
 
     menuButton.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -352,6 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         localStorage.setItem('startTime', startTimeInput.value);
         saveTaskDataToStorage();  // データを保存
+        updateLiveResult();
     });
 
     endTimeInput.addEventListener('change', function() {
@@ -360,6 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         localStorage.setItem('endTime', endTimeInput.value);
         saveTaskDataToStorage();  // データを保存
+        updateLiveResult();
     });
 
     // 日付欄も同様に、クリアして空欄のまま確定した場合は今日の日付を入れる。
@@ -374,6 +375,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     dateInput.addEventListener('change', fillDefaultDateIfEmpty);
     dateInput.addEventListener('input', fillDefaultDateIfEmpty);
+
+    // 中断時間が変わると勤務時間も変わるため、表示を更新する
+    [break1StartInput, break1EndInput, break2StartInput, break2EndInput].forEach(input => {
+        input.addEventListener('change', updateLiveResult);
+    });
 
     // フォーカスが外れたときにデータを保存する
     dateInput.addEventListener('blur', function() {
@@ -454,7 +460,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * 計算結果を結果表示エリアに描画する。入力確認と計算で共通に使用する。
+     * 計算結果を結果表示エリアに描画する。入力内容の自動表示と登録で共通に使用する。
      * @param {string} head - 見出し（日付や始業→終業）
      * @param {string} actual - 勤務時間(100進数)
      * @param {string} interrupt - 中断時間(100進数)
@@ -505,6 +511,35 @@ document.addEventListener('DOMContentLoaded', function() {
             ).toFixed(2);
         }
         return workingHours;
+    }
+
+    /**
+     * 現在の入力内容から計算結果を常時表示する。
+     * 入力途中でも状況が分かるよう、不備がある場合もアラートは出さず
+     * 見出しで理由を示して数値は「--.--」とする。
+     * @returns {void}
+     */
+    function updateLiveResult() {
+        const start = startTimeInput.value;
+        const end = endTimeInput.value;
+        if (annualLeaveCheckbox.checked) {
+            // 年休は時刻を使わず固定値で登録されるため、その内容をそのまま示す
+            renderResult('年休', '7.75', '0.00', '0.00');
+            return;
+        }
+        if (!start || !end) {
+            renderResult('始業・終業時刻を入力してください', '--.--', '--.--', '--.--');
+            return;
+        }
+        if (!isStartTimeBeforeEndTime(start, end)) {
+            renderResult('始業時刻が終業時刻より遅くなっています', '--.--', '--.--', '--.--');
+            return;
+        }
+        const workingHours = calculateWorkingHoursWithLeave(start, end);
+        const interruptHours = calculateInterruptHours();
+        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
+        const overtime = (parseFloat(actual) - 7.75).toFixed(2);
+        renderResult(`${start} → ${end}`, actual, interruptHours.toFixed(2), overtime);
     }
 
     /**
@@ -709,7 +744,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 入力チェックボタンのクリックイベントリスナー
+    // 登録ボタンのクリックイベントリスナー
     submitButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
         if (!selectedDate) {
@@ -803,10 +838,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // 警告があっても登録は行うため、登録した旨を必ず伝える
         if (issueMessages.length > 0) {
-            alert(issueMessages.join('\n'));
+            alert(`${issueMessages.join('\n')}\n\n登録しました。`);
         } else {
-            alert("問題は見つかりませんでした。");
+            alert("登録しました。");
         }
 
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
@@ -816,40 +852,15 @@ document.addEventListener('DOMContentLoaded', function() {
             actual, interruptHours.toFixed(2), overtime,
             `入力工数 ${totalTaskHours.toFixed(2)} 時間`
         );
-        // 入力確認の時点でログに保存する（同じ日付があれば上書き）
+        // 「登録」を押した時点でログに保存する（同じ日付があれば上書き）
         saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
             break1StartInput.value, break1EndInput.value,
             break2StartInput.value, break2EndInput.value);
         saveTaskDataToStorage();  // データを保存
     });
 
-    // 計算ボタンのクリックイベントリスナー
-    // 始業・終業・中断時間(60進数)から勤務・中断・残業時間(100進数)を求めて表示するだけで、
-    // ログの登録もメールの作成も行わない
-    calcButton.addEventListener('click', function() {
-        const start = startTimeInput.value;
-        const end = endTimeInput.value;
-        if (!start || !end) {
-            alert("始業時刻または終業時刻が入力されていません。");
-            return;
-        }
-        const calcErrors = collectInputErrors(start, end);
-        if (calcErrors.length > 0) {
-            alert(calcErrors.join('\n'));
-            return;
-        }
-        if (!checkInterruptInput()) {
-            return;
-        }
-        const workingHours = calculateWorkingHoursWithLeave(start, end);
-        const interruptHours = calculateInterruptHours();
-        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
-        const overtime = (parseFloat(actual) - 7.75).toFixed(2);
-        renderResult(`${start} → ${end}`, actual, interruptHours.toFixed(2), overtime);
-    });
-
     // メール作成ボタンのクリックイベントリスナー
-    // 年休・AM休・PM休の登録は「入力確認」ボタンで行うため、ここではメールの作成・送信のみを行う
+    // 年休・AM休・PM休の登録は「登録」ボタンで行うため、ここではメールの作成・送信のみを行う
     emailButton.addEventListener('click', function() {
         if (annualLeaveCheckbox.checked || amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
             return;
@@ -926,7 +937,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskDataToStorage();  // データを保存
-        // 入力確認だけなのかメールまで作成したのかを後から見分けられるよう、
+        // 登録だけなのかメールまで作成したのかを後から見分けられるよう、
         // ログ表示画面用に「メール作成済み」を記録する
         markLogAsMailed(selectedDate);
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;

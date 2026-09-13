@@ -389,7 +389,7 @@
 
         /**
          * Undo the last save/delete/edit action.
-         * logs_undo は index.html の入力確認によるログ上書き、
+         * logs_undo は index.html の「登録」によるログ上書き、
          * および logs.html 上での削除・編集操作の直前の状態を保持する。
          * @returns {void}
          */
@@ -509,7 +509,7 @@
             dateSpan.textContent = dowMatch ? dowMatch[1] : dateWithDay;
             dateWrap.appendChild(dateSpan);
             if (mailed) {
-                // メール作成済みの目印（入力確認だけの日と区別するため）
+                // メール作成済みの目印（登録だけの日と区別するため）
                 const mailMark = document.createElement('span');
                 mailMark.className = 'mail-mark';
                 mailMark.title = 'メール作成済み';
