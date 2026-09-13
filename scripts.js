@@ -509,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const overtimeNum = parseFloat(overtime);
         let overtimeClass = '';
         if (overtimeNum > 0) {
-            overtimeClass = ' warn';
+            overtimeClass = ' overtime';
         } else if (overtimeNum < 0) {
             overtimeClass = ' short';
         }

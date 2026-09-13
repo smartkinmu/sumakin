@@ -25,6 +25,10 @@
     --warn-text: oklch(0.45 0.14 55);
     --warn-bg: #f5e3c8;
     --warn-bg: oklch(0.93 0.06 55);
+    --overtime-text: #0d6377;
+    --overtime-text: oklch(0.45 0.10 210);
+    --overtime-bg: #c3e9f4;
+    --overtime-bg: oklch(0.90 0.075 210);
     --fab-bg: #23262b;
     --fab-bg: oklch(0.22 0.02 255);
     --fab-text: #fafafa;
@@ -64,6 +68,10 @@
         --warn-text: oklch(0.80 0.13 55);
         --warn-bg: #4a3a22;
         --warn-bg: oklch(0.32 0.06 55);
+        --overtime-text: #7fd3e8;
+        --overtime-text: oklch(0.82 0.10 210);
+        --overtime-bg: #123c49;
+        --overtime-bg: oklch(0.33 0.07 210);
         --fab-bg: #f2f3f5;
         --fab-bg: oklch(0.96 0.006 255);
         --fab-text: #17181c;
@@ -347,12 +355,15 @@ button:disabled {
     color: var(--text-muted);
     margin-left: 1px;
 }
-/* 残業が発生している場合のみ、ログ画面と同じ配色で強調する */
-.result-tile.warn {
-    background: var(--warn-bg);
+/* 残業が発生している場合のみ、ログ画面と同じ配色で強調する。
+   勤務時間・中断のタイルと同系色にならないよう水色にし、
+   マイナスの赤字と対になるよう数字にも色を付ける */
+.result-tile.overtime {
+    background: var(--overtime-bg);
 }
-.result-tile.warn .result-tile-label {
-    color: var(--warn-text);
+.result-tile.overtime .result-tile-label,
+.result-tile.overtime .result-tile-value {
+    color: var(--overtime-text);
 }
 /* 残業がマイナス（勤務時間が不足）の場合は数字を赤くして気づけるようにする */
 .result-tile.short .result-tile-value {
