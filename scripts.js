@@ -319,13 +319,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * 「今日」を業務日基準（翌日午前5時までは前日扱い）で取得する。
+     * 「今日」を業務日基準（翌日午前6時までは前日扱い）で取得する。
      * @param {Date} now - 現在時刻
      * @returns {string} 業務日基準の今日の日付("YYYY-MM-DD")
      */
     function getBusinessToday(now) {
         const d = new Date(now);
-        if (d.getHours() < 5) {
+        if (d.getHours() < 6) {
             d.setDate(d.getDate() - 1);
         }
         return formatDate(d);
@@ -368,12 +368,14 @@ document.addEventListener('DOMContentLoaded', function() {
         saveTaskDataToStorage();  // データを保存
     });
 
-    // 日付欄も同様に、クリアして空欄のまま確定した場合は今日の日付を入れる
+    // 日付欄も同様に、クリアして空欄のまま確定した場合は今日の日付を入れる。
+    // 起動時の初期値(setDefaultDate)は土日・祝日を前の平日まで遡るが、
+    // リセットは「今日にする」操作なので休日スキップは行わない。
     // 日付の「クリア」操作は端末によって'change'が発火しないことがあるため、
     // 'input'と確定後のblurでも保険として同じ判定を行う
     function fillDefaultDateIfEmpty() {
         if (!dateInput.value) {
-            setDefaultDate();
+            dateInput.value = getBusinessToday(getJSTNow());
         }
     }
     dateInput.addEventListener('change', fillDefaultDateIfEmpty);
@@ -652,7 +654,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         let totalTaskHours = calculateTotalTaskHours();
 
-        // 現在の日付を取得（翌日午前5時までは前日を「今日」とみなす）
+        // 現在の日付を取得（翌日午前6時までは前日を「今日」とみなす）
         const now = getJSTNow();
         const today = getBusinessToday(now);
 
@@ -755,7 +757,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // 現在の日付を取得（翌日午前5時までは前日を「今日」とみなす）
+        // 現在の日付を取得（翌日午前6時までは前日を「今日」とみなす）
         const now = getJSTNow();
         const today = getBusinessToday(now);
 
