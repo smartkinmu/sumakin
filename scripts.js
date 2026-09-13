@@ -3,7 +3,6 @@ if ("serviceWorker" in navigator) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const emailInput = document.getElementById('email');
     const dateInput = document.getElementById('date');
     const startTimeInput = document.getElementById('start-time');
     const endTimeInput = document.getElementById('end-time');
@@ -138,7 +137,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (category) localStorage.setItem(`category${i}`, category.value);
    //         if (taskHours) localStorage.setItem(`task-hours${i}`, taskHours.value);
         }
-        localStorage.setItem('email', emailInput.value);
         localStorage.setItem('startTime', startTimeInput.value);
         localStorage.setItem('endTime', endTimeInput.value);
         localStorage.setItem('groupCount', groupCountPicker.value);
@@ -156,7 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById(`category${i}`).value = localStorage.getItem(`category${i}`) || '';
      //       document.getElementById(`task-hours${i}`).value = localStorage.getItem(`task-hours${i}`) || '';
         }
-        emailInput.value = localStorage.getItem('email') || '';
         startTimeInput.value = localStorage.getItem('startTime') || '';
         endTimeInput.value = localStorage.getItem('endTime') || '';
         annualLeaveCheckbox.checked = false;
@@ -344,9 +341,6 @@ document.addEventListener('DOMContentLoaded', function() {
     startTimeInput.value = localStorage.getItem('startTime') || "08:30";
     endTimeInput.value = localStorage.getItem('endTime') || "17:15";
 
-    // メールアドレスのデフォルト値を設定（ローカルストレージから取得）
-    emailInput.value = localStorage.getItem('email') || 'mail@address.com';
-
     // 時刻変更時にローカルストレージに保存
     // 'change'はピッカーのチェック（確定）ボタンを押した時にだけ発火する。
     // クリアして空欄のまま確定した場合は、その時点の現在時刻を入れる。
@@ -380,7 +374,6 @@ document.addEventListener('DOMContentLoaded', function() {
     dateInput.addEventListener('input', fillDefaultDateIfEmpty);
 
     // フォーカスが外れたときにデータを保存する
-    emailInput.addEventListener('blur', saveTaskDataToStorage);
     dateInput.addEventListener('blur', function() {
         fillDefaultDateIfEmpty();
         saveTaskDataToStorage();
@@ -510,6 +503,65 @@ document.addEventListener('DOMContentLoaded', function() {
             ).toFixed(2);
         }
         return workingHours;
+    }
+
+    /**
+     * 保存すると記録が壊れてしまう入力エラーを集めて返す。
+     * 入力ミスの可能性を知らせるだけのものは警告として別に扱う。
+     * @param {string} start - 始業時刻 HH:MM
+     * @param {string} end - 終業時刻 HH:MM
+     * @returns {string[]} エラーメッセージ（問題が無ければ空配列）
+     */
+    function collectInputErrors(start, end) {
+        const errors = [];
+        if (!isStartTimeBeforeEndTime(start, end)) {
+            errors.push('始業時刻が終業時刻より遅くなっています。');
+        }
+        // 中断時間は開始と終了が揃っていないと計算されず、記録だけが残ってしまう
+        const pairs = [
+            [break1StartInput, break1EndInput, '(1)'],
+            [break2StartInput, break2EndInput, '(2)']
+        ];
+        pairs.forEach(([startInput, endInput, label]) => {
+            if (!startInput.value !== !endInput.value) {
+                errors.push(`中断時間${label}は開始と終了の両方を入力してください。`);
+            }
+        });
+        const selectedCount = parseInt(groupCountPicker.value, 10);
+        for (let i = 1; i <= selectedCount; i++) {
+            const hours = document.getElementById(`task-hours${i}`).value;
+            if (hours !== '' && parseFloat(hours) < 0) {
+                errors.push(`業務${i}の工数にマイナスの値が入力されています。`);
+            }
+        }
+        return errors;
+    }
+
+    /**
+     * 業務コード・分類の入力ミスの可能性を警告として集めて返す。
+     * @param {number} count - 確認するグループ数
+     * @returns {string[]} 警告メッセージ
+     */
+    function collectTaskWarnings(count) {
+        const warnings = [];
+        for (let i = 1; i <= count; i++) {
+            const taskNumber = document.getElementById(`task-number${i}`).value;
+            const category = document.getElementById(`category${i}`).value;
+            if (taskNumber) {
+                // 日本語などが入る例外があるため、英字始まりと数字始まりのみ確認する
+                if (/^[A-Za-z]/.test(taskNumber)) {
+                    if (taskNumber.length !== 10) {
+                        warnings.push(`業務${i}の業務コードは10桁で入力してください。`);
+                    }
+                } else if (/^[0-9]/.test(taskNumber)) {
+                    warnings.push(`業務${i}の業務コードが数字で始まっています。`);
+                }
+            }
+            if (category && !/^\d{5}$/.test(category)) {
+                warnings.push(`業務${i}の分類は数字5桁で入力してください。`);
+            }
+        }
+        return warnings;
     }
 
     /**
@@ -678,6 +730,12 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("始業時刻または終業時刻が入力されていません。");
             return;
         }
+        // 記録が壊れる入力はまとめて知らせ、保存せずに中断する
+        const inputErrors = collectInputErrors(selectedStartTime, selectedEndTime);
+        if (inputErrors.length > 0) {
+            alert(inputErrors.join('\n'));
+            return;
+        }
         if (!checkHalfDayInput() || !checkInterruptInput()) {
             return;
         }
@@ -687,8 +745,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const issueMessages = [];
         let firstEmptyTaskHoursIndex = -1;
         let allTaskCategoriesFilled = 0;
-        if (!isStartTimeBeforeEndTime(selectedStartTime, selectedEndTime)) {
-            issueMessages.push("始業時刻が終業時刻より遅くなっています。");
+        if (selectedStartTime === selectedEndTime) {
+            issueMessages.push("勤務時間が0時間です。");
+        }
+        if (parseFloat(workingHours) > 16) {
+            issueMessages.push("勤務時間が16時間を超えています。");
         }
         let totalTaskHours = calculateTotalTaskHours();
 
@@ -700,16 +761,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedDate !== today) {
             issueMessages.push("今日以外の日付が指定されています。");
         }
+        // 終業前でも入力内容の確認はできるようにするため、未来の日時は警告に留める
+        if (new Date(`${selectedDate}T${selectedEndTime}`) > now) {
+            issueMessages.push("未来の日時が入力されています。");
+        }
 
         const selectedCount = parseInt(groupCountPicker.value, 10);
+        issueMessages.push(...collectTaskWarnings(selectedCount));
         // 空の工数フィールドを自動的に埋める処理と業務情報が入力されているかのチェック
         for (let i = 1; i <= selectedCount; i++) {
             const taskNumber = document.getElementById(`task-number${i}`).value;
             const taskHours = document.getElementById(`task-hours${i}`).value;
             const category = document.getElementById(`category${i}`).value;
-            if (/^[A-Za-z]/.test(taskNumber) && taskNumber.length !== 10) {
-                issueMessages.push(`業務${i}の業務コードは10桁で入力してください。`);
-            }
             if (taskNumber && !taskHours && firstEmptyTaskHoursIndex === -1) {
                 firstEmptyTaskHoursIndex = i;
             }
@@ -768,8 +831,9 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("始業時刻または終業時刻が入力されていません。");
             return;
         }
-        if (!isStartTimeBeforeEndTime(start, end)) {
-            alert("始業時刻が終業時刻より遅くなっています。");
+        const calcErrors = collectInputErrors(start, end);
+        if (calcErrors.length > 0) {
+            alert(calcErrors.join('\n'));
             return;
         }
         if (!checkInterruptInput()) {
@@ -788,12 +852,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (annualLeaveCheckbox.checked || amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
             return;
         }
-        const email = emailInput.value;
+        // 宛先はメイン画面から外し、設定画面で管理している
+        const email = localStorage.getItem('email') || '';
         const selectedDate = dateInput.value;
         const selectedStartTime = startTimeInput.value;
         const selectedEndTime = endTimeInput.value;
         if (!selectedDate || !selectedStartTime || !selectedEndTime) {
             alert("日付・始業時刻・終業時刻が入力されていません。");
+            return;
+        }
+        // 記録が壊れる入力に加え、宛先が不正だとメールアプリが正しく起動しないため確認する
+        const mailErrors = collectInputErrors(selectedStartTime, selectedEndTime);
+        if (!email) {
+            mailErrors.push('メニューの「設定」で宛先メールアドレスを設定してください。');
+        } else if (!isValidEmail(email)) {
+            mailErrors.push('宛先メールアドレスの形式が正しくありません。メニューの「設定」で修正してください。');
+        }
+        if (mailErrors.length > 0) {
+            alert(mailErrors.join('\n'));
             return;
         }
         if (!checkInterruptInput()) {

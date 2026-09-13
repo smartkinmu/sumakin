@@ -358,6 +358,11 @@
 
         function updateDueDisplay() {
             if (dueStart.value && dueEnd.value) {
+                // 開始と終了が逆だと0件になるが理由が分からないため、その場で知らせる
+                if (dueStart.value > dueEnd.value) {
+                    dueDisplay.textContent = '開始日が終了日より後になっています';
+                    return;
+                }
                 dueDisplay.textContent = `${formatJp(dueStart.value)}〜${formatJp(dueEnd.value)}`;
             }
         }
@@ -678,6 +683,10 @@
             const newEnd = editEnd.value;
             if (!newDate || !newStart || !newEnd) {
                 alert('日付と時刻を入力してください');
+                return;
+            }
+            if (toMinutes(newStart) > toMinutes(newEnd)) {
+                alert('始業時刻が終業時刻より遅くなっています');
                 return;
             }
             if (updateLog(originalDate, newDate, newStart, newEnd)) {

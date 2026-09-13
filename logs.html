@@ -646,6 +646,10 @@
                 alert('日付と時刻を入力してください');
                 return;
             }
+            if (toMinutes(newStart) > toMinutes(newEnd)) {
+                alert('始業時刻が終業時刻より遅くなっています');
+                return;
+            }
             if (updateLog(originalDate, newDate, newStart, newEnd)) {
                 editDialog.close();
                 updateSummary();
