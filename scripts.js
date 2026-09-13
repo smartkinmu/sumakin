@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitButton = document.getElementById('submit-button');
     const emailButton = document.getElementById('email-button');
     const refreshButton = document.getElementById('refresh-button');
-    const refreshIndicator = document.getElementById('refresh-indicator');
     const copyTask1Button = document.getElementById('copy-task1-button');
     const menuButton = document.getElementById('menu-button');
     const hamburgerMenu = document.getElementById('hamburger-menu');
@@ -241,16 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateFontSizeButtons();
 
     // 更新ボタンのクリックイベントリスナー
-    refreshButton.addEventListener('click', async () => {
-        if (navigator.serviceWorker?.controller) {
-            navigator.serviceWorker.controller.postMessage({ action: 'sync' });
-            const reg = await navigator.serviceWorker.getRegistration();
-            reg?.update();
-        }
-        localStorage.setItem('refreshLogs', Date.now().toString());
-        refreshIndicator.style.display = 'block';
-        setTimeout(() => location.reload(), 1500);
-    });
+    refreshButton.addEventListener('click', refreshApp);
 
     function getFormat(str) {
         return Array.from(str).map(ch => {
@@ -793,31 +783,8 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 
-    // Pull-to-refreshの実装
-    let startY;
-    let isRefreshing = false;
-
-    window.addEventListener('touchstart', (e) => {
-        if (window.scrollY === 0) {
-            startY = e.touches[0].pageY;
-        }
-    });
-
-    window.addEventListener('touchmove', (e) => {
-        const y = e.touches[0].pageY;
-        if (window.scrollY === 0 && y > startY + 50 && !isRefreshing) {
-            isRefreshing = true;
-            refreshIndicator.style.display = 'block';
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        }
-    });
-
-    window.addEventListener('touchend', () => {
-        isRefreshing = false;
-        refreshIndicator.style.display = 'none';
-    });
+    // Pull-to-refreshの実装（「更新」ボタンと同じ処理を行う）
+    setupPullToRefresh();
 
     // インストールプロンプトの処理
     let deferredPrompt;

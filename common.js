@@ -171,6 +171,48 @@ function buildUndoPreview(currentLogsStr, backupLogsStr) {
     return changes;
 }
 
+/**
+ * キャッシュを全て削除し、最新のファイルを取得し直してページを再読み込みする。
+ * 「更新」ボタンと画面を下に引く操作（pull-to-refresh）で共通に使用する。
+ * @returns {Promise<void>}
+ */
+async function refreshApp() {
+    const indicator = document.getElementById('refresh-indicator');
+    if (indicator) {
+        indicator.style.display = 'block';
+    }
+    // 他タブのログ画面にも更新を通知する
+    localStorage.setItem('refreshLogs', Date.now().toString());
+    if (navigator.serviceWorker?.controller) {
+        navigator.serviceWorker.controller.postMessage({ action: 'sync' });
+        const reg = await navigator.serviceWorker.getRegistration();
+        reg?.update();
+    }
+    setTimeout(() => location.reload(), 1500);
+}
+
+/**
+ * 画面上端から下に引いたときに refreshApp() を実行する。
+ * @returns {void}
+ */
+function setupPullToRefresh() {
+    let startY = null;
+    let triggered = false;
+    window.addEventListener('touchstart', event => {
+        startY = window.scrollY === 0 ? event.touches[0].pageY : null;
+    });
+    window.addEventListener('touchmove', event => {
+        if (startY === null || triggered) return;
+        if (window.scrollY === 0 && event.touches[0].pageY > startY + 50) {
+            triggered = true;
+            refreshApp();
+        }
+    });
+    window.addEventListener('touchend', () => {
+        startY = null;
+    });
+}
+
 function fixNativeInputWidths(root) {
     const scope = root || document;
     const inputs = scope.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
