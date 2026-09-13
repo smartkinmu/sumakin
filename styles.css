@@ -95,7 +95,13 @@ html[data-font-size="large"] body {
     zoom: 1.24;
 }
 /* ネイティブのdate/time/month入力はzoom併用でSafari実機上のはみ出しの
-   原因になるため、該当カード・ダイアログは文字サイズ変更の対象外とする */
+   原因になるため、該当カード・ダイアログは文字サイズ変更の対象外とする
+   （px/%どちらの幅指定でも実機で再現するため、拡大自体を諦める） */
+html[data-font-size="medium"] .no-font-scale,
+html[data-font-size="large"] .no-font-scale {
+    zoom: 1;
+}
+
 a {
     color: var(--accent);
 }
