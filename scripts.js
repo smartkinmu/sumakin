@@ -235,6 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('fontSize', btn.dataset.size);
             document.documentElement.setAttribute('data-font-size', btn.dataset.size);
             updateFontSizeButtons();
+            fixNativeInputWidths();
         });
     });
     updateFontSizeButtons();

@@ -121,10 +121,68 @@ function formatDateWithDay(dateStr) {
  * @param {ParentNode} [root=document] - 対象範囲のルート要素
  * @returns {void}
  */
+/**
+ * ログ1行(CSV形式)を確認ダイアログ表示用の短い文字列に変換する。
+ * @param {string} line - "date,start,end,..."形式のログ1行
+ * @returns {string} 例: "2024-1-15(月) 08:30〜17:15"
+ */
+function formatLogLineForPreview(line) {
+    const [date, start, end] = line.split(',');
+    return `${formatDateWithDay(date)} ${start}〜${end}`;
+}
+
+/**
+ * ログ全体(改行区切りのCSV文字列)を日付をキーとしたMapに変換する。
+ * @param {string} logsStr - ログ全体の文字列（nullや空文字も可）
+ * @returns {Map<string, string>} 日付をキーとしたログ行のMap
+ */
+function parseLogsToMap(logsStr) {
+    const map = new Map();
+    if (!logsStr) return map;
+    logsStr.split('\n').filter(line => line).forEach(line => {
+        const date = line.split(',')[0];
+        map.set(date, line);
+    });
+    return map;
+}
+
+/**
+ * UNDO実行前に、現在のログと復元後のログを比較して変更内容の一覧を作る。
+ * @param {string} currentLogsStr - 現在のログ(実行前)
+ * @param {string} backupLogsStr - UNDOで復元されるログ
+ * @returns {string[]} 変更内容を表す文字列の配列（変更がなければ空配列）
+ */
+function buildUndoPreview(currentLogsStr, backupLogsStr) {
+    const currentMap = parseLogsToMap(currentLogsStr);
+    const backupMap = parseLogsToMap(backupLogsStr);
+    const changes = [];
+    currentMap.forEach((line, date) => {
+        if (!backupMap.has(date)) {
+            changes.push(`${formatLogLineForPreview(line)} → 削除されます`);
+        } else if (backupMap.get(date) !== line) {
+            changes.push(`${formatLogLineForPreview(line)} → ${formatLogLineForPreview(backupMap.get(date))} に戻ります`);
+        }
+    });
+    backupMap.forEach((line, date) => {
+        if (!currentMap.has(date)) {
+            changes.push(`${formatLogLineForPreview(line)} が復元されます`);
+        }
+    });
+    return changes;
+}
+
 function fixNativeInputWidths(root) {
+    // 文字サイズ「中」「大」はzoomで拡大しているため、JSで測定したpx値を
+    // 明示指定するとzoomと二重に効いてはみ出す。zoom適用時はCSSの
+    // width:100%（パーセンテージ）にそのまま委ね、px指定を行わない。
+    const fontSize = document.documentElement.getAttribute('data-font-size');
     const scope = root || document;
     const inputs = scope.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
     inputs.forEach(input => {
+        if (fontSize === 'medium' || fontSize === 'large') {
+            input.style.width = '';
+            return;
+        }
         const container = input.parentElement;
         if (!container) return;
         const style = getComputedStyle(container);

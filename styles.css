@@ -96,11 +96,6 @@ html[data-font-size="large"] body {
 }
 /* ネイティブのdate/time/month入力はzoom併用でSafari実機上のはみ出しの
    原因になるため、該当カード・ダイアログは文字サイズ変更の対象外とする */
-html[data-font-size="medium"] .no-font-scale,
-html[data-font-size="large"] .no-font-scale {
-    zoom: 1;
-}
-
 a {
     color: var(--accent);
 }
@@ -110,12 +105,13 @@ a {
     display: flex;
     align-items: baseline;
     gap: 8px;
-    padding: 14px 20px 8px 20px;
+    padding: 20px 20px 8px 20px;
     background-color: transparent;
     color: var(--text);
     text-align: left;
     font-size: 1.15em;
     font-weight: 700;
+    line-height: 1.4;
 }
 .version {
     font-size: 0.6em;
