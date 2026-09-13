@@ -331,6 +331,13 @@ button:disabled {
 .result-head.problem {
     color: var(--warn-text);
 }
+/* メール作成済みの目印。ログ表示画面と同じ意味で使う */
+.result-head .mail-mark {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 8px;
+    color: var(--accent);
+}
 .result-message {
     font-size: 0.882rem;
     font-weight: 700;

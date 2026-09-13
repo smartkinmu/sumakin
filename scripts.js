@@ -110,12 +110,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function saveLog(date, start, end, work, overtime,
                      b1s, b1e, b2s, b2e) {
         const existing = localStorage.getItem('logs');
-        localStorage.setItem('logs_undo', existing || '');
         const lines = existing ? existing.split('\n') : [];
         const index = lines.findIndex(l => l.split(',')[0] === date);
         // メール作成済みの記録は、内容を登録し直しても引き継ぐ
         const mailed = index !== -1 ? (lines[index].split(',')[MAILED_INDEX] || '') : '';
         const line = `${date},${start},${end},${work},${overtime},${b1s || ''},${b1e || ''},${b2s || ''},${b2e || ''},${mailed}`;
+        // 内容が変わらない場合は何もしない。登録に続けてメール作成した際などに、
+        // UNDOで戻れる地点を無意味に潰さないため
+        if (index !== -1 && lines[index] === line) {
+            return;
+        }
+        localStorage.setItem('logs_undo', existing || '');
         if (index !== -1) {
             lines[index] = line;
         } else {
@@ -314,6 +319,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function setDefaultDate() {
         dateInput.value = formatDate(getDefaultDate());
         updateDateWeekday();
+        // 日付が決まってから結果を描き直す。pageshowでも呼ばれるため、
+        // メールアプリから戻ったときにメール作成済みの印が反映される
+        updateLiveResult();
     }
 
     /**
@@ -399,8 +407,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateDateWeekday();
     }
-    dateInput.addEventListener('change', fillDefaultDateIfEmpty);
-    dateInput.addEventListener('input', fillDefaultDateIfEmpty);
+    // 日付が変わるとメール作成済みの印も変わるため、表示を更新する
+    function handleDateChange() {
+        fillDefaultDateIfEmpty();
+        updateLiveResult();
+    }
+    dateInput.addEventListener('change', handleDateChange);
+    dateInput.addEventListener('input', handleDateChange);
 
     // 中断時間が変わると勤務時間も変わるため、表示を更新する
     [break1StartInput, break1EndInput, break2StartInput, break2EndInput].forEach(input => {
@@ -409,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // フォーカスが外れたときにデータを保存する
     dateInput.addEventListener('blur', function() {
-        fillDefaultDateIfEmpty();
+        handleDateChange();
         saveTaskDataToStorage();
     });
     startTimeInput.addEventListener('blur', saveTaskDataToStorage);
@@ -505,6 +518,13 @@ document.addEventListener('DOMContentLoaded', function() {
      * @returns {void}
      */
     function renderResult(head, actual, interrupt, overtime, note) {
+        // その日のメールを作成済みなら、ログ表示画面と同じ封筒の印を見出しに出す
+        const mailMark = isDateMailed(dateInput.value)
+            ? '<span class="mail-mark" title="メール作成済み"><svg width="15" height="15" viewBox="0 0 24 24"'
+                + ' fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"'
+                + ' stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/>'
+                + '<polyline points="3 7 12 13 21 7"/></svg></span>'
+            : '';
         // 残業の超過・不足を色で示す（ログ表示画面と同じ基準）
         const overtimeNum = parseFloat(overtime);
         let overtimeClass = '';
@@ -514,7 +534,7 @@ document.addEventListener('DOMContentLoaded', function() {
             overtimeClass = ' short';
         }
         resultDiv.innerHTML = `
-            <div class="result-head">${head}</div>
+            <div class="result-head">${head}${mailMark}</div>
             <div class="result-tiles">
                 <div class="result-tile">
                     <div class="result-tile-label">勤務時間</div>
@@ -932,7 +952,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // メール作成ボタンのクリックイベントリスナー
-    // 年休・AM休・PM休の登録は「登録」ボタンで行うため、ここではメールの作成・送信のみを行う
+    // メールを作成する日は勤務が確定しているため、登録もあわせて行う。
+    // 休暇の日やメールを後で送る日は「登録」ボタンを使う
     emailButton.addEventListener('click', function() {
         if (annualLeaveCheckbox.checked || amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
             return;
@@ -960,7 +981,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!checkInterruptInput()) {
             return;
         }
-        const workingHours = calculateWorkingHours(selectedStartTime, selectedEndTime);
+        const workingHours = calculateWorkingHoursWithLeave(selectedStartTime, selectedEndTime);
         const totalTaskHours = calculateTotalTaskHours();
 
         const subject = "スマ勤";
@@ -1009,9 +1030,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         saveTaskDataToStorage();  // データを保存
+
+        // 送信する内容をそのままログにも登録する（「登録」ボタンと同じ計算）
+        const interruptHours = calculateInterruptHours();
+        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
+        const overtime = (parseFloat(actual) - 7.75).toFixed(2);
+        saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
+            break1StartInput.value, break1EndInput.value,
+            break2StartInput.value, break2EndInput.value);
         // 登録だけなのかメールまで作成したのかを後から見分けられるよう、
         // ログ表示画面用に「メール作成済み」を記録する
         markLogAsMailed(selectedDate);
+        // メールアプリから戻ったときに登録済みだと分かるようにする
+        renderResult(
+            `${formatDateWithDay(selectedDate)}　${selectedStartTime} → ${selectedEndTime}`,
+            actual, interruptHours.toFixed(2), overtime,
+            `入力工数 ${totalTaskHours.toFixed(2)} 時間`
+        );
         window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
 

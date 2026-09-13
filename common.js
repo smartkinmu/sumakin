@@ -248,6 +248,19 @@ function markLogAsMailed(date) {
     localStorage.setItem('logs_backup', updated);
 }
 
+/**
+ * 指定日のログが「メール作成済み」かどうかを返す。
+ * @param {string} date - YYYY-MM-DD形式の日付
+ * @returns {boolean} メール作成済みなら true
+ */
+function isDateMailed(date) {
+    if (!date) return false;
+    const existing = localStorage.getItem('logs');
+    if (!existing) return false;
+    const line = existing.split('\n').find(l => l.split(',')[0] === date);
+    return !!line && line.split(',')[MAILED_INDEX] === '1';
+}
+
 /** バックアップに含めない一時的なキー（他タブへの通知用など） */
 const BACKUP_EXCLUDED_KEYS = ['refreshLogs'];
 
