@@ -354,6 +354,10 @@ button:disabled {
 .result-tile.warn .result-tile-label {
     color: var(--warn-text);
 }
+/* 残業がマイナス（勤務時間が不足）の場合は数字を赤くして気づけるようにする */
+.result-tile.short .result-tile-value {
+    color: var(--danger);
+}
 .result-note {
     margin-top: 9px;
     padding-top: 8px;

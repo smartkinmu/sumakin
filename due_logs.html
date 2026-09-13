@@ -155,6 +155,10 @@
             color: var(--warn-text);
             background: var(--warn-bg);
         }
+        /* 残業がマイナス（勤務時間が不足）の場合は数字を赤くして気づけるようにする */
+        .log-card .chip.short {
+            color: var(--danger);
+        }
         .log-card .log-sub {
             margin-top: 6px;
             padding-top: 6px;
@@ -588,10 +592,10 @@
             mid.appendChild(workChip);
 
             const overtimeNum = parseFloat(overtime) || 0;
-            if (overtimeNum > 0) {
+            if (overtimeNum !== 0) {
                 const overtimeChip = document.createElement('span');
-                overtimeChip.className = 'chip overtime';
-                overtimeChip.textContent = `+${overtime}h`;
+                overtimeChip.className = overtimeNum > 0 ? 'chip overtime' : 'chip short';
+                overtimeChip.textContent = overtimeNum > 0 ? `+${overtime}h` : `${overtime}h`;
                 mid.appendChild(overtimeChip);
             }
             card.appendChild(mid);

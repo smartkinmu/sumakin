@@ -505,8 +505,14 @@ document.addEventListener('DOMContentLoaded', function() {
      * @returns {void}
      */
     function renderResult(head, actual, interrupt, overtime, note) {
-        // 残業が発生している場合のみ強調する（ログ表示画面と同じ基準）
-        const warnClass = parseFloat(overtime) > 0 ? ' warn' : '';
+        // 残業の超過・不足を色で示す（ログ表示画面と同じ基準）
+        const overtimeNum = parseFloat(overtime);
+        let overtimeClass = '';
+        if (overtimeNum > 0) {
+            overtimeClass = ' warn';
+        } else if (overtimeNum < 0) {
+            overtimeClass = ' short';
+        }
         resultDiv.innerHTML = `
             <div class="result-head">${head}</div>
             <div class="result-tiles">
@@ -518,7 +524,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="result-tile-label">中断</div>
                     <div class="result-tile-value">${interrupt}<span class="unit">h</span></div>
                 </div>
-                <div class="result-tile${warnClass}">
+                <div class="result-tile${overtimeClass}">
                     <div class="result-tile-label">残業</div>
                     <div class="result-tile-value">${overtime}<span class="unit">h</span></div>
                 </div>
