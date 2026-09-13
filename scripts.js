@@ -4,6 +4,7 @@ if ("serviceWorker" in navigator) {
 
 document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('date');
+    const dateWeekday = document.getElementById('date-dow');
     const startTimeInput = document.getElementById('start-time');
     const endTimeInput = document.getElementById('end-time');
     const break1StartInput = document.getElementById('break1-start');
@@ -312,6 +313,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function setDefaultDate() {
         dateInput.value = formatDate(getDefaultDate());
+        updateDateWeekday();
+    }
+
+    /**
+     * 日付欄の曜日表示を更新する。
+     * ネイティブの日付入力は表示文字を変更できないため、ラベルの隣に出す。
+     * 土曜は青、日曜・祝日は赤とカレンダーの慣例に合わせる。
+     * @returns {void}
+     */
+    function updateDateWeekday() {
+        dateWeekday.className = 'date-dow';
+        if (!dateInput.value) {
+            dateWeekday.textContent = '';
+            return;
+        }
+        const date = new Date(dateInput.value);
+        const days = ['日', '月', '火', '水', '木', '金', '土'];
+        const day = date.getDay();
+        const holidayName = getHolidayName(date);
+        dateWeekday.textContent = `(${days[day]})${holidayName ? ' ' + holidayName : ''}`;
+        // 週休2日のため土日は休み扱いとし、祝日と同じ色にする
+        if (day === 0 || day === 6 || holidayName) {
+            dateWeekday.classList.add('holiday');
+        }
     }
 
     /**
@@ -372,6 +397,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!dateInput.value) {
             dateInput.value = getBusinessToday(getJSTNow());
         }
+        updateDateWeekday();
     }
     dateInput.addEventListener('change', fillDefaultDateIfEmpty);
     dateInput.addEventListener('input', fillDefaultDateIfEmpty);
@@ -670,27 +696,28 @@ document.addEventListener('DOMContentLoaded', function() {
             return holidayCache[year];
         }
         const pad = n => n.toString().padStart(2, '0');
-        const holidays = new Set();
-        const add = (m, d) => holidays.add(`${year}-${pad(m)}-${pad(d)}`);
+        // 日付をキー、祝日名を値に持つ。名前は日付欄の表示に使う
+        const holidays = new Map();
+        const add = (m, d, name) => holidays.set(`${year}-${pad(m)}-${pad(d)}`, name);
 
-        add(1, 1); // 元日
-        add(1, nthMonday(year, 1, 2)); // 成人の日
-        add(2, 11); // 建国記念の日
-        add(2, 23); // 天皇誕生日
+        add(1, 1, '元日');
+        add(1, nthMonday(year, 1, 2), '成人の日');
+        add(2, 11, '建国記念の日');
+        add(2, 23, '天皇誕生日');
         const spring = Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
-        add(3, spring); // 春分の日
-        add(4, 29); // 昭和の日
-        add(5, 3); // 憲法記念日
-        add(5, 4); // みどりの日
-        add(5, 5); // こどもの日
-        add(7, nthMonday(year, 7, 3)); // 海の日
-        add(8, 11); // 山の日
-        add(9, nthMonday(year, 9, 3)); // 敬老の日
+        add(3, spring, '春分の日');
+        add(4, 29, '昭和の日');
+        add(5, 3, '憲法記念日');
+        add(5, 4, 'みどりの日');
+        add(5, 5, 'こどもの日');
+        add(7, nthMonday(year, 7, 3), '海の日');
+        add(8, 11, '山の日');
+        add(9, nthMonday(year, 9, 3), '敬老の日');
         const autumn = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
-        add(9, autumn); // 秋分の日
-        add(10, nthMonday(year, 10, 2)); // スポーツの日
-        add(11, 3); // 文化の日
-        add(11, 23); // 勤労感謝の日
+        add(9, autumn, '秋分の日');
+        add(10, nthMonday(year, 10, 2), 'スポーツの日');
+        add(11, 3, '文化の日');
+        add(11, 23, '勤労感謝の日');
 
         // 振替休日
         const addSubstitute = dateStr => {
@@ -700,12 +727,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 d.setDate(d.getDate() + 1);
                 const s = formatDate(d);
                 if (!holidays.has(s)) {
-                    holidays.add(s);
+                    holidays.set(s, '振替休日');
                     return;
                 }
             } while (true);
         };
-        Array.from(holidays).forEach(addSubstitute);
+        Array.from(holidays.keys()).forEach(addSubstitute);
 
         // 国民の休日
         const daysInYear = (new Date(year, 11, 31) - new Date(year, 0, 1)) / 86400000 + 1;
@@ -719,12 +746,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const prevStr = formatDate(prev);
             const nextStr = formatDate(next);
             if (!holidays.has(ds) && holidays.has(prevStr) && holidays.has(nextStr) && d.getDay() !== 0 && d.getDay() !== 6) {
-                holidays.add(ds);
+                holidays.set(ds, '国民の休日');
             }
         }
 
         holidayCache[year] = holidays;
         return holidays;
+    }
+
+    /**
+     * その日が祝日であれば名前を返す。
+     * @param {Date} date - 対象の日
+     * @returns {string} 祝日名（祝日でなければ空文字）
+     */
+    function getHolidayName(date) {
+        return getJapaneseHolidays(date.getFullYear()).get(formatDate(date)) || '';
     }
 
     function isHolidayDate(date) {

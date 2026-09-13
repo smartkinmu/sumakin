@@ -201,6 +201,17 @@ a {
     color: var(--text-muted);
 }
 
+/* 日付欄の曜日・祝日名。ネイティブの日付入力の表示文字は変更できないため、
+   ラベルの隣に出す。週休2日のため土日と祝日は休みとして赤で示す */
+.date-dow {
+    margin-left: 6px;
+    font-weight: 700;
+    color: var(--text);
+}
+.date-dow.holiday {
+    color: var(--danger);
+}
+
 .input-group input,
 .input-group select {
     display: block;
