@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
             break2StartInput.value = '';
             break2EndInput.value = '';
         }
-        // 休暇登録はすべて「登録」ボタンから行うため、休暇選択時も有効のままにする
+        // 休暇の保存はすべて「工数保存」ボタンから行うため、休暇選択時も有効のままにする
         submitButton.disabled = false;
         // 休暇の日はメールを送信しないため、メール作成ボタンを無効化する
         emailButton.disabled = annualLeaveCheckbox.checked ||
@@ -509,7 +509,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * 計算結果を結果表示エリアに描画する。入力内容の自動表示と登録で共通に使用する。
+     * 計算結果を結果表示エリアに描画する。入力内容の自動表示と保存で共通に使用する。
      * @param {string} head - 見出し（日付や始業→終業）
      * @param {string} actual - 勤務時間(100進数)
      * @param {string} interrupt - 中断時間(100進数)
@@ -836,7 +836,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // 登録ボタンのクリックイベントリスナー
+    // 工数保存ボタンのクリックイベントリスナー
     submitButton.addEventListener('click', function() {
         const selectedDate = dateInput.value;
         if (!selectedDate) {
@@ -848,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (annualLeaveCheckbox.checked) {
             saveLog(selectedDate, '年休', '年休', '7.75', '0.00', '', '', '', '');
             resultDiv.innerHTML = `<div class="result-head">${formatDateWithDay(selectedDate)}</div>`
-                + '<div class="result-message">年休として登録しました</div>';
+                + '<div class="result-message">年休として保存しました</div>';
             saveTaskDataToStorage();
             return;
         }
@@ -932,9 +932,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 警告があっても登録は行うため、登録した旨を必ず伝える
         if (issueMessages.length > 0) {
-            alert(`${issueMessages.join('\n')}\n\n登録しました。`);
+            alert(`${issueMessages.join('\n')}\n\n保存しました。`);
         } else {
-            alert("登録しました。");
+            alert("保存しました。");
         }
 
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
@@ -944,7 +944,7 @@ document.addEventListener('DOMContentLoaded', function() {
             actual, interruptHours.toFixed(2), overtime,
             `入力工数 ${totalTaskHours.toFixed(2)} 時間`
         );
-        // 「登録」を押した時点でログに保存する（同じ日付があれば上書き）
+        // 「工数保存」を押した時点でログに保存する（同じ日付があれば上書き）
         saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
             break1StartInput.value, break1EndInput.value,
             break2StartInput.value, break2EndInput.value);
@@ -953,7 +953,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // メール作成ボタンのクリックイベントリスナー
     // メールを作成する日は勤務が確定しているため、登録もあわせて行う。
-    // 休暇の日やメールを後で送る日は「登録」ボタンを使う
+    // 休暇の日やメールを後で送る日は「工数保存」ボタンを使う
     emailButton.addEventListener('click', function() {
         if (annualLeaveCheckbox.checked || amLeaveCheckbox.checked || pmLeaveCheckbox.checked) {
             return;
@@ -1031,7 +1031,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         saveTaskDataToStorage();  // データを保存
 
-        // 送信する内容をそのままログにも登録する（「登録」ボタンと同じ計算）
+        // 送信する内容をそのままログにも登録する（「工数保存」ボタンと同じ計算）
         const interruptHours = calculateInterruptHours();
         const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
