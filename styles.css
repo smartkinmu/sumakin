@@ -33,10 +33,6 @@
     --short-text: oklch(0.47 0.14 25);
     --short-bg: #fbdcd7;
     --short-bg: oklch(0.90 0.055 25);
-    --fab-bg: #23262b;
-    --fab-bg: oklch(0.22 0.02 255);
-    --fab-text: #fafafa;
-    --fab-text: oklch(0.98 0.004 255);
 
     --radius-lg: 20px;
     --radius-md: 16px;
@@ -80,10 +76,6 @@
         --short-text: oklch(0.80 0.12 25);
         --short-bg: #4a2119;
         --short-bg: oklch(0.33 0.06 25);
-        --fab-bg: #f2f3f5;
-        --fab-bg: oklch(0.96 0.006 255);
-        --fab-text: #17181c;
-        --fab-text: oklch(0.19 0.012 255);
     }
 }
 

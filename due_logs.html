@@ -173,35 +173,6 @@
             font-size: 0.882rem;
             padding: 30px 0;
         }
-        .undo-fab {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-            display: flex;
-            justify-content: center;
-            pointer-events: none;
-        }
-        .undo-fab button {
-            pointer-events: auto;
-            width: auto;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--fab-bg);
-            color: var(--fab-text);
-            border-radius: 999px;
-            padding: 11px 22px;
-            font-size: 0.824rem;
-            box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.35);
-        }
-        .undo-fab button:disabled {
-            background: var(--surface-muted);
-            color: var(--text-muted);
-            box-shadow: none;
-            opacity: 1;
-            cursor: not-allowed;
-        }
         dialog#edit-dialog {
             border: none;
             border-radius: var(--radius-lg);
@@ -267,9 +238,12 @@
         <button id="clear-logs" class="icon-btn danger" aria-label="ログをクリア">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0-1 14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 6"/></svg>
         </button>
+        <button id="undo-delete-btn" class="icon-btn" aria-label="UNDO">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        </button>
     </div>
 
-    <div class="container" style="padding-bottom: 78px;">
+    <div class="container">
         <div class="card">
             <div class="due-range-row">
                 <div class="input-group narrow">
@@ -301,13 +275,6 @@
         <p id="monthly-summary" style="display:none;"></p>
 
         <div id="log-body"></div>
-    </div>
-
-    <div class="undo-fab">
-        <button id="undo-delete-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
-            UNDO
-        </button>
     </div>
 
     <dialog id="edit-dialog" tabindex="-1">
