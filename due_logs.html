@@ -235,6 +235,9 @@
         <button id="download-logs" class="icon-btn" aria-label="CSVダウンロード">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><polyline points="7 10 12 15 17 10"/><path d="M5 19h14"/></svg>
         </button>
+        <button id="verify-logs-btn" class="icon-btn" aria-label="計算チェック">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        </button>
         <button id="clear-logs" class="icon-btn danger" aria-label="ログをクリア">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0-1 14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 6"/></svg>
         </button>
@@ -448,12 +451,13 @@
             for (let i = 0; i < lines.length; i++) {
                 const [d] = lines[i].split(',');
                 if (d === oldDate) {
-                    const work = calculateWorkingHours(start, end);
-                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
                     // 中断時間とメール作成済みの記録は編集で失わないよう引き継ぐ
                     const kept = lines[i].split(',');
+                    const [b1s, b1e, b2s, b2e] = [kept[5] || '', kept[6] || '', kept[7] || '', kept[8] || ''];
+                    const work = calculateWorkingHoursExact(start, end, b1s, b1e, b2s, b2e);
+                    const overtime = (parseFloat(work) - 7.75).toFixed(2);
                     lines[i] = [newDate, start, end, work, overtime,
-                        kept[5] || '', kept[6] || '', kept[7] || '', kept[8] || '',
+                        b1s, b1e, b2s, b2e,
                         kept[MAILED_INDEX] || ''].join(',');
                     found = true;
                     break;
@@ -635,7 +639,38 @@
             }
         });
         document.getElementById('download-logs').addEventListener('click', downloadLogs);
+        document.getElementById('verify-logs-btn').addEventListener('click', verifyAndFixLogs);
         document.getElementById("undo-delete-btn").addEventListener("click", undoDelete);
+
+        /**
+         * 保存済みログを検査し、標準休憩時間と中断時間の重複による
+         * 二重差し引きの誤りがあれば確認のうえ修正する。
+         * 修正前の状態は logs_undo に保存するため、UNDOボタンで元に戻せる。
+         * @returns {void}
+         */
+        function verifyAndFixLogs() {
+            const current = restoreLogsIfNeeded();
+            if (!current) {
+                alert('ログはありません');
+                return;
+            }
+            const { fixed, changes } = fixLogsCalculations(current);
+            if (changes.length === 0) {
+                alert('計算の誤りは見つかりませんでした。');
+                return;
+            }
+            const lines = changes.map(c =>
+                `${formatDateWithDay(c.date)} 勤務 ${c.oldWork}→${c.newWork}h 残業 ${c.oldOvertime}→${c.newOvertime}h`);
+            const message = `以下の勤務時間・残業時間の計算に誤りが見つかりました。\n\n${lines.join('\n')}\n\n修正しますか？`;
+            if (!confirm(message)) {
+                return;
+            }
+            localStorage.setItem('logs_undo', current);
+            localStorage.setItem('logs', fixed);
+            localStorage.setItem('logs_backup', fixed);
+            updateSummary();
+            alert(`${changes.length}件を修正しました。UNDOで元に戻せます。`);
+        }
 
         editCancel.addEventListener('click', function () {
             editDialog.close();

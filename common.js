@@ -61,6 +61,143 @@ function durationHours(startTime, endTime) {
 }
 
 /**
+ * 標準休憩時間と中断時間が重なっていても二重に差し引かないよう、
+ * 両方をまとめた上で重なりを1回にまとめてから勤務時間を計算する。
+ * 半休の加算は加味しない（ログの記録からは半休の有無が分からないため）。
+ * @param {string} start - 始業時刻 HH:MM
+ * @param {string} end - 終業時刻 HH:MM
+ * @param {string} [b1s] - 中断開始(1)
+ * @param {string} [b1e] - 中断終了(1)
+ * @param {string} [b2s] - 中断開始(2)
+ * @param {string} [b2e] - 中断終了(2)
+ * @returns {string} 勤務時間（小数点2桁の文字列）
+ */
+function calculateWorkingHoursExact(start, end, b1s, b1e, b2s, b2e) {
+    const workStart = toMinutes(start);
+    const workEnd = toMinutes(end);
+    const ranges = [];
+    getBreakTimes().forEach(b => {
+        const s = Math.max(workStart, toMinutes(b.start));
+        const e = Math.min(workEnd, toMinutes(b.end));
+        if (s < e) ranges.push({ s, e });
+    });
+    [[b1s, b1e], [b2s, b2e]].forEach(([s, e]) => {
+        if (!s || !e) return;
+        const rs = toMinutes(s);
+        const re = toMinutes(e);
+        if (rs < re) {
+            ranges.push({ s: Math.max(workStart, rs), e: Math.min(workEnd, re) });
+        }
+    });
+    ranges.sort((a, b) => a.s - b.s);
+    let subtracted = 0;
+    let curStart = null;
+    let curEnd = null;
+    ranges.forEach(r => {
+        if (curStart === null) {
+            curStart = r.s;
+            curEnd = r.e;
+        } else if (r.s <= curEnd) {
+            curEnd = Math.max(curEnd, r.e);
+        } else {
+            subtracted += curEnd - curStart;
+            curStart = r.s;
+            curEnd = r.e;
+        }
+    });
+    if (curStart !== null) {
+        subtracted += curEnd - curStart;
+    }
+    const workingHours = (workEnd - workStart - subtracted) / 60;
+    return (Math.round(workingHours * 100) / 100).toFixed(2);
+}
+
+/**
+ * 中断時間が標準休憩時間と重なっていても二重に差し引いてしまう、
+ * 修正前のバグと同じ計算式で勤務時間を求める。
+ * 保存済みログがこの式と一致するかどうかで、当時バグの影響を受けて
+ * 保存されたものかどうかを判定するために使う。
+ * @param {string} start - 始業時刻 HH:MM
+ * @param {string} end - 終業時刻 HH:MM
+ * @param {string} [b1s] - 中断開始(1)
+ * @param {string} [b1e] - 中断終了(1)
+ * @param {string} [b2s] - 中断開始(2)
+ * @param {string} [b2e] - 中断終了(2)
+ * @returns {string} 勤務時間（小数点2桁の文字列）
+ */
+function calculateWorkingHoursDoubleCounted(start, end, b1s, b1e, b2s, b2e) {
+    let interruptMinutes = 0;
+    [[b1s, b1e], [b2s, b2e]].forEach(([s, e]) => {
+        if (s && e && toMinutes(e) > toMinutes(s)) {
+            interruptMinutes += toMinutes(e) - toMinutes(s);
+        }
+    });
+    const gross = parseFloat(calculateWorkingHours(start, end));
+    return (gross - interruptMinutes / 60).toFixed(2);
+}
+
+/**
+ * ログ1行の勤務時間・残業時間に、標準休憩時間と中断時間の重複による
+ * 二重差し引きの誤りがないか確認し、あれば修正した行を返す。
+ * 半休が適用された行は、保存されている勤務時間が
+ * calculateWorkingHoursDoubleCounted() の結果と一致しないため、
+ * 誤って修正しないよう自動的に対象から外れる。
+ * @param {string} line - ログ1行(CSV形式)
+ * @returns {{line: string, oldWork: string, newWork: string, oldOvertime: string, newOvertime: string}|null}
+ *          修正が必要なければ null
+ */
+function findLogCalculationFix(line) {
+    const parts = line.split(',');
+    const [date, start, end, work] = parts;
+    if (!date || !start || !end || start === '年休') return null;
+    if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end)) return null;
+    const [b1s, b1e, b2s, b2e] = [parts[5] || '', parts[6] || '', parts[7] || '', parts[8] || ''];
+    const doubleCounted = calculateWorkingHoursDoubleCounted(start, end, b1s, b1e, b2s, b2e);
+    // 保存値がこの式と一致しない場合は、半休加算など他の要因が絡んでいる可能性があり
+    // 正しく判定できないため、対象から外す（触らない）
+    if (doubleCounted !== work) return null;
+    const correct = calculateWorkingHoursExact(start, end, b1s, b1e, b2s, b2e);
+    if (correct === work) return null;
+    const oldOvertime = parts[4] || '';
+    const newOvertime = (parseFloat(correct) - 7.75).toFixed(2);
+    const newParts = parts.slice();
+    newParts[3] = correct;
+    newParts[4] = newOvertime;
+    return {
+        line: newParts.join(','),
+        oldWork: work,
+        newWork: correct,
+        oldOvertime,
+        newOvertime,
+    };
+}
+
+/**
+ * ログ全体(改行区切りのCSV文字列)を検査し、標準休憩時間と中断時間の
+ * 重複による二重差し引きの誤りを修正する。
+ * @param {string} logsStr - ログ全体の文字列(nullや空文字も可)
+ * @returns {{fixed: string, changes: {date: string, oldWork: string, newWork: string, oldOvertime: string, newOvertime: string}[]}}
+ */
+function fixLogsCalculations(logsStr) {
+    if (!logsStr) return { fixed: logsStr, changes: [] };
+    const changes = [];
+    const lines = logsStr.split('\n').map(line => {
+        if (!line) return line;
+        const fix = findLogCalculationFix(line);
+        if (!fix) return line;
+        changes.push({
+            date: line.split(',')[0],
+            oldWork: fix.oldWork,
+            newWork: fix.newWork,
+            oldOvertime: fix.oldOvertime,
+            newOvertime: fix.newOvertime,
+        });
+        return fix.line;
+    });
+    return { fixed: lines.join('\n'), changes };
+}
+
+/**
  * ログが存在しない、または0バイトのときにバックアップから復元する。
  * @returns {string|null} ログデータ
  */
