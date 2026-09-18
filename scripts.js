@@ -491,6 +491,20 @@ document.addEventListener('DOMContentLoaded', function() {
             && Math.max(ranges[0].s, ranges[1].s) < Math.min(ranges[0].e, ranges[1].e)) {
             problems.push('中断時間が重複しています');
         }
+        // 標準休憩時間の重なり分はcalculateWorkingHours()側で自動的に引かれるため、
+        // ここでも中断時間として引くと二重に差し引かれてしまう
+        const breakRanges = getBreakTimes().map(b => ({ s: toMinutes(b.start), e: toMinutes(b.end) }));
+        pairs.forEach(([startInput, endInput, label]) => {
+            if (!startInput.value || !endInput.value) return;
+            const s = toMinutes(startInput.value);
+            const e = toMinutes(endInput.value);
+            if (s >= e || s < start || e > end) return;  // 既に上で問題として報告済み
+            breakRanges.forEach(b => {
+                if (Math.max(s, b.s) < Math.min(e, b.e)) {
+                    problems.push(`中断時間${label}が休憩時間と重なっています`);
+                }
+            });
+        });
         return problems;
     }
 
@@ -870,6 +884,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         const workingHours = calculateWorkingHoursWithLeave(selectedStartTime, selectedEndTime);
         const interruptHours = calculateInterruptHours();
+        // 入力工数との比較は、中断時間を差し引いた実際の勤務時間を基準にする
+        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         // 見つかった問題点はここに集約し、最後にまとめて1回のalertで表示する
         const issueMessages = [];
         let firstEmptyTaskHoursIndex = -1;
@@ -911,14 +927,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 勤務工数が作業工数より少ない場合のチェック
-        if (parseFloat(workingHours) < totalTaskHours) {
+        if (parseFloat(actual) < totalTaskHours) {
             issueMessages.push("勤務時間が作業工数より少ないです。");
         }
 
         // 業務情報が一つ以上含まれている場合のみ補完処理を実行
-        if (Math.abs(parseFloat(workingHours) - totalTaskHours) > 0.01) {
+        if (Math.abs(parseFloat(actual) - totalTaskHours) > 0.01) {
             if (allTaskCategoriesFilled > 0 && firstEmptyTaskHoursIndex !== -1) {
-                let taskHours = parseFloat(workingHours) - totalTaskHours;
+                let taskHours = parseFloat(actual) - totalTaskHours;
                 if (taskHours < 0) {
                     taskHours = 0;
                 }
@@ -937,7 +953,6 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("保存しました。");
         }
 
-        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
         renderResult(
             `${formatDateWithDay(selectedDate)}　${selectedStartTime} → ${selectedEndTime}`,
@@ -982,6 +997,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         const workingHours = calculateWorkingHoursWithLeave(selectedStartTime, selectedEndTime);
+        const interruptHours = calculateInterruptHours();
+        // 入力工数との比較は、中断時間を差し引いた実際の勤務時間を基準にする
+        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const totalTaskHours = calculateTotalTaskHours();
 
         const subject = "スマ勤";
@@ -1017,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 確認が必要な項目はここに集約し、最後にまとめて1回のconfirmで表示する
         const confirmMessages = [];
-        if (Math.abs(parseFloat(workingHours) - totalTaskHours) > 0.01) {
+        if (Math.abs(parseFloat(actual) - totalTaskHours) > 0.01) {
             confirmMessages.push("勤務時間と入力工数に差分があります。");
         }
         if (selectedDate !== today) {
@@ -1032,8 +1050,6 @@ document.addEventListener('DOMContentLoaded', function() {
         saveTaskDataToStorage();  // データを保存
 
         // 送信する内容をそのままログにも登録する（「工数保存」ボタンと同じ計算）
-        const interruptHours = calculateInterruptHours();
-        const actual = (parseFloat(workingHours) - interruptHours).toFixed(2);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
         saveLog(selectedDate, selectedStartTime, selectedEndTime, actual, overtime,
             break1StartInput.value, break1EndInput.value,
