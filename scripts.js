@@ -4,7 +4,11 @@ if ("serviceWorker" in navigator) {
 
 document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('date');
-    const dateWeekday = document.getElementById('date-dow');
+    const dateText = document.getElementById('date-text');
+    const dateHoliday = document.getElementById('date-holiday');
+    const dateLabelText = document.getElementById('date-label-text');
+    const startTimeText = document.getElementById('start-time-text');
+    const endTimeText = document.getElementById('end-time-text');
     const startTimeInput = document.getElementById('start-time');
     const endTimeInput = document.getElementById('end-time');
     const break1StartInput = document.getElementById('break1-start');
@@ -430,26 +434,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * 日付欄の曜日表示を更新する。
-     * ネイティブの日付入力は表示文字を変更できないため、ラベルの隣に出す。
-     * 土曜は青、日曜・祝日は赤とカレンダーの慣例に合わせる。
+     * 日付欄の表示（「10/12(月)」）と見出しを更新する。祝日の日は、見出しの「日付」の代わりに祝日名を出す。
+     * ネイティブの日付入力は表示文字を変更できないため、透明にした入力欄の下に自前で描く。
+     * 週休2日のため土日は休み扱いとし、祝日と同じく曜日を赤にする。
      * @returns {void}
      */
     function updateDateWeekday() {
-        dateWeekday.className = 'date-dow';
+        dateText.textContent = '';
+        dateHoliday.textContent = '';
+        dateLabelText.style.display = '';
         if (!dateInput.value) {
-            dateWeekday.textContent = '';
+            dateText.textContent = '--/--';
             return;
         }
         const date = parseDateLocal(dateInput.value);
         const days = ['日', '月', '火', '水', '木', '金', '土'];
         const day = date.getDay();
         const holidayName = getHolidayName(date);
-        dateWeekday.textContent = `(${days[day]})${holidayName ? ' ' + holidayName : ''}`;
-        // 週休2日のため土日は休み扱いとし、祝日と同じ色にする
+        const dow = document.createElement('span');
+        dow.textContent = `(${days[day]})`;
         if (day === 0 || day === 6 || holidayName) {
-            dateWeekday.classList.add('holiday');
+            dow.className = 'holiday';
         }
+        dateText.append(`${date.getMonth() + 1}/${date.getDate()}`, dow);
+        dateHoliday.textContent = holidayName;
+        dateLabelText.style.display = holidayName ? 'none' : '';
+    }
+
+    /**
+     * 始業・終業欄の表示（「8:30」）を、入力欄の値に合わせて更新する。
+     * 値は保存時の読み込みやログからの戻しなど色々な所で変わるため、
+     * 計算結果を描き直すたびに合わせて呼ぶ。
+     * @returns {void}
+     */
+    function updateTimeTexts() {
+        const format = value => (value ? value.replace(/^0(\d):/, '$1:') : '--:--');
+        startTimeText.textContent = format(startTimeInput.value);
+        endTimeText.textContent = format(endTimeInput.value);
     }
 
     /**
@@ -774,6 +795,7 @@ document.addEventListener('DOMContentLoaded', function() {
      * @returns {void}
      */
     function updateLiveResult() {
+        updateTimeTexts();
         const start = startTimeInput.value;
         const end = endTimeInput.value;
         if (annualLeaveCheckbox.checked) {

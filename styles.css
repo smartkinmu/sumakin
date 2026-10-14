@@ -214,22 +214,70 @@ a {
    入力欄の幅を割合で削るとSafariでネイティブUIがはみ出すため、
    幅は指定せず中身どおりの自然な幅にして、余った右側にテキストを置く。
    収まらない場合は次の行へ折り返す */
-.date-row input[type="date"] {
-    display: inline-block;
-    width: auto;
-    vertical-align: middle;
+/* 日付・始業・終業を1行に並べる。日付は「10/12(月)」と文字が多いため少し広くする。
+   ネイティブのdate/time入力はSafariで幅の計算が崩れやすいため、見せる文字(.picker-text)を
+   自前で描き、その上に透明な入力欄(.picker-input)を重ねて、押したときのピッカーだけ使う */
+.datetime-row {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr 1fr;
+    gap: 8px;
 }
-.date-row .date-dow {
-    display: inline-block;
-    vertical-align: middle;
+.datetime-row .input-group {
+    min-width: 0;
 }
-.date-dow {
-    margin-left: 10px;
-    font-weight: 700;
-    color: var(--text);
+.datetime-row label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-.date-dow.holiday {
+/* 見出し（日付・祝日名・始業・終業）は、中の日付や時刻と同じく中央にそろえる */
+.datetime-row label {
+    text-align: center;
+}
+/* 祝日の日は、見出しの「日付」の代わりに祝日名を出す */
+.date-holiday {
     color: var(--danger);
+}
+.picker-box {
+    position: relative;
+    background: var(--surface-muted);
+    border-radius: var(--radius-sm);
+    padding: 10px 4px;
+    text-align: center;
+}
+.picker-box:focus-within {
+    box-shadow: 0 0 0 2px var(--accent);
+}
+.picker-box:has(.picker-input:disabled) {
+    opacity: 0.45;
+}
+.picker-text {
+    display: block;
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    /* 曜日の漢字があると行の高さが変わり、日付の欄だけ背が高くなるため固定する */
+    line-height: 1.4;
+    height: 1.4em;
+}
+.picker-text .holiday {
+    color: var(--danger);
+}
+.input-group .picker-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    -webkit-appearance: none;
+    appearance: none;
+    /* iPhoneで入力欄に触れたときに画面が拡大されないよう16px以上にする */
+    font-size: 16px;
+    cursor: pointer;
 }
 
 .input-group input,

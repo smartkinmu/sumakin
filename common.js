@@ -12,7 +12,7 @@ function toMinutes(timeStr) {
  * アプリのバージョン。index.html の表示と manifest.json の "version" と同じ値にする
  * （test/test.js で一致を確認している）。バックアップファイルに記録する。
  */
-const APP_VERSION = '1.17.8';
+const APP_VERSION = '1.17.9';
 
 /**
  * "YYYY-MM-DD" を端末の時間帯の0時として Date にする。
@@ -1002,8 +1002,8 @@ function fixNativeInputWidths(root) {
     inputs.forEach(input => {
         // 文字サイズ変更でレイアウト幅が変わるため、一度解除してから測り直す
         input.style.width = '';
-        // 右に曜日を並べる日付欄は、中身どおりの自然な幅のままにする
-        if (input.closest('.date-row')) return;
+        // 見せる文字の上に重ねた透明な入力欄は、CSSで枠いっぱいに広げているので測らない
+        if (input.classList.contains('picker-input')) return;
         const container = input.parentElement;
         if (!container) return;
         const style = getComputedStyle(container);
