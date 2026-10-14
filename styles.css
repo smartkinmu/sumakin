@@ -1,8 +1,8 @@
 :root {
-    --bg: #f5f6f8;
-    --bg: oklch(0.97 0.006 255);
-    --surface: #fdfdfe;
-    --surface: oklch(0.995 0.002 255);
+    --bg: #e3e8f0;
+    --bg: oklch(0.93 0.012 255);
+    --surface: #ffffff;
+    --surface: oklch(1 0 0);
     --surface-muted: #ececf0;
     --surface-muted: oklch(0.945 0.008 255);
     --text: #23262b;
@@ -42,12 +42,12 @@
 
 @media (prefers-color-scheme: dark) {
     :root {
-        --bg: #17181c;
-        --bg: oklch(0.19 0.012 255);
-        --surface: #202226;
-        --surface: oklch(0.245 0.014 255);
-        --surface-muted: #282a30;
-        --surface-muted: oklch(0.30 0.016 255);
+        --bg: #0a0e12;
+        --bg: oklch(0.16 0.012 255);
+        --surface: #20242b;
+        --surface: oklch(0.26 0.014 255);
+        --surface-muted: #2d333b;
+        --surface-muted: oklch(0.32 0.016 255);
         --text: #f2f3f5;
         --text: oklch(0.96 0.006 255);
         --text-muted: #9a9ea8;

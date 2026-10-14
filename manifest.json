@@ -4,8 +4,8 @@
     "description": "スマ勤",
     "start_url": "index.html",
     "display": "browser",
-    "background_color": "#f5f6f8",
-    "theme_color": "#f5f6f8",
+    "background_color": "#e3e8f0",
+    "theme_color": "#e3e8f0",
     "icons": [
         {
             "src": "icon-192x192.png",
@@ -18,5 +18,5 @@
             "type": "image/png"
         }
     ], 
-    "version": "1.17.7"
+    "version": "1.17.8"
 }
