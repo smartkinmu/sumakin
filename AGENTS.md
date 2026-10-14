@@ -1,6 +1,7 @@
 - コードはインデント4スペースで統一。
 - 関数には機能、入出力のコメントを記載する。
-- 変更時は `index.html` の `<span>ver.*</span>` と `manifest.json` の "version" を同時に更新する。
+- 変更時は `index.html` の `<span>ver.*</span>` と `manifest.json` の "version" と `common.js` の `APP_VERSION` を同時に更新する（`npm test` で一致を確かめる）。
+- 画面で使うファイルを足したら、`service-worker.js` の `PRECACHE_URLS` にも足す（オフラインで使うため）。
 - プルリクエストでは変更概要とテスト結果を詳細にかつ簡潔に記載する。
 - バージョンを更新するのはユーザに直接影響する機能変更があった場合とする。
 - ユーザに直接影響する機能変更が発生した場合は使い方も更新する。

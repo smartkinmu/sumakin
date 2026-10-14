@@ -3,7 +3,7 @@
 <head>
     <script>document.documentElement.setAttribute('data-font-size', localStorage.getItem('fontSize') || 'small');</script>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>設定</title>
     <link rel="stylesheet" href="styles.css">
     <style>
@@ -96,7 +96,7 @@
             const eveningEnd = document.getElementById('evening-end');
             const saveBtn = document.getElementById('save-settings');
 
-            // 「更新」ボタンと画面を下に引く操作で、キャッシュを消して最新版を取得する
+            // 「更新」ボタンと画面を下に引く操作で、最新版を取得する
             document.getElementById('refresh-button').addEventListener('click', refreshApp);
             setupPullToRefresh();
 
@@ -135,6 +135,11 @@
                     }
                     if (toMinutes(eveningStart.value) >= toMinutes(eveningEnd.value)) {
                         errors.push('夕休みの開始が終了より後になっています。');
+                    }
+                    // 重なっていると、画面によって勤務時間の計算が食い違う原因になる
+                    if (Math.max(toMinutes(lunchStart.value), toMinutes(eveningStart.value))
+                        < Math.min(toMinutes(lunchEnd.value), toMinutes(eveningEnd.value))) {
+                        errors.push('昼休みと夕休みの時間が重なっています。');
                     }
                 }
                 if (errors.length > 0) {

@@ -83,9 +83,15 @@
 
         <div class="card">
             <h2>読み込み</h2>
-            <p>書き出したファイルを選ぶと、その時点の内容に戻します。現在のデータは上書きされます。</p>
+            <p>書き出したファイルを選ぶと、その時点の内容に戻します。現在のデータは、ファイルの内容に置き換わります。</p>
             <input type="file" id="restore-file" accept="application/json,.json" hidden>
             <button id="restore-button">バックアップから復元</button>
+        </div>
+
+        <div class="card" id="undo-restore-card" style="display:none;">
+            <h2>復元の取り消し</h2>
+            <p id="undo-restore-text">直前の復元を取り消して、復元する前の内容に戻します。ログを保存・編集すると、取り消せなくなります。</p>
+            <button id="undo-restore-button">復元を取り消す</button>
         </div>
     </div>
 
@@ -96,8 +102,10 @@
             const restoreButton = document.getElementById('restore-button');
             const restoreFile = document.getElementById('restore-file');
             const backupStatus = document.getElementById('backup-status');
+            const undoRestoreCard = document.getElementById('undo-restore-card');
+            const undoRestoreButton = document.getElementById('undo-restore-button');
 
-            // 「更新」ボタンと画面を下に引く操作で、キャッシュを消して最新版を取得する
+            // 「更新」ボタンと画面を下に引く操作で、最新版を取得する
             document.getElementById('refresh-button').addEventListener('click', refreshApp);
             setupPullToRefresh();
 
@@ -117,6 +125,15 @@
                     `最終バックアップ: ${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} `
                     + `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
                     + `（現在のログ: ${logs.size}件）`;
+            }
+
+            /**
+             * 復元を取り消せるときだけ、取り消しの欄を出す。
+             * （.card は display を指定しているため、hidden 属性ではなく style で切り替える）
+             * @returns {void}
+             */
+            function updateUndoRestore() {
+                undoRestoreCard.style.display = getRestoreUndoTime() ? 'block' : 'none';
             }
 
             /**
@@ -172,7 +189,8 @@
                 }
                 const currentLogs = parseLogsToMap(localStorage.getItem('logs'));
                 const message = `以下の内容に復元します。\n\n${summarizeBackup(backup).join('\n')}\n\n`
-                    + `現在のデータ（ログ${currentLogs.size}件と設定）は上書きされます。\n\n復元しますか？`;
+                    + `現在のデータ（ログ${currentLogs.size}件と設定）は、ファイルの内容に置き換わります。`
+                    + '復元したあとは、この画面の「復元を取り消す」で元に戻せます。\n\n復元しますか？';
                 if (!confirm(message)) {
                     return;
                 }
@@ -188,12 +206,33 @@
             restoreFile.addEventListener('change', () => {
                 const file = restoreFile.files[0];
                 if (file) {
-                    restoreFromFile(file);
+                    restoreFromFile(file).catch(() => {
+                        alert('復元に失敗しました。「復元を取り消す」で元に戻してください。');
+                        updateUndoRestore();
+                    });
                 }
                 restoreFile.value = '';
             });
 
+            undoRestoreButton.addEventListener('click', () => {
+                const at = getRestoreUndoTime();
+                const when = at
+                    ? `${at.getMonth() + 1}/${at.getDate()} ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`
+                    : '直前';
+                if (!confirm(`${when} の復元を取り消して、復元する前の内容に戻しますか？\n復元のあとに変えた設定も、復元する前の内容に戻ります。`)) {
+                    return;
+                }
+                if (undoRestore()) {
+                    alert('復元する前の内容に戻しました。');
+                    location.href = 'index.html';
+                } else {
+                    alert('取り消せる復元はありません。');
+                    updateUndoRestore();
+                }
+            });
+
             updateStatus();
+            updateUndoRestore();
         });
     </script>
 </body>
