@@ -91,13 +91,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         <input type="text" id="category${index}" name="category${index}" maxlength="5" pattern="\\d{5}">
                     </div>
                 </div>
-                <div class="input-group">
-                    <label for="task-hours${index}">工数${index}</label>
-                    <input type="number" id="task-hours${index}" name="task-hours${index}" step="0.01" min="0">
-                </div>
-                <div class="input-group">
-                    <label for="title${index}">備考${index}</label>
-                    <input type="text" id="title${index}" name="title${index}">
+                <div class="field-row">
+                    <div class="input-group narrow">
+                        <label for="task-hours${index}">工数${index}</label>
+                        <input type="number" id="task-hours${index}" name="task-hours${index}" step="0.01" min="0">
+                    </div>
+                    <div class="input-group narrow">
+                        <label for="title${index}">備考${index}</label>
+                        <input type="text" id="title${index}" name="title${index}">
+                    </div>
                 </div>
             </div>
         `;
