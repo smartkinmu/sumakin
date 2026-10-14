@@ -405,9 +405,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return new Date(utc + 9 * 60 * 60000);
     }
 
+    /**
+     * この時刻（日本時間）より前は、前の日の勤務として扱う。深夜まで働いた日を
+     * 翌日の日付で記録してしまわないため。
+     */
+    const BUSINESS_DAY_START_HOUR = 4;
+
     function getDefaultDate() {
         const now = getJSTNow();
-        if (now.getHours() < 6) {
+        if (now.getHours() < BUSINESS_DAY_START_HOUR) {
             now.setDate(now.getDate() - 1);
         }
         let date = now;
@@ -474,13 +480,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * 「今日」を業務日基準（翌日午前6時までは前日扱い）で取得する。
+     * 「今日」を業務日基準（翌日午前4時までは前日扱い。BUSINESS_DAY_START_HOUR）で取得する。
      * @param {Date} now - 現在時刻
      * @returns {string} 業務日基準の今日の日付("YYYY-MM-DD")
      */
     function getBusinessToday(now) {
         const d = new Date(now);
-        if (d.getHours() < 6) {
+        if (d.getHours() < BUSINESS_DAY_START_HOUR) {
             d.setDate(d.getDate() - 1);
         }
         return formatDate(d);
@@ -1019,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         const messages = [];
-        // 翌日午前6時までは前日を「今日」とみなす（まだ勤務中かもしれない日を警告しないため）
+        // 翌日午前4時までは前日を「今日」とみなす（まだ勤務中かもしれない日を警告しないため）
         let checked = 0;
         let d = parseDateLocal(getBusinessToday(getJSTNow()));
         while (checked < 2) {
@@ -1105,7 +1111,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         let totalTaskHours = calculateTotalTaskHours();
 
-        // 現在の日付を取得（翌日午前6時までは前日を「今日」とみなす）
+        // 現在の日付を取得（翌日午前4時までは前日を「今日」とみなす）
         const now = getJSTNow();
         const today = getBusinessToday(now);
 
@@ -1234,7 +1240,7 @@ document.addEventListener('DOMContentLoaded', function() {
             body += `${newline}@業務${newline}業務 ${taskNumber}${newline}分類 ${category}${newline}工数 ${taskHoursConverted}${newline}備考 ${title}${newline}`;
         }
 
-        // 現在の日付を取得（翌日午前6時までは前日を「今日」とみなす）
+        // 現在の日付を取得（翌日午前4時までは前日を「今日」とみなす）
         const now = getJSTNow();
         const today = getBusinessToday(now);
 
