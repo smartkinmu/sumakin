@@ -135,11 +135,14 @@ function initLogPage(mode) {
             editStart.value = start;
             editEnd.value = end;
         }
-        const originalType = editDate.type;
-        // 一時的に text 型へ変更しフォーカス時のピッカー表示を抑制
-        editDate.type = 'text';
+        // showModal() は、ふつう最初の入力欄（日付）に焦点を移す。iPhoneではそれだけで
+        // カレンダーが開いてしまうため、ダイアログそのものに焦点を置く（autofocus）
+        editDialog.autofocus = true;
         editDialog.showModal();
-        editDate.type = originalType;
+        if (document.activeElement !== editDialog) {
+            if (document.activeElement) document.activeElement.blur();
+            editDialog.focus({ preventScroll: true });
+        }
         fixNativeInputWidths(editDialog);
     }
 
