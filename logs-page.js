@@ -126,6 +126,8 @@ function initLogPage(mode) {
      */
     function openEditDialog(date, start, end) {
         originalDate = date;
+        // iPhoneのカレンダーの「リセット」で、このログの元の日付に戻るようにする（初期値）
+        editDate.defaultValue = date;
         editDate.value = date;
         if (start === '年休') {
             // 年休はデフォルト時間を入力欄に設定する。時刻を変えずに保存すれば年休のまま残る
@@ -135,6 +137,9 @@ function initLogPage(mode) {
             editStart.value = start;
             editEnd.value = end;
         }
+        // 時刻も、ピッカーの「リセット」で開いたときの時刻に戻るようにする
+        editStart.defaultValue = editStart.value;
+        editEnd.defaultValue = editEnd.value;
         // showModal() は、ふつう最初の入力欄（日付）に焦点を移す。iPhoneではそれだけで
         // カレンダーが開いてしまうため、ダイアログそのものに焦点を置く（autofocus）
         editDialog.autofocus = true;

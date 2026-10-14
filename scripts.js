@@ -503,6 +503,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${h}:${m}`;
     }
 
+    /**
+     * iPhoneのピッカーの「リセット」は、入力欄の初期値（value属性 = defaultValue）に戻し、
+     * 開いているピッカーの見た目もすぐその値に動かす。初期値が空だと見た目が変わらないため、
+     * ピッカーを開くたびに、日付は今日、時刻は今の時刻を初期値にしておく。
+     * （.value を一度でも入れた欄は、defaultValue を変えても今の値は変わらない）
+     * @returns {void}
+     */
+    function setResetTargets() {
+        dateInput.defaultValue = getBusinessToday(getJSTNow());
+        const now = getCurrentTimeHHMM();
+        startTimeInput.defaultValue = now;
+        endTimeInput.defaultValue = now;
+    }
+    [dateInput, startTimeInput, endTimeInput].forEach(input => {
+        input.addEventListener('focus', setResetTargets);
+        input.addEventListener('pointerdown', setResetTargets);
+    });
+
     // 時刻変更時にローカルストレージに保存
     // 'change'はピッカーのチェック（確定）ボタンを押した時にだけ発火する。
     // クリアして空欄のまま確定した場合は、その時点の現在時刻を入れる。
