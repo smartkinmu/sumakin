@@ -139,6 +139,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
+     * 選んでいる休暇を返す。
+     * @returns {string} 年休は 'annual'、AM休は 'am'、PM休は 'pm'、休暇でなければ ''
+     */
+    function getSelectedLeave() {
+        if (annualLeaveCheckbox.checked) return 'annual';
+        if (amLeaveCheckbox.checked) return 'am';
+        if (pmLeaveCheckbox.checked) return 'pm';
+        return '';
+    }
+
+    /**
      * 今の入力内容（業務の内容・表示するグループの数・休暇）を、その日のログと一緒に残す。
      * あとでログ画面の「入力画面に戻す」で、メールを作り直せるようにするため。
      * @param {string} date - YYYY-MM-DD形式の日付
@@ -155,21 +166,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 title: document.getElementById(`title${i}`).value,
             });
         }
-        let leave = '';
-        if (annualLeaveCheckbox.checked) {
-            leave = 'annual';
-        } else if (amLeaveCheckbox.checked) {
-            leave = 'am';
-        } else if (pmLeaveCheckbox.checked) {
-            leave = 'pm';
-        }
-        saveLogDetail(date, { groupCount: count, leave, tasks });
+        saveLogDetail(date, { groupCount: count, leave: getSelectedLeave(), tasks });
     }
 
     /**
      * ログ画面の「入力画面に戻す」で頼まれた日の内容を、入力欄に戻す。
      * 業務の内容が残っていない古いログでは、日付・時刻・中断時間だけを戻す。
-     * @returns {void}
+     * @returns {boolean} 頼まれた日の内容で入力欄を置き換えたら true
      */
     function applyRestoreRequest() {
         let date = null;
@@ -177,13 +180,13 @@ document.addEventListener('DOMContentLoaded', function() {
             date = sessionStorage.getItem('restoreLogDate');
             sessionStorage.removeItem('restoreLogDate');
         } catch (error) {
-            return;
+            return false;
         }
-        if (!date) return;
+        if (!date) return false;
         const line = parseLogsToMap(restoreLogsIfNeeded()).get(date);
         if (!line) {
             alert(`${date} のログが見つかりませんでした。`);
-            return;
+            return false;
         }
         const parts = line.split(',');
         const [, start, end, work] = parts;
@@ -238,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!detail) {
             alert('この日の業務の内容は保存されていないため、日付・時刻・中断時間だけを戻しました。');
         }
+        return true;
     }
 
     function saveTaskDataToStorage() {
@@ -603,6 +607,75 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         setDefaultDate();
     }
+
+    // 工数・中断時間・休暇は次の日に持ち越さないため端末には保存しないが、
+    // ログ画面などへ移って戻ったときに消えないよう、その業務日のうちだけ控えておく
+    const INPUT_DRAFT_KEY = 'inputDraft';
+    // 控えを戻し終えるまでは控えない（読み込みの途中の空の入力で、控えを上書きしないため）
+    let inputDraftReady = false;
+
+    /**
+     * 工数・中断時間・休暇の入力を、ほかの画面へ移って戻ったときのために控える。
+     * 控えるのは、その時点の業務日と合わせて（日が変わったら使わない）。
+     * @returns {void}
+     */
+    function saveInputDraft() {
+        if (!inputDraftReady) return;
+        const count = parseInt(groupCountPicker.value, 10);
+        const hours = [];
+        for (let i = 1; i <= count; i++) {
+            hours.push(document.getElementById(`task-hours${i}`)?.value || '');
+        }
+        try {
+            sessionStorage.setItem(INPUT_DRAFT_KEY, JSON.stringify({
+                businessDay: getBusinessToday(getJSTNow()),
+                hours,
+                breaks: [break1StartInput.value, break1EndInput.value,
+                    break2StartInput.value, break2EndInput.value],
+                leave: getSelectedLeave(),
+            }));
+        } catch (error) {
+            // 保存できない環境では、戻ったときに空になるだけなので何もしない
+        }
+    }
+
+    /**
+     * 控えておいた工数・中断時間・休暇を入力欄に戻す。同じ業務日の控えだけを使う。
+     * @returns {void}
+     */
+    function restoreInputDraft() {
+        let draft = null;
+        try {
+            draft = JSON.parse(sessionStorage.getItem(INPUT_DRAFT_KEY));
+        } catch (error) {
+            draft = null;
+        }
+        if (!draft || draft.businessDay !== getBusinessToday(getJSTNow())) return;
+        const hours = Array.isArray(draft.hours) ? draft.hours : [];
+        const count = parseInt(groupCountPicker.value, 10);
+        for (let i = 1; i <= count; i++) {
+            document.getElementById(`task-hours${i}`).value = hours[i - 1] || '';
+        }
+        const leave = draft.leave || '';
+        annualLeaveCheckbox.checked = leave === 'annual';
+        amLeaveCheckbox.checked = leave === 'am';
+        pmLeaveCheckbox.checked = leave === 'pm';
+        updateLeaveControls();
+        const [b1s = '', b1e = '', b2s = '', b2e = ''] = Array.isArray(draft.breaks) ? draft.breaks : [];
+        if (!leave) {
+            break1StartInput.value = b1s;
+            break1EndInput.value = b1e;
+            break2StartInput.value = b2s;
+            break2EndInput.value = b2e;
+        }
+        if (interruptLeaveSection && (leave || b1s || b1e || b2s || b2e)) {
+            interruptLeaveSection.open = true;
+        }
+    }
+    // 入力が変わるたびと、ほかの画面へ移るときに控える
+    document.addEventListener('change', saveInputDraft);
+    window.addEventListener('pagehide', saveInputDraft);
+
     dateInput.addEventListener('change', handleDateChange);
     dateInput.addEventListener('input', handleDateChange);
 
@@ -1319,8 +1392,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // ページロード時の処理
     window.addEventListener('load', () => {
         loadTaskDataFromStorage();
-        // ログ画面の「入力画面に戻す」から来たときは、その日の内容に置き換える
-        applyRestoreRequest();
+        // ログ画面の「入力画面に戻す」から来たときは、その日の内容に置き換える。
+        // それ以外は、ほかの画面へ移る前の工数・中断時間・休暇を戻す
+        if (!applyRestoreRequest()) {
+            restoreInputDraft();
+        }
+        inputDraftReady = true;
         updateLiveResult();
         // 起動時のみ一度だけ入力漏れ警告を表示する
         if (!sessionStorage.getItem('missingLogsChecked')) {
