@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-sample-cache-v70';
+const CACHE_NAME = 'pwa-sample-cache-v71';
 
 // オフラインで使うために、あらかじめ取り込んでおくファイル
 const PRECACHE_URLS = [
@@ -16,7 +16,8 @@ const PRECACHE_URLS = [
     './styles.css',
     './service-worker.js',
     './icon-192x192.png',
-    './icon-512x512.png'
+    './icon-512x512.png',
+    './apple-touch-icon.png'
 ];
 
 /**
