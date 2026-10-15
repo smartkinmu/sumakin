@@ -354,13 +354,15 @@ button:disabled {
 }
 
 /* ===== 入力確認・計算の結果表示 ===== */
-/* 数値の見せ方はログ表示画面の集計タイルに合わせている */
+/* 数値の見せ方はログ表示画面の集計タイルに合わせている。
+   ほかの白いカードと見分けがつくよう、青い縁取りと影を付けて浮かせ、見出しも青にする */
 .result {
     background: var(--surface);
     border-radius: var(--radius-lg);
     padding: 14px 16px;
     margin-top: 0;
     color: var(--text);
+    box-shadow: 0 0 0 2px var(--accent), 0 12px 26px -10px var(--accent-shadow);
 }
 .result:empty {
     display: none;
@@ -368,7 +370,7 @@ button:disabled {
 .result-head {
     font-size: 0.824rem;
     font-weight: 700;
-    color: var(--text-muted);
+    color: var(--accent);
     margin-bottom: 10px;
 }
 /* 計算できない理由を示している場合は見落とさないよう警告色にする */
@@ -455,6 +457,15 @@ button:disabled {
 }
 
 /* ===== Top action bar ===== */
+/* 先頭ページ以外の、戻るボタンがある行。スクロールしても画面の上に残す。
+   並べ方（display・padding）は各画面の中で指定している。地の色を付けて、下を流れるカードを透けさせない */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    background: var(--bg);
+}
+
 /* 「工数保存」「メール作成」の帯は、スクロールしても画面の上に残す。
    地の色を付けているので、下を流れる欄は透けない */
 .button-group {
