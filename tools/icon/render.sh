@@ -4,6 +4,8 @@
 #   apple-touch-icon.png（180×180。iPhone のホーム画面）
 # を置き換える。画面なしの Chrome は小さい窓を作れず 192 では崩れるため、192 と 180 は 512 を縮めて作る。
 # 縮めると色の情報や EXIF が入るため、画像だけの単純な PNG に戻す（strip-png.py）。
+# iPhone はアイコンと manifest をアドレスごとに覚えているので、アイコンを変えたら、manifest.json の
+# アイコンのアドレスと 6 つの画面の <link> に付けた印（?v=2）の数字を上げる（npm test で食い違いを確かめる）。
 # 使い方：tools/icon/render.sh
 set -e
 dir="${0:A:h}"

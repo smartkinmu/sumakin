@@ -351,6 +351,29 @@ test('バージョン：index.html・manifest.json・common.js が同じ値', ()
     assert.strictEqual(run('APP_VERSION'), manifestVersion);
 });
 
+test('アイコン：iPhone が使えるよう、manifest のアイコンは PNG だけで、180 を含み、purpose を付けない', () => {
+    // 今の iOS は manifest のアイコンからホーム画面のアイコンを選び、扱えないもの（SVG・maskable の並びなど）が
+    // 混ざると、名前の頭の文字のアイコン（「ス」）にしてしまう。docs/ios-home-screen-icon/README.md
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+    manifest.icons.forEach(icon => {
+        assert.strictEqual(icon.type, 'image/png', `${icon.src} が PNG でない`);
+        assert.ok(!icon.purpose, `${icon.src} に purpose が付いている`);
+        const file = icon.src.split('?')[0];
+        assert.ok(fs.existsSync(path.join(root, file)), `${file} がない`);
+    });
+    assert.ok(manifest.icons.some(icon => icon.sizes === '180x180'), '180×180 のアイコンがない');
+});
+
+test('アイコン：6 つの画面すべてで、iPhone 用のアイコンと manifest を、manifest と同じ印付きのアドレスで指定する', () => {
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+    const touch = manifest.icons.find(icon => icon.sizes === '180x180').src;
+    ['index.html', 'logs.html', 'due_logs.html', 'settings.html', 'backup.html', 'manual.html'].forEach(page => {
+        const html = fs.readFileSync(path.join(root, page), 'utf8');
+        assert.ok(html.includes(`<link rel="apple-touch-icon" sizes="180x180" href="${touch}">`), `${page} に iPhone 用のアイコンがない`);
+        assert.ok(/<link rel="manifest" href="manifest\.json\?v=\d+">/.test(html), `${page} の manifest に印がない`);
+    });
+});
+
 test('オフライン：service-worker.js が取り込むファイルがすべてある', () => {
     const sw = fs.readFileSync(path.join(root, 'service-worker.js'), 'utf8');
     const list = sw.match(/const PRECACHE_URLS = \[([\s\S]*?)\]/)[1];

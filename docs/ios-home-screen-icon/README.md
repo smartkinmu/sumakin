@@ -8,9 +8,13 @@
 - iOS 16.4 から、ページに `manifest.json` があると、Safari はそのアイコンを使う。WebKit の Safari 26 の説明にも「manifest にアイコンを書けば、それが使われる」とある（https://webkit.org/blog/16993/news-from-wwdc25-web-technology-coming-this-fall-in-safari-26-beta/）
 - manifest のアイコンの中に、Safari が扱えないものがあると、正しい PNG があってもアイコンを作らず、名前の頭の文字のアイコンになる。報告では SVG を外したら直った（https://bugs.webkit.org/show_bug.cgi?id=256429）
 - iOS 26 から、ホーム画面に追加したサイトは、ふつう Web アプリとして開く（https://www.heise.de/en/news/iOS-26-and-iPadOS-26-Changed-web-app-behaviour-on-the-home-screen-10749652.html）
+- 同じ症状を iOS 27.2 で直した事例（https://github.com/bradyloveland/taper/pull/5）：manifest のアイコンを PNG だけにし、iPhone 用の 180×180（不透明）も入れた。`apple-touch-icon` は `sizes="180x180"` と、変えたら取り直されるよう印付きのアドレスにした
+- iPhone は、ホーム画面のアイコンを追加したときのもので覚えている。試し直すときは、古いアイコンを消してから追加し直す。それでも変わらないときは、Safari の「Web サイトデータ」でそのサイトのデータを消す（同じ事例、https://github.com/Cloonar/coding-lab/issues/94）
+- アイコンが透明な部分を持つと、iOS は黒く塗ったり、文字のアイコンにしたりする（https://github.com/Cloonar/coding-lab/issues/94）。このアプリのアイコンは不透明
 
 ## このアプリでしたこと
 
 - v1.17.15 で、Android 向けに、同じ画像を `"purpose": "maskable"` としても manifest に並べていた。iPhone でアイコンが作られなくなった時期と合うので、v1.18.2 で外し、アイコンが出ていたころと同じ 2 つ（192・512、purpose なし）に戻した
 - iPhone 用の `apple-touch-icon.png`（180×180、画像だけの単純な PNG）も、6 つの画面すべてで指定している（v1.18.1）
-- 実機・シミュレーターでは確かめられていない。maskable を足し直すときは、別のファイル名にして、iOS シミュレーターで「ホーム画面に追加」を試してからにする
+- v1.18.2 でも「ス」のままだった（iPhone が前の失敗を覚えていた可能性がある）。v1.18.3 で、manifest のアイコンに 180 を入れ、manifest とアイコンのアドレスに印（`?v=2`）を付けた。アイコンを変えたら、この数字を上げる（`npm test` で、manifest のアイコンが PNG だけで 180 を含むこと、6 つの画面が同じ印で指定していることを確かめる）
+- 実機・シミュレーターでは確かめられていない。スマ勤専用のシミュレーターの台「スマ勤 iPhone 18 Pro」を残してある（操作には、Mac の Claude のアプリで一度許可が要る）。maskable を足し直すときは、別のファイル名にして、この台で「ホーム画面に追加」を試してからにする
