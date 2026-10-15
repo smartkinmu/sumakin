@@ -1,4 +1,4 @@
-const CACHE_NAME = 'pwa-sample-cache-v71';
+const CACHE_NAME = 'pwa-sample-cache-v72';
 
 // オフラインで使うために、あらかじめ取り込んでおくファイル
 const PRECACHE_URLS = [

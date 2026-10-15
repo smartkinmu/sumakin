@@ -1,2 +1,4 @@
 .claude/settings.local.json
 .DS_Store
+# 調べ物で保存した他社の資料（取った記録は docs/<調べ物>/sources.md に残す）
+docs/*/documents/
