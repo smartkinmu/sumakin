@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+    <!-- アプリのアイコン「進む輪」。紺の地に、時間が進む青い輪（12時から8時まで）と白い針。
+         角は丸めない（ホーム画面に置くと、端末が丸める）。render.sh で PNG にする -->
+    <rect width="1024" height="1024" fill="#16204a"/>
+    <circle cx="512" cy="512" r="300" fill="none" stroke="#2a3670" stroke-width="72"/>
+    <path d="M512 212 A300 300 0 1 1 252.2 662" fill="none" stroke="#6c8cff" stroke-width="72" stroke-linecap="round"/>
+    <g stroke="#ffffff" stroke-width="44" stroke-linecap="round">
+        <line x1="512" y1="512" x2="512" y2="342"/>
+        <line x1="512" y1="512" x2="408" y2="572"/>
+    </g>
+    <circle cx="512" cy="512" r="26" fill="#ffffff"/>
+</svg>

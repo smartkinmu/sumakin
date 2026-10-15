@@ -82,27 +82,35 @@ document.addEventListener('DOMContentLoaded', function() {
         checkbox.addEventListener('change', updateLiveResult);
     });
 
+    /**
+     * 業務1つ分の入力欄を作る。左の列に業務・分類、右の列に工数・備考を上下に並べる。
+     * 列ごとにまとめるので、キーボードの「次へ」は業務→分類→工数→備考の順に進む。
+     * @param {number} index - 業務の番号（1から）
+     * @returns {string} 入力欄のHTML
+     */
     function createTaskGroup(index) {
         return `
             <div class="task-group">
-                <div class="field-row">
-                    <div class="input-group narrow">
-                        <label for="task-number${index}">業務${index}</label>
-                        <input type="text" id="task-number${index}" name="task-number${index}">
+                <div class="field-columns">
+                    <div class="field-column">
+                        <div class="input-group narrow">
+                            <label for="task-number${index}">業務${index}</label>
+                            <input type="text" id="task-number${index}" name="task-number${index}">
+                        </div>
+                        <div class="input-group narrow">
+                            <label for="category${index}">分類${index}</label>
+                            <input type="text" id="category${index}" name="category${index}" maxlength="5" pattern="\\d{5}">
+                        </div>
                     </div>
-                    <div class="input-group narrow">
-                        <label for="category${index}">分類${index}</label>
-                        <input type="text" id="category${index}" name="category${index}" maxlength="5" pattern="\\d{5}">
-                    </div>
-                </div>
-                <div class="field-row">
-                    <div class="input-group narrow">
-                        <label for="task-hours${index}">工数${index}</label>
-                        <input type="number" id="task-hours${index}" name="task-hours${index}" step="0.01" min="0">
-                    </div>
-                    <div class="input-group narrow">
-                        <label for="title${index}">備考${index}</label>
-                        <input type="text" id="title${index}" name="title${index}">
+                    <div class="field-column">
+                        <div class="input-group narrow">
+                            <label for="task-hours${index}">工数${index}</label>
+                            <input type="number" id="task-hours${index}" name="task-hours${index}" step="0.01" min="0">
+                        </div>
+                        <div class="input-group narrow">
+                            <label for="title${index}">備考${index}</label>
+                            <input type="text" id="title${index}" name="title${index}">
+                        </div>
                     </div>
                 </div>
             </div>

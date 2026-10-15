@@ -691,3 +691,21 @@ details.fold-section[open] summary::after {
 .task-group > *:first-child {
     margin-top: 0;
 }
+/* 業務のカードは、左の列に業務・分類、右の列に工数・備考を上下に並べる。
+   「次へ」で左の列を下まで進んでから右の列へ移るよう、列ごとにまとめる。
+   .field-row と同じく、Safari対策で flex を使わず inline-block で横に並べる */
+.field-columns {
+    font-size: 0;
+}
+.field-column {
+    display: inline-block;
+    width: calc(50% - 5px);
+    vertical-align: top;
+    font-size: 1rem;
+}
+.field-column:first-child {
+    margin-right: 10px;
+}
+.field-column > .input-group + .input-group {
+    margin-top: 9px;
+}
