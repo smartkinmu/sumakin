@@ -451,8 +451,11 @@ button:disabled {
 }
 
 /* ===== Top action bar ===== */
+/* 「工数保存」「メール作成」の帯は、スクロールしても画面の上に残す。
+   地の色を付けているので、下を流れる欄は透けない */
 .button-group {
-    position: relative;
+    position: sticky;
+    top: 0;
     background: var(--bg);
     border-bottom: 1px solid var(--border);
     padding: 4px 16px 12px 16px;
@@ -691,7 +694,7 @@ details.fold-section[open] summary::after {
 .task-group > *:first-child {
     margin-top: 0;
 }
-/* 業務のカードは、左の列に業務・分類、右の列に工数・備考を上下に並べる。
+/* 業務のカードは、左の列に業務・分類、右の列に備考・工数を上下に並べる。
    「次へ」で左の列を下まで進んでから右の列へ移るよう、列ごとにまとめる。
    .field-row と同じく、Safari対策で flex を使わず inline-block で横に並べる */
 .field-columns {

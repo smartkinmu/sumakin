@@ -83,8 +83,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     /**
-     * 業務1つ分の入力欄を作る。左の列に業務・分類、右の列に工数・備考を上下に並べる。
-     * 列ごとにまとめるので、キーボードの「次へ」は業務→分類→工数→備考の順に進む。
+     * 業務1つ分の入力欄を作る。左の列に業務・分類、右の列に備考・工数を上下に並べる。
+     * 列ごとにまとめるので、キーボードの「次へ」は業務→分類→備考→工数の順に進む。
      * @param {number} index - 業務の番号（1から）
      * @returns {string} 入力欄のHTML
      */
@@ -104,12 +104,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     <div class="field-column">
                         <div class="input-group narrow">
-                            <label for="task-hours${index}">工数${index}</label>
-                            <input type="number" id="task-hours${index}" name="task-hours${index}" step="0.01" min="0">
-                        </div>
-                        <div class="input-group narrow">
                             <label for="title${index}">備考${index}</label>
                             <input type="text" id="title${index}" name="title${index}">
+                        </div>
+                        <div class="input-group narrow">
+                            <label for="task-hours${index}">工数${index}</label>
+                            <input type="number" id="task-hours${index}" name="task-hours${index}" step="0.01" min="0">
                         </div>
                     </div>
                 </div>
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!date) return false;
         const line = parseLogsToMap(restoreLogsIfNeeded()).get(date);
         if (!line) {
-            alert(`${date} のログが見つかりませんでした。`);
+            afterFirstPaint(() => alert(`${date} のログが見つかりませんでした。`));
             return false;
         }
         const parts = line.split(',');
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fixNativeInputWidths();
         updateLiveResult();
         if (!detail) {
-            alert('この日の業務の内容は保存されていないため、日付・時刻・中断時間だけを戻しました。');
+            afterFirstPaint(() => alert('この日の業務の内容は保存されていないため、日付・時刻・中断時間だけを戻しました。'));
         }
         return true;
     }
@@ -1409,10 +1409,21 @@ document.addEventListener('DOMContentLoaded', function() {
         updateLiveResult();
         // 起動時のみ一度だけ入力漏れ警告を表示する
         if (!sessionStorage.getItem('missingLogsChecked')) {
-            checkMissingLogs();
             sessionStorage.setItem('missingLogsChecked', '1');
+            afterFirstPaint(checkMissingLogs);
         }
     });
+
+    /**
+     * 画面を描き終えてから処理を行う。読み込みの途中で alert を出すと、iPhone では
+     * 画面が描かれる前に止まり、背景に何もない状態で知らせが出るため。
+     * 描く処理（requestAnimationFrame）のあと、描いたものが画面に届くまで少し待つ。
+     * @param {function(): void} fn - 描き終えてから行う処理
+     * @returns {void}
+     */
+    function afterFirstPaint(fn) {
+        requestAnimationFrame(() => setTimeout(fn, 100));
+    }
 
     // サービスワーカーが変更された場合の処理
     let refreshing;
