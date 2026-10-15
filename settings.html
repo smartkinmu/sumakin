@@ -6,40 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>設定</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .topbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 20px 8px 20px;
-        }
-        .topbar .icon-btn {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            flex: none;
-            padding: 0;
-            background: var(--surface-muted);
-            color: var(--text);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: none;
-        }
-        .topbar h1 {
-            font-size: 1.176rem;
-            font-weight: 700;
-            margin: 0;
-            flex-grow: 1;
-        }
-        .card-title {
-            font-size: 0.882rem;
-            font-weight: 700;
-            margin: 0;
-            color: var(--text);
-        }
-    </style>
 </head>
 <body>
     <div id="refresh-indicator">更新中...</div>
@@ -66,21 +32,33 @@
             <div class="field-row">
                 <div class="input-group narrow">
                     <label for="lunch-start">昼休み開始</label>
-                    <input type="time" id="lunch-start">
+                    <div class="picker-box">
+                        <span class="picker-text"></span>
+                        <input type="time" id="lunch-start" class="picker-input">
+                    </div>
                 </div>
                 <div class="input-group narrow">
                     <label for="lunch-end">昼休み終了</label>
-                    <input type="time" id="lunch-end">
+                    <div class="picker-box">
+                        <span class="picker-text"></span>
+                        <input type="time" id="lunch-end" class="picker-input">
+                    </div>
                 </div>
             </div>
             <div class="field-row">
                 <div class="input-group narrow">
                     <label for="evening-start">夕休み開始</label>
-                    <input type="time" id="evening-start">
+                    <div class="picker-box">
+                        <span class="picker-text"></span>
+                        <input type="time" id="evening-start" class="picker-input">
+                    </div>
                 </div>
                 <div class="input-group narrow">
                     <label for="evening-end">夕休み終了</label>
-                    <input type="time" id="evening-end">
+                    <div class="picker-box">
+                        <span class="picker-text"></span>
+                        <input type="time" id="evening-end" class="picker-input">
+                    </div>
                 </div>
             </div>
         </div>
@@ -156,6 +134,8 @@
 
             saveBtn.addEventListener('click', save);
             load();
+            // 読み込んだ時刻を、日付・時刻の箱に出す
+            setupPickerBoxes();
         });
     </script>
 </body>

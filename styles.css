@@ -354,15 +354,17 @@ button:disabled {
 }
 
 /* ===== 入力確認・計算の結果表示 ===== */
-/* 数値の見せ方はログ表示画面の集計タイルに合わせている。
-   ほかの白いカードと見分けがつくよう、青い縁取りと影を付けて浮かせ、見出しも青にする */
+/* 結果・集計のカード（入力画面の結果と、ログ表示・納期ログ表示の集計）。
+   ほかの白いカードと見分けがつくよう、青い縁取りと影を付けて浮かせる */
+.summary-card {
+    box-shadow: 0 0 0 2px var(--accent), 0 12px 26px -10px var(--accent-shadow);
+}
 .result {
     background: var(--surface);
     border-radius: var(--radius-lg);
     padding: 14px 16px;
     margin-top: 0;
     color: var(--text);
-    box-shadow: 0 0 0 2px var(--accent), 0 12px 26px -10px var(--accent-shadow);
 }
 .result:empty {
     display: none;
@@ -389,51 +391,53 @@ button:disabled {
     font-weight: 700;
     color: var(--text);
 }
-.result-tiles {
+/* 勤務時間・残業などの数字の枠。入力画面の結果と、ログの集計で共通に使う */
+.stat-row {
     display: flex;
     gap: 8px;
 }
-.result-tile {
+.stat-tile {
     flex: 1;
+    min-width: 0;
     background: var(--accent-soft);
     border-radius: var(--radius-md);
-    padding: 9px 10px;
+    padding: 10px 12px;
 }
-.result-tile-label {
+.stat-label {
     font-size: 0.706rem;
     font-weight: 700;
     color: var(--accent);
     margin-bottom: 4px;
 }
-.result-tile-value {
+.stat-value {
     font-size: 1.176rem;
     font-weight: 800;
     color: var(--text);
 }
-.result-tile-value .unit {
+.stat-unit {
     font-size: 0.765rem;
     font-weight: 600;
     color: var(--text-muted);
     margin-left: 1px;
 }
-/* 残業が発生している場合のみ、ログ画面と同じ配色で強調する。
-   勤務時間・中断のタイルと同系色にならないよう水色にし、
+/* 残業が出ている場合は、ログのカードの印と同じ水色で強調する。
+   勤務時間・中断の枠と同系色にならないよう水色にし、
    マイナスの赤字と対になるよう数字にも色を付ける */
-.result-tile.overtime {
+.stat-tile.overtime {
     background: var(--overtime-bg);
 }
-.result-tile.overtime .result-tile-label,
-.result-tile.overtime .result-tile-value {
+.stat-tile.overtime .stat-label,
+.stat-tile.overtime .stat-value {
     color: var(--overtime-text);
 }
 /* 残業がマイナス（勤務時間が不足）の場合は赤で示す。
    基準からのズレという点はプラスと同じなので、水色と同じ濃さにして
    同じ重みで並ぶようにする */
-.result-tile.short {
+.stat-tile.short {
     background: var(--short-bg);
 }
-.result-tile.short .result-tile-label,
-.result-tile.short .result-tile-value {
+.stat-tile.short .stat-label,
+.stat-tile.short .stat-value {
     color: var(--short-text);
 }
 .result-note {
@@ -458,12 +462,46 @@ button:disabled {
 
 /* ===== Top action bar ===== */
 /* 先頭ページ以外の、戻るボタンがある行。スクロールしても画面の上に残す。
-   並べ方（display・padding）は各画面の中で指定している。地の色を付けて、下を流れるカードを透けさせない */
+   地の色を付けて、下を流れるカードを透けさせない。見出しは1行に収め、入りきらないときは「…」で省く */
 .topbar {
     position: sticky;
     top: 0;
     z-index: 900;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px 8px 20px;
     background: var(--bg);
+}
+.topbar h1 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 1.176rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* 四角いアイコンのボタン（戻る・更新・元に戻す・メニュー）。どの画面でも同じ大きさにする */
+.icon-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    flex: none;
+    padding: 0;
+    margin: 0;
+    background: var(--surface-muted);
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none;
+}
+.icon-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 /* 「工数保存」「メール作成」の帯は、スクロールしても画面の上に残す。
@@ -519,19 +557,18 @@ button:disabled {
     }
 }
 
-#menu-button {
-    font-size: 1.1em;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    margin: 0;
+/* 入力画面のメニュー（3本線）は、「工数保存」「メール作成」と同じ高さまで大きくする */
+.main-buttons #menu-button {
+    align-self: stretch;
     flex: none;
-    background: var(--surface-muted);
-    color: var(--text);
-    border-radius: var(--radius-sm);
-    box-shadow: none;
+    padding: 0;
+    width: 54px;
+    min-width: 54px;
+    height: auto;
+}
+.main-buttons #menu-button svg {
+    width: 28px;
+    height: 28px;
 }
 
 /* ===== Hamburger menu ===== */
@@ -570,6 +607,15 @@ button:disabled {
 .hamburger-menu a:hover {
     background-color: var(--surface-muted);
     opacity: 1;
+}
+/* 消してしまう操作（すべて削除）は赤で示す */
+.hamburger-menu .danger {
+    color: var(--danger);
+}
+/* メニューの中の区切り線 */
+.hamburger-menu .menu-divider {
+    margin: 6px 0;
+    border-top: 1px solid var(--border);
 }
 .menu-font-size {
     margin: 6px 0 2px 0;
@@ -726,4 +772,233 @@ details.fold-section[open] summary::after {
 }
 .field-column > .input-group + .input-group {
     margin-top: 9px;
+}
+
+/* ===== 画面に共通の部品 ===== */
+/* ここより下は、以前は各画面の中に書いていたもの。画面ごとにずれないよう、ここにまとめる */
+
+/* カードの見出し（設定・バックアップ・使い方） */
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 0.941rem;
+    font-weight: 700;
+    color: var(--text);
+}
+/* 使い方の見出しに付ける番号 */
+.step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 0.765rem;
+    font-weight: 800;
+    flex: none;
+}
+/* カードの中の説明の文と箇条書き */
+.card p {
+    margin: 0;
+    font-size: 0.853rem;
+    line-height: 1.6;
+    color: var(--text);
+}
+.card ul {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.card li {
+    font-size: 0.853rem;
+    line-height: 1.55;
+    color: var(--text);
+}
+.card li b {
+    font-weight: 700;
+}
+/* 補足の箱（最終バックアップの日時、使い方の補足など） */
+.note {
+    background: var(--surface-muted);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 0.794rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+/* よくある質問（使い方） */
+.faq-item + .faq-item {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+.card .faq-q {
+    font-size: 0.853rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 4px 0;
+}
+.card .faq-a {
+    font-size: 0.824rem;
+    line-height: 1.55;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* 枠だけのボタン（バックアップから復元・入力画面に戻す・削除）。主なボタンと取り違えないよう控えめにする */
+.btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1.5px solid var(--accent);
+    box-shadow: none;
+}
+.btn-outline.danger {
+    color: var(--danger);
+    border-color: var(--danger);
+}
+/* 取りやめのボタン（キャンセル） */
+.btn-muted {
+    background: var(--surface-muted);
+    color: var(--text);
+    box-shadow: none;
+}
+
+/* ===== ログ表示・納期ログ表示 ===== */
+/* 期間の入力で、開始日が終了日より後のときだけ注意を出す */
+#due-display {
+    font-size: 0.824rem;
+    font-weight: 600;
+    color: var(--warn-text);
+}
+#due-display:empty {
+    display: none;
+}
+#log-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.log-card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: 12px 14px;
+}
+.log-card .log-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.log-card .log-date {
+    font-size: 0.941rem;
+    font-weight: 700;
+}
+.log-card .log-dow {
+    font-size: 0.765rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 2px;
+}
+/* 土日・祝日の曜日は、入力画面の日付と同じく赤で示す */
+.log-card .log-dow.holiday {
+    color: var(--danger);
+}
+.log-card .mail-mark {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 7px;
+    color: var(--accent);
+}
+.log-card .edit-btn {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+}
+.log-card .edit-btn svg {
+    width: 16px;
+    height: 16px;
+}
+.log-card .log-mid {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+.log-card .log-times {
+    font-size: 0.824rem;
+    color: var(--text-muted);
+}
+.log-card .chip {
+    font-size: 0.765rem;
+    font-weight: 700;
+    color: var(--text);
+    background: var(--surface-muted);
+    border-radius: 8px;
+    padding: 4px 9px;
+    margin-left: auto;
+}
+.log-card .chip.overtime {
+    color: var(--overtime-text);
+    background: var(--overtime-bg);
+}
+/* 残業がマイナス（勤務時間が不足）の場合は赤で示す。プラスと同じ重みにする */
+.log-card .chip.short {
+    color: var(--short-text);
+    background: var(--short-bg);
+}
+.log-card .log-sub {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+    font-size: 0.765rem;
+    color: var(--text-muted);
+}
+.empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.882rem;
+    padding: 30px 0;
+}
+/* ログの編集ダイアログ */
+dialog#edit-dialog {
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: 18px;
+    background: var(--surface);
+    color: var(--text);
+    width: min(320px, 90vw);
+}
+/* 開いたときに焦点をダイアログそのものに置くため、その枠は出さない */
+dialog#edit-dialog:focus {
+    outline: none;
+}
+dialog#edit-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+}
+#edit-form {
+    display: block;
+}
+#edit-form > * {
+    margin-top: 12px;
+}
+#edit-form > *:first-child {
+    margin-top: 0;
+}
+.edit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+.edit-actions button {
+    flex: 1;
+    padding: 10px 0;
+}
+/* メールを作り直すときに使う。保存・削除と取り違えないよう、控えめな見た目で1行に置く */
+#edit-to-input {
+    padding: 10px 0;
 }

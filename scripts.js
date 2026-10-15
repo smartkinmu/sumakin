@@ -23,8 +23,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailButton = document.getElementById('email-button');
     const refreshButton = document.getElementById('refresh-button');
     const copyTask1Button = document.getElementById('copy-task1-button');
-    const menuButton = document.getElementById('menu-button');
-    const hamburgerMenu = document.getElementById('hamburger-menu');
 
     const groupCountPicker = document.getElementById("group-count");
     const taskGroupsContainer = document.getElementById("task-groups-container");
@@ -338,17 +336,8 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTaskDataFromStorage();
     updateLiveResult();
 
-    menuButton.addEventListener('click', function (e) {
-        e.stopPropagation();
-        hamburgerMenu.style.display =
-            hamburgerMenu.style.display === 'block' ? 'none' : 'block';
-    });
-
-    document.addEventListener('click', function (e) {
-        if (e.target !== menuButton && !hamburgerMenu.contains(e.target)) {
-            hamburgerMenu.style.display = 'none';
-        }
-    });
+    // 右上のメニュー（ログの画面と同じ形。common.js）
+    setupMenu();
 
     // 文字サイズ切り替え（メニュー内）
     const fontSizeButtons = document.querySelectorAll('.font-size-option');
@@ -435,15 +424,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return date;
     }
 
-    function formatDate(d) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-    }
-
     function setDefaultDate() {
-        dateInput.value = formatDate(getDefaultDate());
+        dateInput.value = formatYmd(getDefaultDate());
         autoDateValue = dateInput.value;
         updateDateWeekday();
         // 日付が決まってから結果を描き直す。pageshowでも呼ばれるため、
@@ -480,15 +462,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * 始業・終業欄の表示（「8:30」）を、入力欄の値に合わせて更新する。
-     * 値は保存時の読み込みやログからの戻しなど色々な所で変わるため、
-     * 計算結果を描き直すたびに合わせて呼ぶ。
+     * 始業・終業・中断時間の箱の表示（「8:30」）を、入力欄の値に合わせて更新する。
+     * 値は保存時の読み込みやログからの戻し、休暇を選んだときの中断時間の消去など
+     * 色々な所で変わるため、計算結果を描き直すたびに合わせて呼ぶ。
      * @returns {void}
      */
     function updateTimeTexts() {
-        const format = value => (value ? value.replace(/^0(\d):/, '$1:') : '--:--');
-        startTimeText.textContent = format(startTimeInput.value);
-        endTimeText.textContent = format(endTimeInput.value);
+        startTimeText.textContent = startTimeInput.value ? formatTime(startTimeInput.value) : '--:--';
+        endTimeText.textContent = endTimeInput.value ? formatTime(endTimeInput.value) : '--:--';
+        refreshPickerBoxes(interruptLeaveSection);
     }
 
     /**
@@ -501,7 +483,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (d.getHours() < BUSINESS_DAY_START_HOUR) {
             d.setDate(d.getDate() - 1);
         }
-        return formatDate(d);
+        return formatYmd(d);
     }
 
     /**
@@ -821,18 +803,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         resultDiv.innerHTML = `
             <div class="result-head">${head}${mailMark}</div>
-            <div class="result-tiles">
-                <div class="result-tile">
-                    <div class="result-tile-label">勤務時間</div>
-                    <div class="result-tile-value">${actual}<span class="unit">h</span></div>
+            <div class="stat-row">
+                <div class="stat-tile">
+                    <div class="stat-label">勤務時間</div>
+                    <div class="stat-value">${actual}<span class="stat-unit">h</span></div>
                 </div>
-                <div class="result-tile">
-                    <div class="result-tile-label">中断</div>
-                    <div class="result-tile-value">${interrupt}<span class="unit">h</span></div>
+                <div class="stat-tile">
+                    <div class="stat-label">中断</div>
+                    <div class="stat-value">${interrupt}<span class="stat-unit">h</span></div>
                 </div>
-                <div class="result-tile${overtimeClass}">
-                    <div class="result-tile-label">残業</div>
-                    <div class="result-tile-value">${overtime}<span class="unit">h</span></div>
+                <div class="stat-tile${overtimeClass}">
+                    <div class="stat-label">残業</div>
+                    <div class="stat-value">${formatSignedHours(overtime)}<span class="stat-unit">h</span></div>
                 </div>
             </div>
             ${note ? `<div class="result-note">${note}</div>` : ''}`;
@@ -925,7 +907,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const interruptHours = calculateInterruptHours();
         const actual = calculateActualHours(start, end);
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
-        renderResult(`${start} → ${end}`, actual, interruptHours.toFixed(2), overtime);
+        renderResult(`${formatTime(start)} → ${formatTime(end)}`, actual, interruptHours.toFixed(2), overtime);
     }
 
     /**
@@ -1012,95 +994,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     }
 
-    // 日本の祝日計算用補助関数
-    function nthMonday(year, month, nth) {
-        const first = new Date(year, month - 1, 1);
-        const firstMonday = 1 + ((8 - first.getDay()) % 7);
-        return firstMonday + (nth - 1) * 7;
-    }
-
-    const holidayCache = {};
-
-    function getJapaneseHolidays(year) {
-        if (holidayCache[year]) {
-            return holidayCache[year];
-        }
-        const pad = n => n.toString().padStart(2, '0');
-        // 日付をキー、祝日名を値に持つ。名前は日付欄の表示に使う
-        const holidays = new Map();
-        const add = (m, d, name) => holidays.set(`${year}-${pad(m)}-${pad(d)}`, name);
-
-        add(1, 1, '元日');
-        add(1, nthMonday(year, 1, 2), '成人の日');
-        add(2, 11, '建国記念の日');
-        add(2, 23, '天皇誕生日');
-        const spring = Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
-        add(3, spring, '春分の日');
-        add(4, 29, '昭和の日');
-        add(5, 3, '憲法記念日');
-        add(5, 4, 'みどりの日');
-        add(5, 5, 'こどもの日');
-        add(7, nthMonday(year, 7, 3), '海の日');
-        add(8, 11, '山の日');
-        add(9, nthMonday(year, 9, 3), '敬老の日');
-        const autumn = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
-        add(9, autumn, '秋分の日');
-        add(10, nthMonday(year, 10, 2), 'スポーツの日');
-        add(11, 3, '文化の日');
-        add(11, 23, '勤労感謝の日');
-
-        // 振替休日
-        const addSubstitute = dateStr => {
-            let d = parseDateLocal(dateStr);
-            if (d.getDay() !== 0) return;
-            do {
-                d.setDate(d.getDate() + 1);
-                const s = formatDate(d);
-                if (!holidays.has(s)) {
-                    holidays.set(s, '振替休日');
-                    return;
-                }
-            } while (true);
-        };
-        Array.from(holidays.keys()).forEach(addSubstitute);
-
-        // 国民の休日
-        const daysInYear = (new Date(year, 11, 31) - new Date(year, 0, 1)) / 86400000 + 1;
-        for (let i = 2; i < daysInYear; i++) {
-            const d = new Date(year, 0, i);
-            const prev = new Date(d);
-            const next = new Date(d);
-            prev.setDate(prev.getDate() - 1);
-            next.setDate(next.getDate() + 1);
-            const ds = formatDate(d);
-            const prevStr = formatDate(prev);
-            const nextStr = formatDate(next);
-            if (!holidays.has(ds) && holidays.has(prevStr) && holidays.has(nextStr) && d.getDay() !== 0 && d.getDay() !== 6) {
-                holidays.set(ds, '国民の休日');
-            }
-        }
-
-        holidayCache[year] = holidays;
-        return holidays;
-    }
-
-    /**
-     * その日が祝日であれば名前を返す。
-     * @param {Date} date - 対象の日
-     * @returns {string} 祝日名（祝日でなければ空文字）
-     */
-    function getHolidayName(date) {
-        return getJapaneseHolidays(date.getFullYear()).get(formatDate(date)) || '';
-    }
-
-    function isHolidayDate(date) {
-        const holidays = getJapaneseHolidays(date.getFullYear());
-        const dateStr = formatDate(date);
-        if (holidays.has(dateStr)) return true;
-        const day = date.getDay();
-        return day === 0 || day === 6;
-    }
-
     setInitialDate();
     window.addEventListener('pageshow', setInitialDate);
     // 開いたままの画面に戻ったとき（翌朝など）にも、日付を今日に合わせ直す
@@ -1132,7 +1025,7 @@ document.addEventListener('DOMContentLoaded', function() {
             while (isHolidayDate(d)) {
                 d.setDate(d.getDate() - 1);
             }
-            const str = formatDate(d);
+            const str = formatYmd(d);
             if (!loggedDates.has(str)) {
                 const m = d.getMonth() + 1;
                 const day = d.getDate();
@@ -1265,7 +1158,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const overtime = (parseFloat(actual) - 7.75).toFixed(2);
         renderResult(
-            `${formatDateWithDay(selectedDate)}　${selectedStartTime} → ${selectedEndTime}`,
+            `${formatDateWithDay(selectedDate)}　${formatTime(selectedStartTime)} → ${formatTime(selectedEndTime)}`,
             actual, interruptHours.toFixed(2), overtime,
             `入力工数 ${totalTaskHours.toFixed(2)} 時間`
         );
@@ -1382,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() {
         markLogAsMailed(selectedDate);
         // メールアプリから戻ったときに登録済みだと分かるようにする
         renderResult(
-            `${formatDateWithDay(selectedDate)}　${selectedStartTime} → ${selectedEndTime}`,
+            `${formatDateWithDay(selectedDate)}　${formatTime(selectedStartTime)} → ${formatTime(selectedEndTime)}`,
             actual, interruptHours.toFixed(2), overtime,
             `入力工数 ${totalTaskHours.toFixed(2)} 時間`
         );

@@ -6,60 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>バックアップ</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .topbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 20px 8px 20px;
-        }
-        .topbar .icon-btn {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            flex: none;
-            padding: 0;
-            background: var(--surface-muted);
-            color: var(--text);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: none;
-        }
-        .topbar h1 {
-            font-size: 1.176rem;
-            font-weight: 700;
-            margin: 0;
-            flex-grow: 1;
-        }
-        .card h2 {
-            font-size: 0.941rem;
-            font-weight: 700;
-            margin: 0;
-            color: var(--text);
-        }
-        .card p {
-            margin: 0;
-            font-size: 0.824rem;
-            line-height: 1.6;
-            color: var(--text-muted);
-        }
-        .status {
-            background: var(--surface-muted);
-            border-radius: var(--radius-sm);
-            padding: 8px 12px;
-            font-size: 0.794rem;
-            line-height: 1.5;
-            color: var(--text-muted);
-        }
-        #restore-button {
-            background: transparent;
-            color: var(--accent);
-            border: 1.5px solid var(--accent);
-            box-shadow: none;
-        }
-    </style>
 </head>
 <body>
     <div id="refresh-indicator">更新中...</div>
@@ -75,23 +21,23 @@
 
     <div class="container">
         <div class="card">
-            <h2>書き出し</h2>
+            <h2 class="card-title">書き出し</h2>
             <p>ログ・設定・業務内容をまとめて1つのファイルに保存します。ホーム画面からアプリを削除するとデータも消えるため、定期的な保存をおすすめします。</p>
-            <div class="status" id="backup-status">まだバックアップしていません</div>
+            <div class="note" id="backup-status">まだバックアップしていません</div>
             <button id="export-button">バックアップを書き出す</button>
         </div>
 
         <div class="card">
-            <h2>読み込み</h2>
+            <h2 class="card-title">読み込み</h2>
             <p>書き出したファイルを選ぶと、その時点の内容に戻します。現在のデータは、ファイルの内容に置き換わります。</p>
             <!-- ファイルの種類は絞らない。古いAndroidはJSONという種類を知らず、絞ると書き出したファイルを選べなくなるため。
                  中身は読み込むときに確かめる（isValidBackup） -->
             <input type="file" id="restore-file" hidden>
-            <button id="restore-button">バックアップから復元</button>
+            <button id="restore-button" class="btn-outline">バックアップから復元</button>
         </div>
 
         <div class="card" id="undo-restore-card" style="display:none;">
-            <h2>復元の取り消し</h2>
+            <h2 class="card-title">復元の取り消し</h2>
             <p id="undo-restore-text">直前の復元を取り消して、復元する前の内容に戻します。ログを保存・編集すると、取り消せなくなります。</p>
             <button id="undo-restore-button">復元を取り消す</button>
         </div>
@@ -122,11 +68,8 @@
                     backupStatus.textContent = `まだバックアップしていません（現在のログ: ${logs.size}件）`;
                     return;
                 }
-                const d = new Date(saved);
                 backupStatus.textContent =
-                    `最終バックアップ: ${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} `
-                    + `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-                    + `（現在のログ: ${logs.size}件）`;
+                    `最終バックアップ: ${formatDateTime(new Date(saved))}（現在のログ: ${logs.size}件）`;
             }
 
             /**
@@ -148,7 +91,7 @@
                 const backup = createBackup();
                 const text = JSON.stringify(backup, null, 2);
                 const now = new Date();
-                const stamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const stamp = formatYmd(now);
                 const filename = `sumakin-backup-${stamp}.json`;
                 const file = new File([text], filename, { type: 'application/json' });
 
@@ -213,9 +156,7 @@
 
             undoRestoreButton.addEventListener('click', () => {
                 const at = getRestoreUndoTime();
-                const when = at
-                    ? `${at.getMonth() + 1}/${at.getDate()} ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`
-                    : '直前';
+                const when = at ? formatDateTime(at) : '直前';
                 if (!confirm(`${when} の復元を取り消して、復元する前の内容に戻しますか？\n復元のあとに変えた設定も、復元する前の内容に戻ります。`)) {
                     return;
                 }

@@ -6,122 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>スマ勤サポートアプリ 使い方</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .topbar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 20px 8px 20px;
-        }
-        .topbar .icon-btn {
-            width: 36px;
-            height: 36px;
-            min-width: 36px;
-            flex: none;
-            padding: 0;
-            background: var(--surface-muted);
-            color: var(--text);
-            border-radius: var(--radius-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: none;
-        }
-        .topbar h1 {
-            font-size: 1.176rem;
-            font-weight: 700;
-            margin: 0;
-            flex-grow: 1;
-        }
-        .container {
-            padding: 4px 16px 32px 16px;
-            display: block;
-            max-width: 480px;
-            margin: 0 auto;
-        }
-        .container > * {
-            margin-top: 10px;
-        }
-        .container > *:first-child {
-            margin-top: 0;
-        }
-        h2 {
-            font-size: 0.941rem;
-            font-weight: 700;
-            color: var(--text);
-            margin: 0 0 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        h2 .step-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            border-radius: 999px;
-            background: var(--accent-soft);
-            color: var(--accent);
-            font-size: 0.765rem;
-            font-weight: 800;
-            flex: none;
-        }
-        .card p {
-            margin: 0 0 6px 0;
-            font-size: 0.853rem;
-            line-height: 1.6;
-            color: var(--text);
-        }
-        .card ul {
-            margin: 0;
-            padding-left: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .card li {
-            font-size: 0.853rem;
-            line-height: 1.55;
-            color: var(--text);
-        }
-        .card li b {
-            font-weight: 700;
-        }
-        .tip {
-            background: var(--surface-muted);
-            border-radius: var(--radius-sm);
-            padding: 8px 12px;
-            margin-top: 8px;
-            font-size: 0.794rem;
-            line-height: 1.5;
-            color: var(--text-muted);
-        }
-        .faq-item + .faq-item {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid var(--border);
-        }
-        .faq-q {
-            font-size: 0.853rem;
-            font-weight: 700;
-            color: var(--text);
-            margin: 0 0 4px 0;
-        }
-        .faq-a {
-            font-size: 0.824rem;
-            line-height: 1.55;
-            color: var(--text-muted);
-            margin: 0;
-        }
-        .back-link {
-            display: block;
-            text-align: center;
-            padding: 12px 0 4px 0;
-            font-size: 0.824rem;
-            color: var(--text-muted);
-        }
-    </style>
 </head>
 <body>
     <div id="refresh-indicator">更新中...</div>
@@ -138,40 +22,40 @@
     <div class="container">
 
         <div class="card">
-            <h2><span class="step-badge">1</span>インストール</h2>
+            <h2 class="card-title"><span class="step-badge">1</span>インストール</h2>
             <ul>
                 <li>ブラウザでアプリのURLを開く</li>
                 <li>共有メニュー（またはブラウザメニュー）から「ホーム画面に追加」を選ぶ</li>
             </ul>
-            <div class="tip">オフラインでも使えるよう自動でキャッシュされます。</div>
+            <div class="note">オフラインでも使えるよう自動でキャッシュされます。</div>
         </div>
 
         <div class="card">
-            <h2><span class="step-badge">2</span>基本の入力</h2>
+            <h2 class="card-title"><span class="step-badge">2</span>基本の入力</h2>
             <ul>
                 <li><b>日付</b>：初期状態は今日の日付（午前4時までは前日、土日・祝日は前の平日）</li>
-                <li><b>始業時刻・終業時刻</b>：初期値は08:30〜17:15</li>
+                <li><b>始業時刻・終業時刻</b>：初期値は8:30〜17:15</li>
             </ul>
-            <div class="tip">はじめに一度だけ、メニューの「設定」で宛先メールアドレスを登録してください。</div>
+            <div class="note">はじめに一度だけ、メニューの「設定」で宛先メールアドレスを登録してください。</div>
         </div>
 
         <div class="card">
-            <h2><span class="step-badge">3</span>休暇の登録</h2>
+            <h2 class="card-title"><span class="step-badge">3</span>休暇の登録</h2>
             <p>「中断時間・休暇の入力」を開くとチェックボックスがあります。</p>
             <ul>
                 <li><b>年休</b>：始業・終業時刻の入力が不要になり、「工数保存」を押すと年休として保存されます</li>
                 <li><b>AM休 / PM休</b>：半日分を自動計算。始業・終業時刻はそのまま入力します</li>
             </ul>
-            <div class="tip">休暇を選ぶと「メール作成」ボタンは無効になります（送信するメールがないため）。</div>
+            <div class="note">休暇を選ぶと「メール作成」ボタンは無効になります（送信するメールがないため）。</div>
         </div>
 
         <div class="card">
-            <h2><span class="step-badge">4</span>中断時間の入力</h2>
+            <h2 class="card-title"><span class="step-badge">4</span>中断時間の入力</h2>
             <p>離席などで勤務が中断した時間を最大2件まで登録できます（任意）。</p>
         </div>
 
         <div class="card">
-            <h2><span class="step-badge">5</span>業務内容の入力</h2>
+            <h2 class="card-title"><span class="step-badge">5</span>業務内容の入力</h2>
             <ul>
                 <li>業務番号・分類・工数・備考を入力（最大10業務）</li>
                 <li>業務番号が英字始まりの場合は10桁で入力</li>
@@ -181,16 +65,16 @@
         </div>
 
         <div class="card">
-            <h2><span class="step-badge">6</span>工数保存 と メール作成</h2>
+            <h2 class="card-title"><span class="step-badge">6</span>工数保存 と メール作成</h2>
             <ul>
                 <li><b>工数保存</b>：入力内容をチェックしてログに保存します（同じ日付は上書き）</li>
                 <li><b>メール作成</b>：ログに保存したうえで、メール本文を作成してメールアプリを起動します。ログ表示画面では日付の横に封筒アイコンが付き、保存だけの日と区別できます。工数が空の業務はメールに含めません</li>
             </ul>
-            <div class="tip">勤務時間・中断時間・残業時間は、時刻を入力すると画面上部に自動で表示されます。通常の日は「メール作成」だけで保存も済みます。「工数保存」は休暇の日や、メールを後で送る場合に使います。</div>
+            <div class="note">勤務時間・中断時間・残業時間は、時刻を入力すると画面上部に自動で表示されます。通常の日は「メール作成」だけで保存も済みます。「工数保存」は休暇の日や、メールを後で送る場合に使います。</div>
         </div>
 
         <div class="card">
-            <h2>メニューの機能</h2>
+            <h2 class="card-title">メニューの機能</h2>
             <ul>
                 <li><b>ログ表示</b>：月ごとの勤務ログを一覧・編集・CSV出力（CSVはすべてのログ）</li>
                 <li><b>納期ログ表示</b>：任意の期間で勤務時間を集計・CSV出力（CSVは選んだ期間のログ）</li>
@@ -202,10 +86,10 @@
         </div>
 
         <div class="card">
-            <h2>よくある質問</h2>
+            <h2 class="card-title">よくある質問</h2>
             <div class="faq-item">
                 <p class="faq-q">入力を間違えて上書きしてしまった</p>
-                <p class="faq-a">ログ表示画面のUNDOボタンで直前の状態に戻せます。編集・削除・すべての削除も同じように戻せます。</p>
+                <p class="faq-a">ログ表示画面の右上の「元に戻す」ボタンで直前の状態に戻せます。編集・削除・すべての削除も同じように戻せます。</p>
             </div>
             <div class="faq-item">
                 <p class="faq-q">保存だけした日に、あとからメールを作りたい</p>
@@ -213,7 +97,7 @@
             </div>
             <div class="faq-item">
                 <p class="faq-q">過去に保存した勤務時間・残業時間の計算が合っているか確認したい</p>
-                <p class="faq-a">ログ表示・納期ログ表示画面の右上にあるチェックアイコンを押すと、標準休憩時間と中断時間が重なっていたために誤って計算されたログを検出し、確認のうえまとめて修正します。修正内容はUNDOボタンで元に戻せます。休憩時間の設定を変えた後は、正しく判定できないことがあります。</p>
+                <p class="faq-a">ログ表示・納期ログ表示画面の右上のメニューから「計算チェック」を選ぶと、標準休憩時間と中断時間が重なっていたために誤って計算されたログを検出し、確認のうえまとめて修正します。修正内容は「元に戻す」ボタンで元に戻せます。休憩時間の設定を変えた後は、正しく判定できないことがあります。</p>
             </div>
             <div class="faq-item">
                 <p class="faq-q">入力した情報は消える？</p>
@@ -221,7 +105,7 @@
             </div>
             <div class="faq-item">
                 <p class="faq-q">アプリの表示が古いまま変わらない</p>
-                <p class="faq-a">各画面の右上にある更新アイコン（メイン画面はメニューの「更新」）を押すか、画面を上端から下に引いてください。どちらも最新版を取り込みます。電波のない所では更新せず、それまでの内容のまま使えます。</p>
+                <p class="faq-a">メニューの「更新」（設定・バックアップ・使い方の画面は右上の更新アイコン）を押すか、画面を上端から下に引いてください。どちらも最新版を取り込みます。電波のない所では更新せず、それまでの内容のまま使えます。</p>
             </div>
             <div class="faq-item">
                 <p class="faq-q">起動時に警告が出た</p>
@@ -230,7 +114,6 @@
         </div>
 
     </div>
-    <a href="index.html" class="back-link">← メイン画面に戻る</a>
     <script src="common.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

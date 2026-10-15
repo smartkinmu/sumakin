@@ -12,7 +12,7 @@ function toMinutes(timeStr) {
  * アプリのバージョン。index.html の表示と manifest.json の "version" と同じ値にする
  * （test/test.js で一致を確認している）。バックアップファイルに記録する。
  */
-const APP_VERSION = '1.17.16';
+const APP_VERSION = '1.18.0';
 
 /**
  * "YYYY-MM-DD" を端末の時間帯の0時として Date にする。
@@ -548,24 +548,171 @@ function parseLogLine(line) {
 }
 
 /**
- * 日付文字列を曜日付きの表示形式に変換する。
- * @param {string} dateStr - YYYY-MM-DD形式の日付
- * @returns {string} 例: "2024-1-15(月)"
+ * 日付を YYYY-MM-DD の文字列にする（端末の時間帯の日付で）。
+ * @param {Date} d - 日付
+ * @returns {string} 例: "2026-10-01"
  */
-function formatDateWithDay(dateStr) {
+function formatYmd(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+/**
+ * 日付文字列を曜日付きの表示形式に変換する。どの画面でもこの書き方にそろえる。
+ * 今年の日付は年を省き、ほかの年の日付だけ年を付ける。
+ * @param {string} dateStr - YYYY-MM-DD形式の日付
+ * @param {Date} [now=new Date()] - 今日（年を省くかどうかの判断に使う）
+ * @returns {string} 例: "10/1(木)"、ほかの年なら "2025/12/26(金)"
+ */
+function formatDateWithDay(dateStr, now = new Date()) {
     const d = parseDateLocal(dateStr);
     const days = ['日', '月', '火', '水', '木', '金', '土'];
-    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}(${days[d.getDay()]})`;
+    const monthDay = `${d.getMonth() + 1}/${d.getDate()}`;
+    const head = d.getFullYear() === now.getFullYear() ? monthDay : `${d.getFullYear()}/${monthDay}`;
+    return `${head}(${days[d.getDay()]})`;
+}
+
+/**
+ * 時刻を表示用にする。どの画面でも先頭の0を省いた書き方にそろえる。
+ * @param {string} time - HH:MM（「年休」など時刻でないものも可）
+ * @returns {string} 例: "08:30" → "8:30"。時刻でなければそのまま
+ */
+function formatTime(time) {
+    return /^\d{2}:\d{2}$/.test(time || '') ? time.replace(/^0(\d)/, '$1') : (time || '');
+}
+
+/**
+ * 残業時間を表示用にする。基準より多いときだけ「+」を付け、マイナスと見分けやすくする。
+ * @param {string} hours - 残業時間（100進数の文字列。例: "1.25"、"-0.50"）
+ * @returns {string} 例: "+1.25"、"0.00"、"-0.50"
+ */
+function formatSignedHours(hours) {
+    return parseFloat(hours) > 0 ? `+${hours}` : hours;
+}
+
+/**
+ * 日時を表示用にする（バックアップの日時など）。日付と時刻の書き方は formatDateWithDay・formatTime と同じ。
+ * @param {Date} date - 日時
+ * @param {Date} [now=new Date()] - 今日（年を省くかどうかの判断に使う）
+ * @returns {string} 例: "10/15(木) 9:05"
+ */
+function formatDateTime(date, now = new Date()) {
+    const time = `${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+    return `${formatDateWithDay(formatYmd(date), now)} ${time}`;
 }
 
 /**
  * ログ1行(CSV形式)を確認ダイアログ表示用の短い文字列に変換する。
  * @param {string} line - "date,start,end,..."形式のログ1行
- * @returns {string} 例: "2024-1-15(月) 08:30〜17:15"
+ * @returns {string} 例: "10/1(木) 8:30〜17:15"
  */
 function formatLogLineForPreview(line) {
     const [date, start, end] = line.split(',');
-    return `${formatDateWithDay(date)} ${start}〜${end}`;
+    return `${formatDateWithDay(date)} ${formatTime(start)}〜${formatTime(end)}`;
+}
+
+/**
+ * その月の第n月曜日の日を返す（祝日の計算に使う）。
+ * @param {number} year - 年
+ * @param {number} month - 月（1〜12）
+ * @param {number} nth - 何番目の月曜日か
+ * @returns {number} 日
+ */
+function nthMonday(year, month, nth) {
+    const first = new Date(year, month - 1, 1);
+    const firstMonday = 1 + ((8 - first.getDay()) % 7);
+    return firstMonday + (nth - 1) * 7;
+}
+
+const holidayCache = {};
+
+/**
+ * その年の日本の祝日（振替休日・国民の休日を含む）を返す。
+ * 入力画面の日付と、ほかの画面の日付の欄・ログの曜日で、休みの日の色分けに使う。
+ * @param {number} year - 年
+ * @returns {Map<string, string>} 日付（YYYY-MM-DD）をキー、祝日名を値に持つ
+ */
+function getJapaneseHolidays(year) {
+    if (holidayCache[year]) {
+        return holidayCache[year];
+    }
+    const pad = n => n.toString().padStart(2, '0');
+    const holidays = new Map();
+    const add = (m, d, name) => holidays.set(`${year}-${pad(m)}-${pad(d)}`, name);
+
+    add(1, 1, '元日');
+    add(1, nthMonday(year, 1, 2), '成人の日');
+    add(2, 11, '建国記念の日');
+    add(2, 23, '天皇誕生日');
+    const spring = Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+    add(3, spring, '春分の日');
+    add(4, 29, '昭和の日');
+    add(5, 3, '憲法記念日');
+    add(5, 4, 'みどりの日');
+    add(5, 5, 'こどもの日');
+    add(7, nthMonday(year, 7, 3), '海の日');
+    add(8, 11, '山の日');
+    add(9, nthMonday(year, 9, 3), '敬老の日');
+    const autumn = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+    add(9, autumn, '秋分の日');
+    add(10, nthMonday(year, 10, 2), 'スポーツの日');
+    add(11, 3, '文化の日');
+    add(11, 23, '勤労感謝の日');
+
+    // 振替休日
+    const addSubstitute = dateStr => {
+        const d = parseDateLocal(dateStr);
+        if (d.getDay() !== 0) return;
+        do {
+            d.setDate(d.getDate() + 1);
+            const s = formatYmd(d);
+            if (!holidays.has(s)) {
+                holidays.set(s, '振替休日');
+                return;
+            }
+        } while (true);
+    };
+    Array.from(holidays.keys()).forEach(addSubstitute);
+
+    // 国民の休日
+    const daysInYear = (new Date(year, 11, 31) - new Date(year, 0, 1)) / 86400000 + 1;
+    for (let i = 2; i < daysInYear; i++) {
+        const d = new Date(year, 0, i);
+        const prev = new Date(d);
+        const next = new Date(d);
+        prev.setDate(prev.getDate() - 1);
+        next.setDate(next.getDate() + 1);
+        const ds = formatYmd(d);
+        if (!holidays.has(ds) && holidays.has(formatYmd(prev)) && holidays.has(formatYmd(next))
+            && d.getDay() !== 0 && d.getDay() !== 6) {
+            holidays.set(ds, '国民の休日');
+        }
+    }
+
+    holidayCache[year] = holidays;
+    return holidays;
+}
+
+/**
+ * その日が祝日であれば名前を返す。
+ * @param {Date} date - 対象の日
+ * @returns {string} 祝日名（祝日でなければ空文字）
+ */
+function getHolidayName(date) {
+    return getJapaneseHolidays(date.getFullYear()).get(formatYmd(date)) || '';
+}
+
+/**
+ * その日が休み（土日・祝日）かを返す。週休2日のため土日も休みとして扱う。
+ * @param {Date} date - 対象の日
+ * @returns {boolean} 休みなら true
+ */
+function isHolidayDate(date) {
+    if (getHolidayName(date)) return true;
+    const day = date.getDay();
+    return day === 0 || day === 6;
 }
 
 /**
@@ -849,7 +996,7 @@ function summarizeBackup(backup) {
     if (backup.exportedAt) {
         const d = new Date(backup.exportedAt);
         if (!isNaN(d)) {
-            lines.push(`書き出し日時: ${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`);
+            lines.push(`書き出し日時: ${formatDateTime(d)}`);
         }
     }
     const logs = parseLogsToMap(backup.data ? backup.data.logs : '');
@@ -989,8 +1136,9 @@ function layoutFieldRows(root) {
         if (row.clientWidth === 0) return;  // 折りたたみ中などで測れない場合は据え置く
         if (row.querySelectorAll('.input-group').length < 2) return;
         // 幅が足りないと崩れるのはネイティブUIを持つdate/time/month入力だけ。
-        // 通常のテキスト入力は自由に縮むので、常に横並びのままでよい
-        const natives = row.querySelectorAll('input[type="date"], input[type="time"], input[type="month"]');
+        // 通常のテキスト入力は自由に縮むので、常に横並びのままでよい。
+        // 日付・時刻の箱（.picker-input）は見せる文字を自前で描くので、測らない
+        const natives = row.querySelectorAll('input:is([type="date"], [type="time"], [type="month"]):not(.picker-input)');
         if (natives.length === 0) return;
         const gap = 10;
         row.classList.remove('stacked');
@@ -1032,6 +1180,89 @@ function fixNativeInputWidths(root) {
         const width = container.clientWidth - paddingX;
         if (width > 0) {
             input.style.width = width + 'px';
+        }
+    });
+}
+
+/**
+ * 日付・時刻の箱（.picker-box）の見せる文字を、中の入力欄の値に合わせて書き直す。
+ * ネイティブの日付・時刻の入力欄は見た目が端末ごとに違い、曜日も出せないため、
+ * どの画面でも透明にした入力欄の下に、同じ書き方の文字を自前で描く。
+ * @param {HTMLInputElement} input - 箱の中の入力欄（date・time・month）
+ * @returns {void}
+ */
+function renderPickerText(input) {
+    const box = input.closest('.picker-box');
+    const text = box && box.querySelector('.picker-text');
+    if (!text) return;
+    text.textContent = '';
+    if (input.type === 'time') {
+        text.textContent = input.value ? formatTime(input.value) : '--:--';
+    } else if (input.type === 'month') {
+        const [y, m] = input.value.split('-').map(Number);
+        text.textContent = input.value ? `${y}年${m}月` : '--年--月';
+    } else if (input.type === 'date') {
+        if (!input.value) {
+            text.textContent = '--/--';
+            return;
+        }
+        const [, head, dow] = formatDateWithDay(input.value).match(/^(.*)(\(.\))$/);
+        const dowSpan = document.createElement('span');
+        dowSpan.textContent = dow;
+        // 入力画面の日付と同じく、土日・祝日の曜日は赤で示す
+        if (isHolidayDate(parseDateLocal(input.value))) {
+            dowSpan.className = 'holiday';
+        }
+        text.append(head, dowSpan);
+    }
+}
+
+/**
+ * 範囲の中の日付・時刻の箱の文字を、今の値で描き直す。
+ * 入力欄の値をプログラムで書き換えたあと（読み込み・ダイアログを開いたときなど）に呼ぶ。
+ * @param {ParentNode} [root=document] - 対象範囲のルート要素
+ * @returns {void}
+ */
+function refreshPickerBoxes(root) {
+    (root || document).querySelectorAll('.picker-box .picker-input').forEach(renderPickerText);
+}
+
+/**
+ * 範囲の中の日付・時刻の箱を準備する。今の値で文字を描き、値が変わるたびに描き直す。
+ * @param {ParentNode} [root=document] - 対象範囲のルート要素
+ * @returns {void}
+ */
+function setupPickerBoxes(root) {
+    (root || document).querySelectorAll('.picker-box .picker-input').forEach(input => {
+        renderPickerText(input);
+        input.addEventListener('input', () => renderPickerText(input));
+        input.addEventListener('change', () => renderPickerText(input));
+    });
+}
+
+/**
+ * 右上のメニュー（#menu-button と #hamburger-menu）を準備する。入力画面とログの画面で共通。
+ * ボタンで開け閉めし、メニューの外を押すか、メニューの項目を選ぶと閉じる。
+ * （文字サイズの切り替えなど、項目の中にある操作では閉じない）
+ * @returns {void}
+ */
+function setupMenu() {
+    const menuButton = document.getElementById('menu-button');
+    const menu = document.getElementById('hamburger-menu');
+    if (!menuButton || !menu) return;
+    menuButton.addEventListener('click', e => {
+        e.stopPropagation();
+        menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', e => {
+        if (!menuButton.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    });
+    menu.addEventListener('click', e => {
+        const item = e.target.closest('a, button');
+        if (item && item.parentElement === menu) {
+            menu.style.display = 'none';
         }
     });
 }

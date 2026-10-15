@@ -276,10 +276,43 @@ test('日付：UTCより西の時間帯でも曜日がずれない', () => {
     const saved = process.env.TZ;
     process.env.TZ = 'America/Los_Angeles';
     try {
-        assert.strictEqual(run("formatDateWithDay('2026-10-14')"), '2026-10-14(水)');
+        assert.strictEqual(run("formatDateWithDay('2026-10-14', new Date(2026, 0, 1))"), '10/14(水)');
     } finally {
         process.env.TZ = saved;
     }
+});
+
+test('日付：今年の日付は年を省き、ほかの年の日付は年を付ける（どの画面も同じ書き方）', () => {
+    assert.strictEqual(run("formatDateWithDay('2026-10-01', new Date(2026, 5, 1))"), '10/1(木)');
+    assert.strictEqual(run("formatDateWithDay('2025-12-26', new Date(2026, 0, 5))"), '2025/12/26(金)');
+});
+
+test('時刻：先頭の0を省き、時刻でないもの（年休など）はそのまま出す', () => {
+    assert.strictEqual(run("formatTime('08:30')"), '8:30');
+    assert.strictEqual(run("formatTime('18:00')"), '18:00');
+    assert.strictEqual(run("formatTime('00:15')"), '0:15');
+    assert.strictEqual(run("formatTime('年休')"), '年休');
+    assert.strictEqual(run("formatTime('')"), '');
+});
+
+test('残業：プラスのときだけ「+」を付ける（0とマイナスはそのまま）', () => {
+    assert.strictEqual(run("formatSignedHours('1.25')"), '+1.25');
+    assert.strictEqual(run("formatSignedHours('0.00')"), '0.00');
+    assert.strictEqual(run("formatSignedHours('-0.50')"), '-0.50');
+});
+
+test('日時：バックアップの日時も、日付と時刻と同じ書き方で出す', () => {
+    assert.strictEqual(run("formatDateTime(new Date(2026, 9, 15, 9, 5), new Date(2026, 9, 16))"), '10/15(木) 9:05');
+    assert.strictEqual(run("formatDateTime(new Date(2025, 11, 26, 18, 30), new Date(2026, 0, 5))"), '2025/12/26(金) 18:30');
+});
+
+test('祝日：振替休日と国民の休日も見分け、土日は休みとして扱う', () => {
+    assert.strictEqual(run('getHolidayName(new Date(2026, 10, 3))'), '文化の日');
+    assert.strictEqual(run('getHolidayName(new Date(2026, 4, 6))'), '振替休日');
+    assert.strictEqual(run('getHolidayName(new Date(2026, 8, 22))'), '国民の休日');
+    assert.strictEqual(run('getHolidayName(new Date(2026, 9, 16))'), '');
+    assert.strictEqual(run('isHolidayDate(new Date(2026, 9, 17))'), true);
+    assert.strictEqual(run('isHolidayDate(new Date(2026, 9, 16))'), false);
 });
 
 test('書き出し：保存を始めた直後には片付けず、時間をおいて片付ける（Androidで保存が失敗しないように）', () => {

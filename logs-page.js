@@ -11,9 +11,12 @@
  */
 function initLogPage(mode) {
     const logBody = document.getElementById('log-body');
-    // 「更新」ボタンと画面を下に引く操作で、最新版を取得する
+    // 「更新」（メニューの中）と画面を下に引く操作で、最新版を取得する
     document.getElementById('refresh-button').addEventListener('click', refreshApp);
     setupPullToRefresh();
+    // 右上のメニュー（入力画面と同じ形）と、日付・時刻の箱
+    setupMenu();
+    setupPickerBoxes();
     // date/time入力欄の実際のpx幅を測定して明示指定する（Safari対策）
     fixNativeInputWidths();
     window.addEventListener('resize', () => fixNativeInputWidths());
@@ -53,7 +56,7 @@ function initLogPage(mode) {
             alert('指定した日付のデータはありません');
             return false;
         }
-        if (!confirm(`${date} のログを削除しますか？`)) {
+        if (!confirm(`${formatDateWithDay(date)} のログを削除しますか？`)) {
             return false;
         }
         localStorage.setItem('logs_undo', logsStr);
@@ -149,6 +152,7 @@ function initLogPage(mode) {
             editDialog.focus({ preventScroll: true });
         }
         fixNativeInputWidths(editDialog);
+        refreshPickerBoxes(editDialog);
     }
 
     /**
@@ -183,16 +187,18 @@ function initLogPage(mode) {
         }
         if (dowMatch) {
             const dowSpan = document.createElement('span');
-            dowSpan.className = 'log-dow';
+            // 入力画面の日付と同じく、土日・祝日の曜日は赤で示す
+            dowSpan.className = isHolidayDate(parseDateLocal(date)) ? 'log-dow holiday' : 'log-dow';
             dowSpan.textContent = dowMatch[2];
             dateWrap.appendChild(dowSpan);
         }
         top.appendChild(dateWrap);
 
         const editBtn = document.createElement('button');
-        editBtn.textContent = '✎';
+        editBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
         editBtn.title = '編集';
-        editBtn.className = 'edit-btn';
+        editBtn.setAttribute('aria-label', '編集');
+        editBtn.className = 'icon-btn edit-btn';
         editBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -205,7 +211,7 @@ function initLogPage(mode) {
         mid.className = 'log-mid';
         const times = document.createElement('span');
         times.className = 'log-times';
-        times.textContent = `${start} → ${end}`;
+        times.textContent = `${formatTime(start)} → ${formatTime(end)}`;
         mid.appendChild(times);
 
         const workChip = document.createElement('span');
@@ -217,7 +223,7 @@ function initLogPage(mode) {
         if (overtimeNum !== 0) {
             const overtimeChip = document.createElement('span');
             overtimeChip.className = overtimeNum > 0 ? 'chip overtime' : 'chip short';
-            overtimeChip.textContent = overtimeNum > 0 ? `+${overtime}h` : `${overtime}h`;
+            overtimeChip.textContent = `${formatSignedHours(overtime)}h`;
             mid.appendChild(overtimeChip);
         }
         card.appendChild(mid);
@@ -225,13 +231,13 @@ function initLogPage(mode) {
         if (b1s && b1e) {
             const sub = document.createElement('div');
             sub.className = 'log-sub';
-            sub.textContent = `中断(1) ${b1s}–${b1e}（${durationHours(b1s, b1e)}h）`;
+            sub.textContent = `中断(1) ${formatTime(b1s)}–${formatTime(b1e)}（${durationHours(b1s, b1e)}h）`;
             card.appendChild(sub);
         }
         if (b2s && b2e) {
             const sub = document.createElement('div');
             sub.className = 'log-sub';
-            sub.textContent = `中断(2) ${b2s}–${b2e}（${durationHours(b2s, b2e)}h）`;
+            sub.textContent = `中断(2) ${formatTime(b2s)}–${formatTime(b2e)}（${durationHours(b2s, b2e)}h）`;
             card.appendChild(sub);
         }
         return card;
@@ -246,14 +252,18 @@ function initLogPage(mode) {
     }
 
     /**
-     * 集計の数字を表示する。
+     * 集計の数字を表示する。残業は入力画面の結果と同じく、プラスなら「+」を付けて水色、マイナスなら赤で示す。
      * @param {{days: number, hours: string, overtime: string}} summary - summarizeLogRows() の結果
      * @returns {void}
      */
     function renderSummary(summary) {
         document.getElementById('stat-days').innerHTML = `${summary.days}<span class="stat-unit"> 日</span>`;
         document.getElementById('stat-hours').innerHTML = `${summary.hours}<span class="stat-unit">h</span>`;
-        document.getElementById('stat-overtime').innerHTML = `${summary.overtime}<span class="stat-unit">h</span>`;
+        document.getElementById('stat-overtime').innerHTML = `${formatSignedHours(summary.overtime)}<span class="stat-unit">h</span>`;
+        const overtimeNum = parseFloat(summary.overtime);
+        const tile = document.getElementById('stat-overtime-tile');
+        tile.classList.toggle('overtime', overtimeNum > 0);
+        tile.classList.toggle('short', overtimeNum < 0);
     }
 
     /**
