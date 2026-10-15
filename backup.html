@@ -84,7 +84,9 @@
         <div class="card">
             <h2>読み込み</h2>
             <p>書き出したファイルを選ぶと、その時点の内容に戻します。現在のデータは、ファイルの内容に置き換わります。</p>
-            <input type="file" id="restore-file" accept="application/json,.json" hidden>
+            <!-- ファイルの種類は絞らない。古いAndroidはJSONという種類を知らず、絞ると書き出したファイルを選べなくなるため。
+                 中身は読み込むときに確かめる（isValidBackup） -->
+            <input type="file" id="restore-file" hidden>
             <button id="restore-button">バックアップから復元</button>
         </div>
 
@@ -159,12 +161,7 @@
                         throw error;
                     }
                 } else {
-                    const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    a.click();
-                    URL.revokeObjectURL(url);
+                    downloadFile(new Blob([text], { type: 'application/json' }), filename);
                 }
                 localStorage.setItem('lastBackupAt', new Date().toISOString());
                 updateStatus();

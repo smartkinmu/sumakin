@@ -89,6 +89,10 @@
    zoomはSafari実機でネイティブのdate/time入力が崩れるため使用しない。 */
 html {
     font-size: 17px;
+    /* ブラウザが持つ「引っぱって読み込み直す」を止め、アプリの更新（setupPullToRefresh）だけを動かす。
+       両方が動くと、読み込み直しに割り込まれて新しいバージョンを取り込めないことがある。
+       ブラウザによって html と body のどちらの指定を見るかが違うため、両方に書く */
+    overscroll-behavior: contain;
 }
 html[data-font-size="medium"] {
     font-size: 19px;

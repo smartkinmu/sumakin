@@ -1,6 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
     <!-- アプリのアイコン「進む輪」。紺の地に、時間が進む青い輪（12時から8時まで）と白い針。
-         角は丸めない（ホーム画面に置くと、端末が丸める）。render.sh で PNG にする -->
+         角は丸めない（ホーム画面に置くと、端末が丸める）。render.sh で PNG にする。
+         Android は丸や角丸など色々な形に切り取る（manifest.json の maskable）ため、
+         絵は中心から半径 40%（410）の円の中に収める -->
     <rect width="1024" height="1024" fill="#16204a"/>
     <circle cx="512" cy="512" r="300" fill="none" stroke="#2a3670" stroke-width="72"/>
     <path d="M512 212 A300 300 0 1 1 252.2 662" fill="none" stroke="#6c8cff" stroke-width="72" stroke-linecap="round"/>

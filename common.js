@@ -12,7 +12,7 @@ function toMinutes(timeStr) {
  * アプリのバージョン。index.html の表示と manifest.json の "version" と同じ値にする
  * （test/test.js で一致を確認している）。バックアップファイルに記録する。
  */
-const APP_VERSION = '1.17.14';
+const APP_VERSION = '1.17.15';
 
 /**
  * "YYYY-MM-DD" を端末の時間帯の0時として Date にする。
@@ -951,6 +951,27 @@ function undoRestore() {
     replaceStorage(data);
     localStorage.removeItem('restore_undo');
     return true;
+}
+
+/**
+ * 書き出したファイルの一時的なURLを、保存を始めてから片付けるまでの時間（ミリ秒）。
+ * Androidでは保存があとから行われるため、すぐ片付けると保存に失敗する端末がある。
+ */
+const DOWNLOAD_URL_LIFETIME_MS = 60000;
+
+/**
+ * データをファイルとして保存（ダウンロード）する。バックアップとCSVの書き出しで使う。
+ * @param {Blob} blob - 保存する中身
+ * @param {string} filename - ファイル名
+ * @returns {void}
+ */
+function downloadFile(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), DOWNLOAD_URL_LIFETIME_MS);
 }
 
 /**

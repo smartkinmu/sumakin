@@ -355,13 +355,7 @@ function initLogPage(mode) {
         if (!confirm(`期間: ${rangeStart} 〜 ${rangeEnd}（${rows.length}件）\n\nこの期間のCSVをダウンロードしますか？`)) {
             return;
         }
-        const blob = new Blob([buildLogsCsv(rows)], { type: 'text/csv;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'logs.csv';
-        a.click();
-        URL.revokeObjectURL(url);
+        downloadFile(new Blob([buildLogsCsv(rows)], { type: 'text/csv;charset=utf-8' }), 'logs.csv');
     }
 
     document.getElementById('clear-logs').addEventListener('click', clearLogs);

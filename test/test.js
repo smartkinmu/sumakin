@@ -282,6 +282,35 @@ test('日付：UTCより西の時間帯でも曜日がずれない', () => {
     }
 });
 
+test('書き出し：保存を始めた直後には片付けず、時間をおいて片付ける（Androidで保存が失敗しないように）', () => {
+    const events = [];
+    const timers = [];
+    context.document = {
+        createElement: () => ({
+            click() {
+                events.push(`click:${this.href}:${this.download}`);
+            },
+        }),
+    };
+    context.URL = {
+        createObjectURL: () => 'blob:test',
+        revokeObjectURL: url => events.push(`revoke:${url}`),
+    };
+    context.setTimeout = (fn, ms) => timers.push({ fn, ms });
+    try {
+        run("downloadFile({}, 'logs.csv')");
+        assert.deepStrictEqual(events, ['click:blob:test:logs.csv']);
+        assert.strictEqual(timers.length, 1);
+        assert.ok(timers[0].ms >= 10000, `片付けまでの時間が短い（${timers[0].ms}ミリ秒）`);
+        timers[0].fn();
+        assert.deepStrictEqual(events, ['click:blob:test:logs.csv', 'revoke:blob:test']);
+    } finally {
+        delete context.document;
+        delete context.URL;
+        delete context.setTimeout;
+    }
+});
+
 test('バージョン：index.html・manifest.json・common.js が同じ値', () => {
     const indexVersion = fs.readFileSync(path.join(root, 'index.html'), 'utf8').match(/ver\.([\d.]+)/)[1];
     const manifestVersion = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8')).version;
