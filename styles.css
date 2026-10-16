@@ -371,18 +371,26 @@ button:disabled {
 .result:empty {
     display: none;
 }
-/* 入力画面の結果のカードは、スクロールしても「工数保存」の帯のすぐ下に残す。
-   帯の高さは文字サイズや画面の幅で変わるため、scripts.js が測って --button-group-height に入れる。
+/* 結果・集計のカード（入力画面の結果、ログ表示・納期ログ表示の集計）は、スクロールしても
+   上に留めた帯のすぐ下に残す。帯の高さと、キーボードで見えている範囲がずれた量は、
+   common.js の setupStickyHeader が測って入れる（--sticky-bar-height・--viewport-offset）。
    地の色の帯で包み、下を流れる欄が左右のすき間から見えないようにする（左右は .container の余白まで広げる） */
-.result-sticky {
+.sticky-summary {
     position: sticky;
-    top: var(--button-group-height, 76px);
+    top: calc(var(--viewport-offset, 0px) + var(--sticky-bar-height, 76px));
     z-index: 800;
-    margin: -4px -16px 0;
+    margin-left: -16px;
+    margin-right: -16px;
     padding: 8px 16px 10px;
     background: var(--bg);
 }
-.result-sticky:has(.result:empty) {
+.container > .sticky-summary {
+    margin-top: 0;
+}
+.container > .sticky-summary:first-child {
+    margin-top: -4px;
+}
+.sticky-summary:has(.result:empty) {
     display: none;
 }
 .result-head {
@@ -481,7 +489,8 @@ button:disabled {
    地の色を付けて、下を流れるカードを透けさせない。見出しは1行に収め、入りきらないときは「…」で省く */
 .topbar {
     position: sticky;
-    top: 0;
+    /* キーボードで見えている範囲がずれても、見えている範囲のいちばん上に留める（common.js の setupStickyHeader） */
+    top: var(--viewport-offset, 0px);
     z-index: 900;
     display: flex;
     align-items: center;
@@ -524,7 +533,8 @@ button:disabled {
    地の色を付けているので、下を流れる欄は透けない */
 .button-group {
     position: sticky;
-    top: 0;
+    /* キーボードで見えている範囲がずれても、見えている範囲のいちばん上に留める（common.js の setupStickyHeader） */
+    top: var(--viewport-offset, 0px);
     background: var(--bg);
     border-bottom: 1px solid var(--border);
     padding: 4px 16px 12px 16px;

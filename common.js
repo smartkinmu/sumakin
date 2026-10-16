@@ -12,7 +12,7 @@ function toMinutes(timeStr) {
  * アプリのバージョン。index.html の表示と manifest.json の "version" と同じ値にする
  * （test/test.js で一致を確認している）。バックアップファイルに記録する。
  */
-const APP_VERSION = '1.18.5';
+const APP_VERSION = '1.18.6';
 
 /**
  * "YYYY-MM-DD" を端末の時間帯の0時として Date にする。
@@ -1265,4 +1265,66 @@ function setupMenu() {
             menu.style.display = 'none';
         }
     });
+}
+
+/**
+ * 画面の上に留める帯（入力画面の「工数保存」の帯、ほかの画面の戻るボタンの行）と、
+ * そのすぐ下に留める結果・集計のカード（.sticky-summary）の高さを測って CSS に渡す。
+ * - --sticky-bar-height：帯の高さ（カードを帯のすぐ下に留めるため）
+ * - --sticky-header-height：帯とカードを合わせた高さ（入力欄に移ったとき、その裏に隠れないようにするため）
+ * - --viewport-offset：見えている範囲（visualViewport）の上端のずれ。iPhone でキーボードを出すと
+ *   画面全体が上にずれ、留めた部分が画面の外に出るため、そのぶん下げて入力中も見える位置に留める
+ * 高さは文字サイズ・画面の幅・中身で変わるため、変わるたびに測り直す。
+ * @param {HTMLElement} bar - 上に留める帯
+ * @param {HTMLElement} [summary] - 帯の下に留めるカードの枠（.sticky-summary）
+ * @returns {void}
+ */
+function setupStickyHeader(bar, summary) {
+    if (!bar) return;
+    const rootStyle = document.documentElement.style;
+    const updateHeights = () => {
+        rootStyle.setProperty('--sticky-bar-height', `${bar.offsetHeight}px`);
+        rootStyle.setProperty('--sticky-header-height', `${bar.offsetHeight + (summary ? summary.offsetHeight : 0)}px`);
+    };
+    // 画面が描かれる前にも正しい位置に置けるよう、まず一度すぐに測る
+    updateHeights();
+    const observer = new ResizeObserver(updateHeights);
+    observer.observe(bar);
+    if (summary) observer.observe(summary);
+
+    /**
+     * 入力中の欄が、上に留めた帯やカードの裏、または画面の下（キーボードの裏）にあれば、見える所まで画面を動かす。
+     * iPhone はキーボードを出すとき欄が見える最小限だけ動かし、上に留めた部分を考えないため、欄がカードの裏に隠れる。
+     * @returns {void}
+     */
+    const revealFocused = () => {
+        const el = document.activeElement;
+        if (!el || !el.matches('input, select, textarea') || el.closest('dialog')) return;
+        if (bar.contains(el) || (summary && summary.contains(el))) return;
+        const viewport = window.visualViewport;
+        const viewTop = viewport ? viewport.offsetTop : 0;
+        const viewBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+        const headerBottom = viewTop + bar.offsetHeight + (summary ? summary.offsetHeight : 0);
+        const rect = el.getBoundingClientRect();
+        const gap = 8;
+        if (rect.top < headerBottom + gap) {
+            window.scrollBy(0, rect.top - headerBottom - gap);
+        } else if (rect.bottom > viewBottom - gap) {
+            window.scrollBy(0, rect.bottom - viewBottom + gap);
+        }
+    };
+    // キーボードが出きってから測るため、少し待つ
+    document.addEventListener('focusin', () => setTimeout(revealFocused, 350));
+
+    if (window.visualViewport) {
+        const updateOffset = () => {
+            rootStyle.setProperty('--viewport-offset', `${Math.max(0, Math.round(window.visualViewport.offsetTop))}px`);
+        };
+        window.visualViewport.addEventListener('resize', () => {
+            updateOffset();
+            revealFocused();
+        });
+        window.visualViewport.addEventListener('scroll', updateOffset);
+        updateOffset();
+    }
 }

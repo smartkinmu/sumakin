@@ -59,6 +59,8 @@
             // 「更新」ボタンと画面を下に引く操作で、最新版を取得する
             document.getElementById('refresh-button').addEventListener('click', refreshApp);
             setupPullToRefresh();
+            // 戻るボタンの行を、入力中も画面の上に留める（common.js）
+            setupStickyHeader(document.querySelector('.topbar'));
 
             /**
              * 最終バックアップ日時の表示を更新する。

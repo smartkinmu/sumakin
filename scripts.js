@@ -28,18 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const taskGroupsContainer = document.getElementById("task-groups-container");
     const interruptLeaveSection = document.getElementById("interrupt-leave-section");
 
-    // 結果のカードを「工数保存」の帯のすぐ下に留めるため、帯の高さを CSS に渡す（--button-group-height）。
-    // 入力欄に移ったときに留めた部分の裏に隠れないよう、帯とカードを合わせた高さも渡す（--sticky-header-height）。
-    // 高さは文字サイズ・画面の幅・結果の中身で変わるため、変わるたびに測り直す
-    const buttonGroup = document.querySelector('.button-group');
-    const resultSticky = document.querySelector('.result-sticky');
-    const stickyObserver = new ResizeObserver(() => {
-        const rootStyle = document.documentElement.style;
-        rootStyle.setProperty('--button-group-height', `${buttonGroup.offsetHeight}px`);
-        rootStyle.setProperty('--sticky-header-height', `${buttonGroup.offsetHeight + resultSticky.offsetHeight}px`);
-    });
-    stickyObserver.observe(buttonGroup);
-    stickyObserver.observe(resultSticky);
+    // 「工数保存」の帯と結果のカードを、スクロールしても入力中も画面の上に留める（common.js）
+    setupStickyHeader(document.querySelector('.button-group'), document.querySelector('.sticky-summary'));
 
     // date/time入力欄の実際のpx幅を測定して明示指定する（Safari対策）
     fixNativeInputWidths();

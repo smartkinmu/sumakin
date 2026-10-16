@@ -17,6 +17,8 @@ function initLogPage(mode) {
     // 右上のメニュー（入力画面と同じ形）と、日付・時刻の箱
     setupMenu();
     setupPickerBoxes();
+    // 戻るボタンの行と集計のカードを、スクロールしても入力中も画面の上に留める
+    setupStickyHeader(document.querySelector('.topbar'), document.querySelector('.sticky-summary'));
     // date/time入力欄の実際のpx幅を測定して明示指定する（Safari対策）
     fixNativeInputWidths();
     window.addEventListener('resize', () => fixNativeInputWidths());
