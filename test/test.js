@@ -356,12 +356,24 @@ test('アイコン：iPhone が使えるよう、manifest のアイコンは PNG
     // 混ざると、名前の頭の文字のアイコン（「ス」）にしてしまう。docs/ios-home-screen-icon/README.md
     const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
     manifest.icons.forEach(icon => {
-        assert.strictEqual(icon.type, 'image/png', `${icon.src} が PNG でない`);
-        assert.ok(!icon.purpose, `${icon.src} に purpose が付いている`);
+        assert.strictEqual(icon.type, 'image/png', `${icon.src.slice(0, 40)} が PNG でない`);
+        assert.ok(!icon.purpose, `${icon.src.slice(0, 40)} に purpose が付いている`);
+        if (icon.src.startsWith('data:')) return;
         const file = icon.src.split('?')[0];
         assert.ok(fs.existsSync(path.join(root, file)), `${file} がない`);
     });
     assert.ok(manifest.icons.some(icon => icon.sizes === '180x180'), '180×180 のアイコンがない');
+});
+
+test('アイコン：iPhone 用の 180 は、画像を取りに行かずに済むよう、apple-touch-icon.png を書き込んだもの（data URL）にする', () => {
+    // 実機（iOS 27.1）では、ホーム画面に追加するときにアイコンの画像を取りに行けず「ス」のままになった。
+    // 書き込んだ画像なら取りに行かずに済む（tools/icon/embed.py が入れる）
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json'), 'utf8'));
+    const touch = manifest.icons.find(icon => icon.sizes === '180x180').src;
+    const prefix = 'data:image/png;base64,';
+    assert.ok(touch.startsWith(prefix), '180 が書き込んだ画像になっていない');
+    const embedded = Buffer.from(touch.slice(prefix.length), 'base64');
+    assert.ok(embedded.equals(fs.readFileSync(path.join(root, 'apple-touch-icon.png'))), '書き込んだ画像が apple-touch-icon.png と違う');
 });
 
 test('アイコン：6 つの画面すべてで、iPhone 用のアイコンと manifest を、manifest と同じ印付きのアドレスで指定する', () => {

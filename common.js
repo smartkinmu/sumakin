@@ -12,7 +12,7 @@ function toMinutes(timeStr) {
  * アプリのバージョン。index.html の表示と manifest.json の "version" と同じ値にする
  * （test/test.js で一致を確認している）。バックアップファイルに記録する。
  */
-const APP_VERSION = '1.18.3';
+const APP_VERSION = '1.18.4';
 
 /**
  * "YYYY-MM-DD" を端末の時間帯の0時として Date にする。
