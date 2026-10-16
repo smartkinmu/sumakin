@@ -93,6 +93,8 @@ html {
        両方が動くと、読み込み直しに割り込まれて新しいバージョンを取り込めないことがある。
        ブラウザによって html と body のどちらの指定を見るかが違うため、両方に書く */
     overscroll-behavior: contain;
+    /* 入力欄に移ったとき、上に留めた帯や結果のカードの裏に隠れないようにする（高さは scripts.js が入れる） */
+    scroll-padding-top: var(--sticky-header-height, 0px);
 }
 html[data-font-size="medium"] {
     font-size: 19px;
@@ -367,6 +369,20 @@ button:disabled {
     color: var(--text);
 }
 .result:empty {
+    display: none;
+}
+/* 入力画面の結果のカードは、スクロールしても「工数保存」の帯のすぐ下に残す。
+   帯の高さは文字サイズや画面の幅で変わるため、scripts.js が測って --button-group-height に入れる。
+   地の色の帯で包み、下を流れる欄が左右のすき間から見えないようにする（左右は .container の余白まで広げる） */
+.result-sticky {
+    position: sticky;
+    top: var(--button-group-height, 76px);
+    z-index: 800;
+    margin: -4px -16px 0;
+    padding: 8px 16px 10px;
+    background: var(--bg);
+}
+.result-sticky:has(.result:empty) {
     display: none;
 }
 .result-head {
