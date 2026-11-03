@@ -2,3 +2,5 @@
 .DS_Store
 # 調べ物で保存した他社の資料（取った記録は docs/<調べ物>/sources.md に残す）
 docs/*/documents/
+# 調べ物の資料は外付けの SSD に置き、元の場所からリンク。リンクにも当たるよう末尾に / を付けない（2026-11-03）
+docs/*/documents
