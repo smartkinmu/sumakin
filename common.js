@@ -12,7 +12,7 @@ function toMinutes(timeStr) {
  * アプリのバージョン。index.html の表示と manifest.json の "version" と同じ値にする
  * （test/test.js で一致を確認している）。バックアップファイルに記録する。
  */
-const APP_VERSION = '1.18.7';
+const APP_VERSION = '1.18.8';
 
 /**
  * "YYYY-MM-DD" を端末の時間帯の0時として Date にする。
@@ -814,12 +814,20 @@ async function refreshApp() {
 function setupPullToRefresh() {
     let startY = null;
     let triggered = false;
+    const isAtTop = () => {
+        const scroller = document.querySelector('.scroll-area');
+        return window.scrollY <= 0 && (!scroller || scroller.scrollTop <= 0);
+    };
     window.addEventListener('touchstart', event => {
-        startY = window.scrollY === 0 ? event.touches[0].pageY : null;
+        startY = isAtTop() ? event.touches[0].pageY : null;
     });
     window.addEventListener('touchmove', event => {
         if (startY === null || triggered) return;
-        if (window.scrollY === 0 && event.touches[0].pageY > startY + 50) {
+        if (!isAtTop()) {
+            startY = null;
+            return;
+        }
+        if (event.touches[0].pageY > startY + 50) {
             triggered = true;
             refreshApp();
         }
@@ -1282,8 +1290,10 @@ function setupMenu() {
 function setupStickyHeader(bar, summary) {
     if (!bar) return;
     const rootStyle = document.documentElement.style;
+    const scrollArea = document.querySelector('.scroll-area');
     const getHeaderHeight = () =>
-        bar.getBoundingClientRect().height + (summary ? summary.getBoundingClientRect().height : 0);
+        bar.getBoundingClientRect().height +
+        (summary && !bar.contains(summary) ? summary.getBoundingClientRect().height : 0);
     const updateHeights = () => {
         rootStyle.setProperty('--sticky-bar-height', `${bar.getBoundingClientRect().height}px`);
         rootStyle.setProperty('--sticky-header-height', `${getHeaderHeight()}px`);
@@ -1292,7 +1302,7 @@ function setupStickyHeader(bar, summary) {
     updateHeights();
     const observer = new ResizeObserver(updateHeights);
     observer.observe(bar);
-    if (summary) observer.observe(summary);
+    if (summary && !bar.contains(summary)) observer.observe(summary);
 
     /**
      * 入力中の欄が、上に留めた帯やカードの裏、または画面の下（キーボードの裏）にあれば、見える所まで画面を動かす。
@@ -1304,11 +1314,23 @@ function setupStickyHeader(bar, summary) {
         if (!el || !el.matches('input, select, textarea') || el.closest('dialog')) return;
         if (bar.contains(el) || (summary && summary.contains(el))) return;
         const viewport = window.visualViewport;
+        const rect = el.getBoundingClientRect();
+        const gap = 8;
+        if (scrollArea && scrollArea.contains(el)) {
+            const areaRect = scrollArea.getBoundingClientRect();
+            const areaBottom = viewport
+                ? Math.min(areaRect.bottom, viewport.offsetTop + viewport.height)
+                : areaRect.bottom;
+            if (rect.top < areaRect.top + gap) {
+                scrollArea.scrollBy(0, rect.top - areaRect.top - gap);
+            } else if (rect.bottom > areaBottom - gap) {
+                scrollArea.scrollBy(0, rect.bottom - areaBottom + gap);
+            }
+            return;
+        }
         const viewTop = viewport ? viewport.offsetTop : 0;
         const viewBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
         const headerBottom = viewTop + getHeaderHeight();
-        const rect = el.getBoundingClientRect();
-        const gap = 8;
         if (rect.top < headerBottom + gap) {
             window.scrollBy(0, rect.top - headerBottom - gap);
         } else if (rect.bottom > viewBottom - gap) {
@@ -1321,6 +1343,7 @@ function setupStickyHeader(bar, summary) {
     if (window.visualViewport) {
         const updateOffset = () => {
             rootStyle.setProperty('--viewport-offset', `${Math.max(0, window.visualViewport.offsetTop)}px`);
+            rootStyle.setProperty('--app-height', `${window.visualViewport.height}px`);
         };
         window.visualViewport.addEventListener('resize', updateOffset);
         window.visualViewport.addEventListener('scroll', updateOffset);

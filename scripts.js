@@ -28,8 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const taskGroupsContainer = document.getElementById("task-groups-container");
     const interruptLeaveSection = document.getElementById("interrupt-leave-section");
 
-    // 「工数保存」の帯と結果のカードを、スクロールしても入力中も画面の上に留める（common.js）
-    setupStickyHeader(document.querySelector('.button-group'), document.querySelector('.sticky-summary'));
+    // 上の部分（タイトル・「工数保存」の帯・結果のカード）を固定し、下の入力欄と分ける（common.js）
+    setupStickyHeader(document.querySelector('.sticky-header'), document.querySelector('.sticky-summary'));
 
     // date/time入力欄の実際のpx幅を測定して明示指定する（Safari対策）
     fixNativeInputWidths();

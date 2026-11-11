@@ -114,6 +114,37 @@ body {
     font-size: 1rem;
 }
 
+/* 入力画面（.split-layout）は画面全体をスクロールさせず、上の固定領域（.sticky-header）と
+   下のスクロール領域（.scroll-area）に上下分割する。下のスクロールが上の固定領域に一切影響しない */
+html:has(body.split-layout) {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    scroll-padding-top: 0;
+}
+
+body.split-layout {
+    position: fixed;
+    top: var(--viewport-offset, 0px);
+    left: 0;
+    right: 0;
+    height: var(--app-height, 100dvh);
+    min-height: 0;
+    overflow: hidden;
+}
+
+.scroll-area {
+    display: block;
+    height: calc(var(--app-height, 100dvh) - var(--sticky-header-height, 220px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+.scroll-area > .container {
+    padding-top: 10px;
+}
+
 a {
     color: var(--accent);
 }
@@ -358,9 +389,9 @@ button:disabled {
 
 /* ===== 入力確認・計算の結果表示 ===== */
 /* 結果・集計のカード（入力画面の結果と、ログ表示・納期ログ表示の集計）。
-   ほかの白いカードと見分けがつくよう、青い縁取りと影を付けて浮かせる */
+   ほかの白いカードと見分けがつくよう、青い縁取りを付ける（浮き上がりの影は付けない） */
 .summary-card {
-    box-shadow: 0 0 0 2px var(--accent), 0 12px 26px -10px var(--accent-shadow);
+    box-shadow: 0 0 0 2px var(--accent);
 }
 .result {
     background: var(--surface);
@@ -530,22 +561,33 @@ button:disabled {
     height: 20px;
 }
 
-/* 「工数保存」「メール作成」の帯と結果のカード（.sticky-header）は、ひとまとめにして
-   スクロールしても画面の上に残す。別々に留めるとスクロール中やキーボード表示中に
-   2つの枠の間がずれるため、1つの枠でまとめて留める */
+/* 入力画面の上部固定領域（タイトル・「工数保存」の帯・勤務時間の結果カード）。
+   浮かせずに画面上部へ固定し、区切り線の下にある入力欄（.scroll-area）だけをスクロールさせる */
 .sticky-header {
-    position: sticky;
-    /* キーボードで見えている範囲がずれても、見えている範囲のいちばん上に留める（common.js の setupStickyHeader） */
-    top: var(--viewport-offset, 0px);
+    position: relative;
     background: var(--bg);
+    border-bottom: 1px solid var(--border);
     z-index: 900;
+}
+
+.sticky-header .app-header {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 12px 20px 4px 20px;
+}
+
+.sticky-header .button-group {
+    max-width: 480px;
+    margin: 0 auto;
+    border-bottom: none;
+    padding: 4px 16px 4px 16px;
 }
 
 .sticky-header .sticky-summary {
     position: static;
     max-width: 480px;
     margin: 0 auto;
-    padding: 8px 16px 6px;
+    padding: 4px 16px 10px;
 }
 
 /* 「工数保存」「メール作成」の帯。地の色を付けているので、下を流れる欄は透けない */
