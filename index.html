@@ -21,41 +21,43 @@
 </head>
 <body>
     <div id="refresh-indicator">更新中...</div>
-    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.18.6</span></div>
+    <div class="app-header">スマ勤サポートアプリ<span class="version">ver.1.18.7</span></div>
 
-    <div class="button-group">
-        <div class="main-buttons">
-            <button id="submit-button">工数保存</button>
-            <button id="email-button">メール作成</button>
-            <button id="menu-button" class="icon-btn" aria-label="メニュー">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
-            </button>
-        </div>
-        <div id="hamburger-menu" class="hamburger-menu">
-            <a href="logs.html">ログ表示</a>
-            <a href="due_logs.html">納期ログ表示</a>
-            <button id="refresh-button">更新</button>
-            <a href="settings.html">設定</a>
-            <a href="backup.html">バックアップ</a>
-            <button id="copy-task1-button">業務1コピー</button>
-            <a href="manual.html">使い方</a>
-            <div class="menu-font-size">
-                <span class="menu-font-size-label">文字サイズ</span>
-                <div class="font-size-toggle" id="font-size-toggle" role="group" aria-label="文字サイズ">
-                    <button type="button" class="font-size-option" data-size="small">小</button>
-                    <button type="button" class="font-size-option" data-size="medium">中</button>
-                    <button type="button" class="font-size-option" data-size="large">大</button>
+    <div class="sticky-header">
+        <div class="button-group">
+            <div class="main-buttons">
+                <button id="submit-button">工数保存</button>
+                <button id="email-button">メール作成</button>
+                <button id="menu-button" class="icon-btn" aria-label="メニュー">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+                </button>
+            </div>
+            <div id="hamburger-menu" class="hamburger-menu">
+                <a href="logs.html">ログ表示</a>
+                <a href="due_logs.html">納期ログ表示</a>
+                <button id="refresh-button">更新</button>
+                <a href="settings.html">設定</a>
+                <a href="backup.html">バックアップ</a>
+                <button id="copy-task1-button">業務1コピー</button>
+                <a href="manual.html">使い方</a>
+                <div class="menu-font-size">
+                    <span class="menu-font-size-label">文字サイズ</span>
+                    <div class="font-size-toggle" id="font-size-toggle" role="group" aria-label="文字サイズ">
+                        <button type="button" class="font-size-option" data-size="small">小</button>
+                        <button type="button" class="font-size-option" data-size="medium">中</button>
+                        <button type="button" class="font-size-option" data-size="large">大</button>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- 勤務時間などの結果のカードは、「工数保存」の帯とひとまとめにして画面の上に留める -->
+        <div class="sticky-summary">
+            <div id="result" class="result summary-card"></div>
         </div>
     </div>
 
     <div class="container">
-        <!-- 勤務時間などの結果のカードは、スクロールしても「工数保存」の帯のすぐ下に残す -->
-        <div class="sticky-summary">
-            <div id="result" class="result summary-card"></div>
-        </div>
-
         <div class="card">
             <!-- 日付・始業・終業を1行に並べる。見せる文字の上に透明な入力欄を重ね、押すとピッカーが開く -->
             <div class="datetime-row">

@@ -107,6 +107,7 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
     padding: 0;
+    min-height: 100vh;
     background-color: var(--bg);
     color: var(--text);
     overscroll-behavior: contain;
@@ -529,17 +530,32 @@ button:disabled {
     height: 20px;
 }
 
-/* 「工数保存」「メール作成」の帯は、スクロールしても画面の上に残す。
-   地の色を付けているので、下を流れる欄は透けない */
-.button-group {
+/* 「工数保存」「メール作成」の帯と結果のカード（.sticky-header）は、ひとまとめにして
+   スクロールしても画面の上に残す。別々に留めるとスクロール中やキーボード表示中に
+   2つの枠の間がずれるため、1つの枠でまとめて留める */
+.sticky-header {
     position: sticky;
     /* キーボードで見えている範囲がずれても、見えている範囲のいちばん上に留める（common.js の setupStickyHeader） */
     top: var(--viewport-offset, 0px);
     background: var(--bg);
+    z-index: 900;
+}
+
+.sticky-header .sticky-summary {
+    position: static;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 8px 16px 6px;
+}
+
+/* 「工数保存」「メール作成」の帯。地の色を付けているので、下を流れる欄は透けない */
+.button-group {
+    position: relative;
+    background: var(--bg);
     border-bottom: 1px solid var(--border);
     padding: 4px 16px 12px 16px;
     margin-bottom: 0;
-    z-index: 900;
+    z-index: 1;
 }
 
 .main-buttons {

@@ -12,7 +12,7 @@ function toMinutes(timeStr) {
  * アプリのバージョン。index.html の表示と manifest.json の "version" と同じ値にする
  * （test/test.js で一致を確認している）。バックアップファイルに記録する。
  */
-const APP_VERSION = '1.18.6';
+const APP_VERSION = '1.18.7';
 
 /**
  * "YYYY-MM-DD" を端末の時間帯の0時として Date にする。
@@ -1282,9 +1282,11 @@ function setupMenu() {
 function setupStickyHeader(bar, summary) {
     if (!bar) return;
     const rootStyle = document.documentElement.style;
+    const getHeaderHeight = () =>
+        bar.getBoundingClientRect().height + (summary ? summary.getBoundingClientRect().height : 0);
     const updateHeights = () => {
-        rootStyle.setProperty('--sticky-bar-height', `${bar.offsetHeight}px`);
-        rootStyle.setProperty('--sticky-header-height', `${bar.offsetHeight + (summary ? summary.offsetHeight : 0)}px`);
+        rootStyle.setProperty('--sticky-bar-height', `${bar.getBoundingClientRect().height}px`);
+        rootStyle.setProperty('--sticky-header-height', `${getHeaderHeight()}px`);
     };
     // 画面が描かれる前にも正しい位置に置けるよう、まず一度すぐに測る
     updateHeights();
@@ -1304,7 +1306,7 @@ function setupStickyHeader(bar, summary) {
         const viewport = window.visualViewport;
         const viewTop = viewport ? viewport.offsetTop : 0;
         const viewBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
-        const headerBottom = viewTop + bar.offsetHeight + (summary ? summary.offsetHeight : 0);
+        const headerBottom = viewTop + getHeaderHeight();
         const rect = el.getBoundingClientRect();
         const gap = 8;
         if (rect.top < headerBottom + gap) {
@@ -1318,13 +1320,11 @@ function setupStickyHeader(bar, summary) {
 
     if (window.visualViewport) {
         const updateOffset = () => {
-            rootStyle.setProperty('--viewport-offset', `${Math.max(0, Math.round(window.visualViewport.offsetTop))}px`);
+            rootStyle.setProperty('--viewport-offset', `${Math.max(0, window.visualViewport.offsetTop)}px`);
         };
-        window.visualViewport.addEventListener('resize', () => {
-            updateOffset();
-            revealFocused();
-        });
+        window.visualViewport.addEventListener('resize', updateOffset);
         window.visualViewport.addEventListener('scroll', updateOffset);
+        window.addEventListener('scroll', updateOffset, { passive: true });
         updateOffset();
     }
 }
