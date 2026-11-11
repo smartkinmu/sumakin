@@ -2,7 +2,8 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("service-worker.js");
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+// body の末尾で読み込まれるため、DOMContentLoaded を待たずにすぐ実行して初回描画前のちらつきを防ぐ
+(function() {
     const dateInput = document.getElementById('date');
     const dateText = document.getElementById('date-text');
     const dateHoliday = document.getElementById('date-holiday');
@@ -331,13 +332,12 @@ document.addEventListener('DOMContentLoaded', function() {
         updateTaskGroups();
     });
 
-    // 初期表示の更新
+    // 初期表示の更新（日付・控えの復元まで一度に済ませてから結果を描き、読み込み時のちらつきを防ぐ）
     if (localStorage.getItem('groupCount')) {
         groupCountPicker.value = localStorage.getItem('groupCount');
     }
     updateTaskGroups();
     loadTaskDataFromStorage();
-    updateLiveResult();
 
     // 右上のメニュー（ログの画面と同じ形。common.js）
     setupMenu();
@@ -998,7 +998,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     setInitialDate();
-    window.addEventListener('pageshow', setInitialDate);
+    if (!applyRestoreRequest()) {
+        restoreInputDraft();
+    }
+    inputDraftReady = true;
+    updateLiveResult();
+
+    window.addEventListener('pageshow', event => {
+        if (event.persisted) {
+            setInitialDate();
+        }
+    });
     // 開いたままの画面に戻ったとき（翌朝など）にも、日付を今日に合わせ直す
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
@@ -1293,17 +1303,8 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
     });
 
-    // ページロード時の処理
+    // 起動時のみ一度だけ入力漏れ警告を表示する
     window.addEventListener('load', () => {
-        loadTaskDataFromStorage();
-        // ログ画面の「入力画面に戻す」から来たときは、その日の内容に置き換える。
-        // それ以外は、ほかの画面へ移る前の工数・中断時間・休暇を戻す
-        if (!applyRestoreRequest()) {
-            restoreInputDraft();
-        }
-        inputDraftReady = true;
-        updateLiveResult();
-        // 起動時のみ一度だけ入力漏れ警告を表示する
         if (!sessionStorage.getItem('missingLogsChecked')) {
             sessionStorage.setItem('missingLogsChecked', '1');
             afterFirstPaint(checkMissingLogs);
@@ -1325,9 +1326,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let refreshing;
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.addEventListener('controllerchange', function() {
-            if (refreshing) return;
+            if (refreshing || window.__reloadingApp) return;
             window.location.reload();
             refreshing = true;
         });
     }
-});
+})();

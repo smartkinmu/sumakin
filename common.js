@@ -12,7 +12,7 @@ function toMinutes(timeStr) {
  * アプリのバージョン。index.html の表示と manifest.json の "version" と同じ値にする
  * （test/test.js で一致を確認している）。バックアップファイルに記録する。
  */
-const APP_VERSION = '1.18.8';
+const APP_VERSION = '1.18.9';
 
 /**
  * "YYYY-MM-DD" を端末の時間帯の0時として Date にする。
@@ -800,10 +800,11 @@ async function refreshApp() {
             return;
         }
         const reg = await navigator.serviceWorker.getRegistration();
-        reg?.update();
+        await reg?.update().catch(() => {});
     }
     // 他タブのログ画面にも更新を通知する（最新版を取り込めたときだけ）
     localStorage.setItem('refreshLogs', Date.now().toString());
+    window.__reloadingApp = true;
     location.reload();
 }
 

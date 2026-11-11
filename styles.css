@@ -124,18 +124,22 @@ html:has(body.split-layout) {
 }
 
 body.split-layout {
-    position: fixed;
-    top: var(--viewport-offset, 0px);
-    left: 0;
-    right: 0;
-    height: var(--app-height, 100dvh);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
     min-height: 0;
     overflow: hidden;
 }
 
+.sticky-header {
+    flex: none;
+}
+
 .scroll-area {
+    flex: 1;
+    min-height: 0;
     display: block;
-    height: calc(var(--app-height, 100dvh) - var(--sticky-header-height, 220px));
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
@@ -504,16 +508,24 @@ button:disabled {
     color: var(--text-muted);
 }
 
+/* 更新中の案内は画面上部に重ねて表示し、下の要素を押し下げて画面がちらつくのを防ぐ */
 #refresh-indicator {
     display: none;
+    position: fixed;
+    top: 12px;
+    left: 16px;
+    right: 16px;
+    max-width: 448px;
+    margin: 0 auto;
+    z-index: 2000;
     text-align: center;
     font-size: 0.95em;
     font-weight: 700;
     padding: 10px;
-    margin: 0 16px 10px 16px;
     border-radius: var(--radius-sm);
     color: var(--accent-text);
     background-color: var(--accent);
+    box-shadow: 0 8px 20px -6px var(--accent-shadow);
 }
 
 /* ===== Top action bar ===== */
